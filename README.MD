@@ -26,7 +26,7 @@ axios.get('http://www.api.com/xyz', res => console.log(res.data));
 ```
 
 ## Webpack plugin
-With this webpack plugin, it will automatically find your mock files and inject the page entry.
+With this webpack plugin, it will automatically find your mock files and inject into specified entry.
 
 #### Options:
 1. enable: Whether or not to enable this plugin.
@@ -34,8 +34,8 @@ With this webpack plugin, it will automatically find your mock files and inject 
 3. dir: Mock directory in which mock files will be stored.
 4. watch: Callback when a mock file changes.
 5. inject: By default, mock dependency will be auto injected.
-           If false is specified, nothing will be injected.
-           If function is specified, you can custom inject your mock dependency.
+           If a false is specified, nothing will be injected.
+           If a function is specified, you can custom inject your mock dependency.
 ```javascript
   // ...
   const WebpackPlugin = require('xhr-response-mock/plugin/Webpack');
@@ -88,8 +88,8 @@ module.exports = {
   data: 'sample-data',
 };
 ```
-Yes, this webpack plugin will parse mock files comments and extract tags(@url, @method, ...).
-All your need is writing the corresponding mock files.
+Yes, this webpack plugin will parse mock files comments and extract tags info(@url, @method, ...).
+And, it'll generate mock dependencies with these tags. All your need is writing the corresponding mock files.
 
 
 

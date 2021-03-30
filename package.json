@@ -1,6 +1,6 @@
 {
   "name": "xhr-response-mock",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "xhr response mock",
   "main": "dist/index.js",
   "scripts": {

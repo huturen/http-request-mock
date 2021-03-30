@@ -55,7 +55,6 @@ describe('mock axios request', () => {
 
     let result = null;
     axios.post('http://www.api.com/delay', {}).then(res => {
-      console.log('res.data:', res.data);
       result = res.data
     });
     setTimeout(() => expect(result).toBe(null), 10);

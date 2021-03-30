@@ -1,6 +1,5 @@
 ## xhr-response-mock
 Utility for mocking by intercepting XMLHttpRequest raw request.
-Intercept XMLHttpRequest raw request and return prepared data if specified url is matched.
 It's very convenient for development while your backend is not ready.
 
 ## Installation

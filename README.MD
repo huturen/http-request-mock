@@ -26,6 +26,8 @@ axios.get('http://www.api.com/xyz', res => console.log(res.data));
 ```
 
 ## Webpack plugin
+With this webpack plugin, it will automatically find your mock files and inject the page entry.
+
 #### Options:
 1. enable: Whether or not to enable this plugin.
 2. entry: Page entry in which mock data will be injected.
@@ -36,6 +38,8 @@ axios.get('http://www.api.com/xyz', res => console.log(res.data));
            If function is specified, you can custom inject your mock dependency.
 ```javascript
   // ...
+  const WebpackPlugin = require('xhr-response-mock/plugin/Webpack');
+
   plugins: [
     new WebpackPlugin({
       enable: process.env.NODE_ENV === 'development',
@@ -84,6 +88,9 @@ module.exports = {
   data: 'sample-data',
 };
 ```
+Yes, this webpack plugin will parse mock files comments and extract tags(@url, @method, ...).
+All your need is writing the corresponding mock files.
+
 
 
 ## API
@@ -122,7 +129,7 @@ Register a mock response config for all DELETE requests to match the specific UR
 
 ## TODO
 ```
-1. support fetch mock
+1. support fetch
 2. support nodejs
 3. support request params match
 4. support http status mock

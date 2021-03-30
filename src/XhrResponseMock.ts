@@ -19,7 +19,7 @@ class XhrResponseMock {
 
   // backward compatibility
   static init() {
-    return this.setup();
+    return new XhrResponseMock();
   }
 
   static setupForUnitTest() {

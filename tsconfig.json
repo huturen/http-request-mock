@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "es5",
+    "module": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "allowJs": true,
+    "noEmit": false,
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "strictPropertyInitialization": false,
+    "allowSyntheticDefaultImports" : true,
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

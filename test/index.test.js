@@ -1,9 +1,7 @@
 import axios from 'axios';
 import XhrResonseMock from '../src/index';
 
-XhrResonseMock.mockXMLHttpRequest();
-
-const mock = XhrResonseMock.init();
+const mock = XhrResonseMock.setupForUnitTest();
 
 describe('mock axios request', () => {
   it('string url should match the mock request', (done) => {

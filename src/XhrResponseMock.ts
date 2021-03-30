@@ -13,11 +13,16 @@ class XhrResponseMock {
     return this;
   }
 
-  static init() {
+  static setup() {
     return new XhrResponseMock();
   }
 
-  static mockXMLHttpRequest() {
+  // backward compatibility
+  static init() {
+    return this.setup();
+  }
+
+  static setupForUnitTest() {
     window.XMLHttpRequest = <any> function() {};
     window.XMLHttpRequest.prototype = <any>{
       open: function() {},
@@ -32,6 +37,7 @@ class XhrResponseMock {
       get response() { return ''; },
       get responseText() { return ''; },
     };
+    return new XhrResponseMock();
   }
 
   doMock(mockItem: any) {

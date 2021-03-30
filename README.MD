@@ -9,30 +9,18 @@ npm install --save-dev xhr-response-mock
 
 ## Usage: More usage please refer to unit test.
 ```javascript
-// mockConfig.js
 import XhrResonseMock from 'xhr-response-mock';
+const mock = XhrResonseMock.setup();
+// set a mock response for all GET requests matched /.*\/xyz/
+mock.get(/.*\/xyz/, { ret: 0, msg: 'ok'});
+// set a mock response for all POST requests matched http://www.xyz.com/abc/efg
+mock.post('http://www.xyz.com/abc/efg', { ret: 0, msg: 'ok'});
 
-const xhrResonseMock = new XhrResonseMock(mockData);
-xhrResonseMock.mock({
-  url: 'http://www.xyz.com/abc/efg?xx=yy',
-  method: 'get',
-  data: { ret: 0, msg: 'ok'}
-});
 
-// or:
-xhrResonseMock.get('http://www.xyz.com/efg', { ret: 0, msg: 'ok'});
 
-// business.js
+// set a request based on XHR
 import axios from 'axios';
-
-axios({
-  url: 'http://www.xyz.com/abc/efg?xx=yy',
-  method: 'get',
-}).then(res => {
-  console.log('mock res:', res.data);
-}).catch(err => {
-  console.log('mock err:', err);
-});
+axios.get('http://www.api.com/xyz', res => console.log(res.data));
 ```
 
 ## Webpack plugin
@@ -97,9 +85,37 @@ module.exports = {
 
 
 ## API
-```
-To be continuted...
-```
+#### .setup()
+
+Setup to intercept XMLHttpRequest request.
+
+#### .setupForUnitTest(fn)
+
+Setup to intercept XMLHttpRequest request for unit test.
+
+#### .reset()
+
+Reset all the mock request config.
+
+#### .get(url | regex, mock)
+
+Register a mock response config for all GET requests to match the specific URL.
+
+#### .post(url | regex, mock)
+
+Register a mock response config for all POST requests to match the specific URL.
+
+#### .put(url | regex, mock)
+
+Register a mock response config for all PUT requests to match the specific URL.
+
+#### .patch(url | regex, mock)
+
+Register a mock response config for all PATCH requests to match the specific URL.
+
+#### .delete(url | regex, mock)
+
+Register a mock response config for all DELETE requests to match the specific URL.
 
 
 ## TODO

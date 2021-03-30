@@ -42,16 +42,32 @@ axios({
 3. dir: Mock directory in which mock files will be stored.
 4. watch: Callback when a mock file changes.
 5. inject: By default, mock dependency will be auto injected.
-           If specified, you can custom inject your mock dependency.
+           If false is specified, nothing will be injected.
+           If function is specified, you can custom inject your mock dependency.
+```javascript
+  // ...
+  plugins: [
+    new WebpackPlugin({
+      enable: process.env.NODE_ENV === 'development',
+      entry: /src\/pages\/[-\w]+\/index\.js$/,
+      dir: path.resolve(__dirname, 'mock/'),
+      inject: (source, runtimeDepsFile) => {
+        console.log('source, runtimeDepsFile:', source, runtimeDepsFile);
+        return `import '${runtimeDepsFile}';\n${source}`;
+      },
+    }),
+  ],
+  // ...
+```
 
 #### Example:
 ```javascript
 // webpack.config.js
-const XhrResponseMockWebpackPlugin = require('xhr-response-mock/WebpackPlugin');
+const WebpackPlugin = require('xhr-response-mock/plugin/Webpack');
 module.exports = {
   // other plugins...
   plugins: [
-    new XhrResponseMockWebpackPlugin({
+    new WebpackPlugin({
       enable: process.env.NODE_ENV === 'development',
       entry: /src\/pages\/[-\w]+\/index\.js$/,
       dir: path.resolve(__dirname, 'mock/'),

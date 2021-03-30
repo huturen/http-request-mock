@@ -6,7 +6,7 @@ const { parse, tokenizers } = require('comment-parser/lib');
 
 const PLUGIN_NAME = 'XhrResponseMockPlugin';
 module.exports = class XhrResponseMockPlugin {
-  constructor({ entry, dir, watch, enable = true, inject = true, useRuntimeDepsFile = false }) {
+  constructor({ entry, dir, watch, enable = true, inject = true }) {
     if (!(entry instanceof RegExp)) {
       throw new Error('The XhrResponseMockPlugin expects [entry] to be a valid RegExp Object.');
     }
@@ -19,7 +19,6 @@ module.exports = class XhrResponseMockPlugin {
     this.watch = typeof watch === 'function' ? watch : (() => {});
     this.enable = enable;
     this.inject = inject;
-    this.useRuntimeDepsFile = !!useRuntimeDepsFile;
 
     this.matchedFiles = [];
     this.inited = false;
@@ -38,20 +37,27 @@ module.exports = class XhrResponseMockPlugin {
         if (/simple-functional-loader\/index\.js/.test(last.loader)) return;
 
         const me = this;
-        const runtimeFile = this.useRuntimeDepsFile ? me.genRuntimeDepsFile() : false;
+        const runtimeFile = me.inject ? me.genRuntimeDepsFile() : undefined;
         module.loaders.push(createLoader(function(source) { // eslint-disable-line
           if (typeof me.inject === 'function') {
-            const newCodes = me.inject(source, runtimeFile);
-            return (newCodes && typeof newCodes === 'string') ? newCodes : source;
+            const codes = me.inject(source, runtimeFile);
+            return (codes && typeof codes === 'string') ? codes : source;
           }
+
           if (me.inject) {
-            const codes = me.getInjectCodes(runtimeFile);
-            return `${codes};\n${source}`;
+            return [
+              `/* eslint-disable */`,
+              `import '${runtimeFile}';`,
+              `/* eslint-enable */`,
+              source,
+            ].join('\n');
           }
           return source;
         }));
         this.inited = true;
-        console.log(` Injected mock dependency for ${module.userRequest}`);
+        if (me.inject) {
+          console.log(` Injected mock dependency[${runtimeFile}] for ${module.userRequest}`);
+        }
       });
     });
 
@@ -65,17 +71,14 @@ module.exports = class XhrResponseMockPlugin {
       });
       if (!changedMatch.length) return Promise.resolve();
 
-      const runtimeFile = this.useRuntimeDepsFile ? this.genRuntimeDepsFile() : false;
-      return this.watch(changedMatch, runtimeFile);
+      return this.watch(changedMatch);
     });
 
-    if (!this.useRuntimeDepsFile) {
-      new webpack.DefinePlugin({
-        'process.env.xhrResMockData': webpack.DefinePlugin.runtimeValue(() => {
-          return JSON.stringify(this.genMockData());
-        }, true), // this.matchedFiles
-      }).apply(compiler);
-    }
+    new webpack.DefinePlugin({
+      'process.env.xhrResMockData': webpack.DefinePlugin.runtimeValue(() => {
+        return JSON.stringify(this.genMockData());
+      }, true), // this.matchedFiles
+    }).apply(compiler);
 
     compiler.hooks.emit.tapPromise(PLUGIN_NAME, async (compilation) => {
       const matchedFiles = await this.getMatchedFiles();
@@ -84,19 +87,6 @@ module.exports = class XhrResponseMockPlugin {
       matchedFiles.map(f => compilation.fileDependencies.add(f));
       return Promise.resolve();
     });
-  }
-
-  getInjectCodes(runtimeFile) {
-    const codes = runtimeFile
-      ? [
-          `import '${runtimeFile}';`
-        ]
-      : [
-          `import XhrResMock from 'xhr-response-mock';`,
-          `XhrResMock.init().setMockData(process.env.xhrResMockData || {});`,
-        ];
-
-    return [`/* eslint-disable */`, ...codes, `/* eslint-enable */`].join('\n');
   }
 
   getChangedFile(compiler) {
@@ -139,6 +129,23 @@ module.exports = class XhrResponseMockPlugin {
   }
 
   genRuntimeDepsFile() {
+    const runtime = path.resolve(this.dir, '.runtime.js');
+    if (fs.existsSync(runtime) && fs.readFileSync(runtime).toString().includes('xhr-response-mock')) {
+      return runtime;
+    }
+
+    const codes = [
+      `/* eslint-disable */`,
+      `import XhrResMock from 'xhr-response-mock';`,
+      `XhrResMock.init().setMockData(process.env.xhrResMockData || {});`,
+      `/* eslint-enable */`,
+    ];
+
+    fs.writeFileSync(runtime, codes.join('\n'));
+    return runtime;
+  }
+
+  genRuntimeDepsFile2() {
     this.matchedFiles = this.getMatchedFiles();
     const codes = ['/* eslint-disable */', `import XhrResMock from 'xhr-response-mock';`];
     const items = [];

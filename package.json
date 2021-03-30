@@ -1,6 +1,6 @@
 {
   "name": "xhr-response-mock",
-  "version": "0.0.1",
+  "version": "0.1.7",
   "description": "xhr response mock",
   "main": "dist/index.js",
   "scripts": {
@@ -18,11 +18,11 @@
     "mock"
   ],
   "files": [
+    "plugin/Webpack.js",
     "dist",
     "src",
     "test",
-    "README.MD",
-    "demo.gif"
+    "README.MD"
   ],
   "author": "shuilonghu",
   "license": "ISC",
@@ -51,6 +51,7 @@
     "del-cli": "^3.0.1",
     "husky": "^4.3.0",
     "jest": "^26.5.2",
+    "node-loader": "^1.0.2",
     "standard-version": "^9.0.0",
     "ts-loader": "^8.1.0",
     "ts-node": "^9.1.1",

@@ -1,20 +1,7 @@
 import axios from 'axios';
 import XhrResonseMock from '../src/index';
 
-window.XMLHttpRequest = jest.fn();
-window.XMLHttpRequest.prototype = {
-  open: jest.fn(),
-  send: jest.fn(),
-  setRequestHeader: jest.fn(),
-  onreadystatechange: jest.fn(),
-  load: jest.fn(),
-  loadend: jest.fn(),
-  get readyState() { return 4; },
-  get status() { return 200; },
-  get statusText() { return ''; },
-  get response() { return ''; },
-  get responseText() { return ''; },
-};
+XhrResonseMock.mockXMLHttpRequest();
 
 const mock = XhrResonseMock.init();
 
@@ -49,7 +36,7 @@ describe('mock axios request', () => {
     mock.doMock({
       url: 'http://www.api.com/delay',
       method: 'post',
-      delay: 10,
+      delay: 15,
       data: { ret: 0, msg: 'delay'}
     });
 
@@ -61,7 +48,7 @@ describe('mock axios request', () => {
     setTimeout(() => {
       expect(result).toMatchObject({ ret: 0, msg: 'delay'});
       done();
-    }, 10 + 10); // gap 10ms
+    }, 15 + 10); // gap 10ms
   });
 
   it('methods(get|post|put|patch|delete) should be mocked', (done) => {

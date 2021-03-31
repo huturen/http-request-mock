@@ -18,11 +18,9 @@ mock.get(/.*\/xyz/, { ret: 0, msg: 'ok'});
 // set a mock response for all POST requests matched http://www.xyz.com/abc/efg
 mock.post('http://www.xyz.com/abc/efg', { ret: 0, msg: 'ok'});
 
-
-
 // send a request based on XHR
 import axios from 'axios';
-axios.get('http://www.api.com/xyz', res => console.log(res.data));
+axios.get('http://www.api.com/xyz').then(res => console.log(res.data));
 ```
 
 ## Webpack plugin

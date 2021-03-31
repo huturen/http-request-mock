@@ -100,7 +100,7 @@ export default class XhrInterceptor {
   }
 
   private doCompleteCallbacks(xhrInstance: any) {
-    xhrInstance.onreadystatechange();
+    xhrInstance.onreadystatechange && xhrInstance.onreadystatechange();
     xhrInstance.onload && xhrInstance.onload();
     xhrInstance.onloadend && xhrInstance.onloadend();
   }

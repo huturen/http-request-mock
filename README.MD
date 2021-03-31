@@ -7,7 +7,7 @@ It's very convenient for development while your backend is not ready.
 npm install --save-dev xhr-response-mock
 ```
 
-## Usage: More usage please refer to unit test.
+## Usage
 ```javascript
 import XhrResonseMock from 'xhr-response-mock';
 const mock = XhrResonseMock.setup();
@@ -89,6 +89,24 @@ module.exports = {
 Yes, this webpack plugin will parse mock files comments and extract tags info(@url, @method, ...).
 And, it'll generate mock dependencies with these tags. All your need is writing the corresponding mock files.
 
+
+## Unit test
+```javascript
+import XhrResonseMock from 'xhr-response-mock';
+
+describe('test suite', () => {
+  const mock = XhrResonseMock.setupForUnitTest();
+
+  it('test case', (done) => {
+    mock.get('http://www.api.com/abc', { ret: 0, msg: 'string'});
+
+    axios.get('http://www.api.com/abc').then(res => {
+      expect(res.data).toMatchObject({ ret: 0, msg: 'string'});
+      done();
+    });
+  });
+});
+```
 
 
 ## API

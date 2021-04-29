@@ -1,43 +1,20 @@
-import { Method, MockTpl } from './types';
-import Interceptor from './XhrInterceptor';
 
-const container = <any> { instance: null };
-class XhrResponseMock {
-  interceptor: Interceptor;
+import InterceptorFetch from '../inteceptor/Fetch';
+import InterceptorWxRequest from '../inteceptor/WxRequest';
+import InterceptorXhr from '../inteceptor/XMLHttpRequest';
+import { Method, MockTpl } from '../types';
 
-  constructor() {
-    if (container.instance) return container.instance;
-    container.instance = this;
+export default class Base {
+  interceptor: InterceptorXhr | InterceptorWxRequest | InterceptorFetch;
 
-    this.interceptor = new Interceptor();
+  setMockData(mockData: object) {
+    this.interceptor.setMockData(mockData);
     return this;
   }
 
-  static setup() {
-    return new XhrResponseMock();
-  }
-
-  // backward compatibility
-  static init() {
-    return new XhrResponseMock();
-  }
-
-  static setupForUnitTest() {
-    window.XMLHttpRequest = <any> function() {};
-    window.XMLHttpRequest.prototype = <any>{
-      open: function() {},
-      send: function() {},
-      setRequestHeader: function() {},
-      onreadystatechange: function() {},
-      load: function() {},
-      loadend: function() {},
-      get readyState() { return 4; },
-      get status() { return 200; },
-      get statusText() { return ''; },
-      get response() { return ''; },
-      get responseText() { return ''; },
-    };
-    return new XhrResponseMock();
+  reset() {
+    this.setMockData({});
+    return this;
   }
 
   doMock(mockItem: any) {
@@ -55,16 +32,6 @@ class XhrResponseMock {
 
     const key = `${mockItem.url}-${mockItem.method}`;
     this.interceptor.addMockData(key, mockItem);
-    return this;
-  }
-
-  setMockData(mockData: object) {
-    this.interceptor.setMockData(mockData);
-    return this;
-  }
-
-  reset() {
-    this.setMockData({})
     return this;
   }
 
@@ -98,4 +65,3 @@ class XhrResponseMock {
     return this;
   }
 }
-export default XhrResponseMock;

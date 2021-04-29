@@ -1,4 +1,4 @@
-export default class XhrInterceptor {
+export default class XMLHttpRequestInterceptor {
   private xhr: any;
   private mockData: any;
 
@@ -100,9 +100,17 @@ export default class XhrInterceptor {
   }
 
   private doCompleteCallbacks(xhrInstance: any) {
-    xhrInstance.onreadystatechange && xhrInstance.onreadystatechange();
-    xhrInstance.onload && xhrInstance.onload();
-    xhrInstance.onloadend && xhrInstance.onloadend();
+    if (typeof xhrInstance.onreadystatechange === 'function') {
+      xhrInstance.onreadystatechange()
+    }
+
+    if (typeof xhrInstance.onload === 'function') {
+      xhrInstance.onload()
+    }
+
+    if (typeof xhrInstance.onloadend === 'function') {
+      xhrInstance.onloadend()
+    }
   }
 
   private interceptSetRequestHeader() {

@@ -10,6 +10,7 @@ module.exports = class XhrResponseMockPlugin {
     if (!(entry instanceof RegExp)) {
       throw new Error('The XhrResponseMockPlugin expects [entry] to be a valid RegExp Object.');
     }
+
     if (!dir || typeof dir !== 'string' || !path.isAbsolute(dir)) {
       throw new Error('The XhrResponseMockPlugin expects [dir] to be a valid absolute dir.');
     }
@@ -25,16 +26,27 @@ module.exports = class XhrResponseMockPlugin {
   }
 
   apply(compiler) {
-    if (!this.enable) return;
+    if (!this.enable) {
+      return;
+    }
 
     compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
       compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (_, module) => {
-        if (this.inited) return;
-        if (!this.entry.test(module.userRequest)) return;
-        if (!module.loaders || !module.loaders.length) return;
-
+        // avoid repeated callbacks
+        if (this.inited) {
+          return;
+        }
+        // ignore non-entry module
+        if (!this.entry.test(module.userRequest)) {
+          return;
+        }
+        if (!module.loaders || !module.loaders.length) {
+          return;
+        }
         const last = module.loaders[module.loaders.length - 1];
-        if (/simple-functional-loader\/index\.js/.test(last.loader)) return;
+        if (/simple-functional-loader\/index\.js/.test(last.loader)) {
+          return;
+        }
 
         const me = this;
         const runtimeFile = me.inject ? me.genRuntimeDepsFile() : undefined;
@@ -63,7 +75,9 @@ module.exports = class XhrResponseMockPlugin {
 
     compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async () => {
       const changedFile = this.getChangedFile(compiler);
-      if (!changedFile.length) return Promise.resolve();
+      if (!changedFile.length) {
+        return Promise.resolve();
+      }
 
       const changedMatch = changedFile.filter(file => {
         const name = path.basename(file);
@@ -82,7 +96,9 @@ module.exports = class XhrResponseMockPlugin {
 
     compiler.hooks.emit.tapPromise(PLUGIN_NAME, async (compilation) => {
       const matchedFiles = await this.getMatchedFiles();
-      if (!matchedFiles.length) return Promise.resolve();
+      if (!matchedFiles.length) {
+        return Promise.resolve();
+      }
 
       matchedFiles.map(f => compilation.fileDependencies.add(f));
       return Promise.resolve();
@@ -98,7 +114,9 @@ module.exports = class XhrResponseMockPlugin {
   }
 
   getMatchedFiles(level = []) {
-    if (level.length > 3) return []; // support 3 levels
+    if (level.length > 3) {
+      return []; // support 3 levels
+    }
 
     const dir = path.join(this.dir, ...level);
     const files = fs.readdirSync(dir, { withFileTypes: true });
@@ -118,7 +136,9 @@ module.exports = class XhrResponseMockPlugin {
     this.matchedFiles = this.getMatchedFiles();
     for(let file of this.matchedFiles) {
       const tags = this.parseComment(file);
-      if (!tags.url || tags.disable === 'yes') continue;
+      if (!tags.url || tags.disable === 'yes') {
+        continue;
+      }
 
       try {
         delete require.cache[require.resolve(file)];
@@ -145,7 +165,7 @@ module.exports = class XhrResponseMockPlugin {
     return runtime;
   }
 
-  genRuntimeDepsFile2() {
+  genRuntimeDepsFileVerboseVersion() {
     this.matchedFiles = this.getMatchedFiles();
     const codes = ['/* eslint-disable */', `import XhrResMock from 'xhr-response-mock';`];
     const items = [];
@@ -196,6 +216,8 @@ module.exports = class XhrResponseMockPlugin {
     return new RegExp(str, opts);
   }
 
+  // extracts meta information from comments in the specified file.
+  // meta information includes: @url, @method, @disable, @delay.
   parseComment(file) {
     const js = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
     const parsed = parse(js, {
@@ -208,7 +230,9 @@ module.exports = class XhrResponseMockPlugin {
     const keys = ['url', 'method', 'disable', 'delay']; // 'status', 'sendData'
     const tags = this.simpleGet(parsed, '0.tags', []);
     for(let {tag,description}  of tags) {
-      if (!keys.includes(tag)) continue;
+      if (!keys.includes(tag)) {
+        continue;
+      }
       res[tag.trim()] = description.replace(/\n+.*/g, '').trim();
     }
 

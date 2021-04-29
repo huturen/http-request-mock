@@ -21,3 +21,13 @@ export interface MockTpl {
   disable?: Disable;
   data?: any;
 };
+
+// https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+export interface WxRequestInfo {
+  url: string;
+  data?: any;
+  method?: Method;
+  header?: object;
+  success?: (info: any) => any;
+  complete?: (info: any) => any;
+};

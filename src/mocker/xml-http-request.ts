@@ -1,8 +1,8 @@
-import InterceptorXhr from '../inteceptor/XMLHttpRequest';
-import Base from './Base';
+import InterceptorXhr from '../inteceptor/xml-http-request';
+import Base from './base';
 
 const container = <any> { instance: null };
-export default class XMLHttpRequestResponseMock extends Base {
+export default class XMLHttpRequestMocker extends Base {
   interceptor: InterceptorXhr;
 
   constructor() {
@@ -16,12 +16,12 @@ export default class XMLHttpRequestResponseMock extends Base {
   }
 
   static setup() {
-    return new XMLHttpRequestResponseMock();
+    return new XMLHttpRequestMocker();
   }
 
   // backward compatibility
   static init() {
-    return new XMLHttpRequestResponseMock();
+    return new XMLHttpRequestMocker();
   }
 
   static setupForUnitTest() {
@@ -55,6 +55,6 @@ export default class XMLHttpRequestResponseMock extends Base {
         return '';
       },
     };
-    return new XMLHttpRequestResponseMock();
+    return new XMLHttpRequestMocker();
   }
 }

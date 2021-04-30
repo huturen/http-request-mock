@@ -13,21 +13,26 @@ export enum Disable {
   no = 'no',
 };
 
-export interface MockTpl {
+export interface MockMetaInfo {
   url: RegExp | string;
-  regexp: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
+  regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   method?: Method;
+  header?: object,
   delay?: number;
   disable?: Disable;
   data?: any;
+  status?: number; // http status code
+  file?: string;
 };
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
 export interface WxRequestInfo {
   url: string;
   data?: any;
-  method?: Method;
+  method?: Method | undefined;
   header?: object;
   success?: (info: any) => any;
+  fail?: (info: any) => any;
   complete?: (info: any) => any;
 };
+

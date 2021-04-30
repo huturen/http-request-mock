@@ -1,4 +1,4 @@
-
+import { MockMetaInfo } from '../types';
 export default class FetchInterceptor {
   private fetch: any;
   private mockData: any;
@@ -23,33 +23,16 @@ export default class FetchInterceptor {
   private intercept() {
     const me = this;
     window.fetch = function() {
-      console.log(arguments);
+      // console.log(arguments);
       const args = arguments;
       const url = args[0];
       const params = args[1];
       const method = params && params.method ? params.method : 'GET';
 
       return new Promise((resolve, reject) => {
-        const match = me.matchRequest(url, method);
+        const match:any = me.matchRequest(url, method);
         if (match) {
-          const mockData: any = {
-            body: match.data,
-            bodyUsed: false,
-            headers: {
-              isMock: 'yes'
-            },
-            ok: true,
-            status: 200,
-            statusText: 'OK',
-            url,
-            type: 'basic', // cors
-            // response data depends on prepared data
-            json: async () => match.data,
-            arrayBuffer: async () => match.data,
-            blob: async () => match.data,
-            formData: async () => match.data,
-            text: async () => match.data,
-          };
+          const mockData:any = me.fakeFetchResponse(url, match);
 
           if (match.delay && match.delay > 0) {
             setTimeout(() => {
@@ -70,7 +53,7 @@ export default class FetchInterceptor {
     };
   }
 
-  private matchRequest(reqUrl: any, reqMethod: any) {
+  private matchRequest(reqUrl: any, reqMethod: any): MockMetaInfo | boolean {
     for(let key in this.mockData) {
       try {
         const info = this.mockData[key];
@@ -96,6 +79,34 @@ export default class FetchInterceptor {
       } catch(e) {}
     }
     return false;
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/Response
+  private fakeFetchResponse(url:string, match: MockMetaInfo) {
+    const response = {
+      body: match.data,
+      bodyUsed: false,
+      headers: {
+        isMock: 'yes'
+      },
+      ok: true,
+      redirected: false,
+      status: 200,
+      statusText: 'OK',
+      url,
+      type: 'basic', // cors
+      // response data depends on prepared data
+      json: async () => match.data,
+      arrayBuffer: async () => match.data,
+      blob: async () => match.data,
+      formData: async () => match.data,
+      text: async () => match.data,
+      // other methods that may be used
+      clone: async () => response,
+      error: async () => response,
+      redirect: async () => response,
+    };
+    return response;
   }
 }
 

@@ -1,8 +1,8 @@
-import InterceptorWxRequest from '../inteceptor/WxRequest';
-import Base from './Base';
+import InterceptorWxRequest from '../inteceptor/wx-request';
+import Base from './base';
 
 const container = <any> { instance: null };
-export default class WxRequestResponseMock extends Base {
+export default class WxRequestMocker extends Base {
   interceptor: InterceptorWxRequest;
 
   constructor() {
@@ -10,23 +10,22 @@ export default class WxRequestResponseMock extends Base {
     if (container.instance) return container.instance;
     container.instance = this;
 
-
     this.interceptor = new InterceptorWxRequest();
     return this;
   }
 
   static setup() {
-    return new WxRequestResponseMock();
+    return new WxRequestMocker();
   }
 
   // backward compatibility
   static init() {
-    return new WxRequestResponseMock();
+    return new WxRequestMocker();
   }
 
   static setupForUnitTest() {
     wx.request = <any> function() {};
-    return new WxRequestResponseMock();
+    return new WxRequestMocker();
   }
 
 };

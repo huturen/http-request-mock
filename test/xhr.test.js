@@ -1,6 +1,6 @@
-import ResonseMock from '../src/index';
+import HttpRequestMock from '../src/index';
 
-const mock = ResonseMock.setupForUnitTest();
+const mock = HttpRequestMock.setupForUnitTest();
 
 describe('mock XMLHttpRequest raw request', () => {
   it('XMLHttpRequest raw get request should be mocked', (done) => {

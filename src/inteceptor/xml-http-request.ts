@@ -4,6 +4,8 @@ export default class XMLHttpRequestInterceptor {
 
   constructor() {
     // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
+    console.log('w:', window);
+    console.log('w2:', window.XMLHttpRequest);
     this.xhr = window.XMLHttpRequest.prototype;
     this.mockData = {};
     this.intercept();

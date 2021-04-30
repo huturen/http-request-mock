@@ -1,8 +1,8 @@
-import InterceptorFetch from '../inteceptor/Fetch';
-import Base from './Base';
+import InterceptorFetch from '../inteceptor/fetch';
+import Base from './base';
 
 const container = <any> { instance: null };
-export default class FetchResponseMock extends Base {
+export default class FetchMocker extends Base {
   interceptor: InterceptorFetch;
 
   constructor() {
@@ -16,12 +16,12 @@ export default class FetchResponseMock extends Base {
   }
 
   static setup() {
-    return new FetchResponseMock();
+    return new FetchMocker();
   }
 
   // backward compatibility
   static init() {
-    return new FetchResponseMock();
+    return new FetchMocker();
   }
 
   static setupForUnitTest() {

@@ -11,11 +11,11 @@ module.exports = class HttpRequestMockMockPlugin {
    *
    * @param {RegExp} entry Required, entry file which mock dependencies will be injected into.
    * @param {string} dir Required, mock directory which contains all mock files & the runtime mock configure file.
-   *                       Must be an absolute path.
+   *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
    * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
    * @param {string} runtime Optional, the style of mock configure entry file, one of [internal external custom],
-   *                           default to 'internal' which use the build-in mock configure entry file.
+   *                         default to 'internal' which use the build-in mock configure entry file.
    * @param {boolean} transpile Optional, whether or not to transpile files in the mock directory, default to true.
    *                            If mock directory was in src/ or other directory that has configured to be transpiled,
    *                            then set transpile to false. If this option would confuse you, let it be true.
@@ -41,7 +41,7 @@ module.exports = class HttpRequestMockMockPlugin {
     }
 
     this.entry = entry;
-    this.dir = dir;
+    this.dir = path.resolve(dir);
     this.watch = watch;
     this.enable = enable;
     this.runtime = runtime;
@@ -242,7 +242,7 @@ module.exports = class HttpRequestMockMockPlugin {
       }
 
       try {
-        const resolvedFile = require.resolve(file).replace(this.dir, '');
+        const resolvedFile = require.resolve(file).replace(this.dir + '/', '');
 
         res[`${tags.url}-${tags.method}`] = { ...tags, file: resolvedFile };
       } catch (e) { }

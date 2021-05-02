@@ -52,6 +52,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
   /**
    * The plugin logic.
+   *
    * @param {Webpack Compiler Object} compiler
    */
   apply(compiler) {

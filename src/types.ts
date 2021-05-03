@@ -36,3 +36,19 @@ export interface WxRequestInfo {
   complete?: (info: any) => any;
 };
 
+// https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
+// https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/open
+export interface XhrRequestInfo {
+  url: string;
+  method?: Method | undefined;
+  async?: boolean;
+  user?: string;
+  password?: string;
+  body?: any; // for post request
+};
+
+export interface XMLHttpRequestInstance extends XMLHttpRequest {
+  isMockRequest: boolean;
+  mockRequestInfo: MockMetaInfo
+  xhrRequestInfo: XhrRequestInfo
+}

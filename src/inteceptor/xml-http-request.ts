@@ -1,24 +1,15 @@
-export default class XMLHttpRequestInterceptor {
+import { HTTPStatusCodes } from '../config';
+import { Method, MockMetaInfo, XhrRequestInfo, XMLHttpRequestInstance } from '../types';
+import Base from './base';
+export default class XMLHttpRequestInterceptor extends Base {
   private xhr: any;
-  private mockData: any;
 
   constructor() {
+    super();
     // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
-    console.log('w:', window);
-    console.log('w2:', window.XMLHttpRequest);
     this.xhr = window.XMLHttpRequest.prototype;
     this.mockData = {};
     this.intercept();
-  }
-
-  setMockData(data: object) {
-    this.mockData = data;
-    return this;
-  }
-
-  addMockData(key: string, val: any) {
-    this.mockData[key] = val;
-    return this;
   }
 
   private intercept() {
@@ -36,44 +27,18 @@ export default class XMLHttpRequestInterceptor {
     return this;
   }
 
-  private matchRequest(reqUrl: any, reqMethod: any) {
-    for(let key in this.mockData) {
-      try {
-        const info = this.mockData[key];
-        if (info.disable === 'yes') {
-          continue;
-        }
-        const method = `${info.method}`.toLowerCase();
-        if (method !== 'any' && method !== `${reqMethod}`.toLowerCase()) {
-          continue;
-        }
-
-        if (Array.isArray(info.regexp) && info.regexp.length === 2
-          && new RegExp(info.regexp[0], info.regexp[1]).test(reqUrl)
-        ) {
-          return info;
-        }
-        if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
-          return info;
-        }
-        if (reqUrl.indexOf(info.url) !== -1) {
-          return info;
-        }
-      }catch(e) {}
-    }
-    return false;
-  }
-
   private interceptOpen() {
     const me = this;
     const original = this.xhr.open;
     Object.defineProperty(this.xhr, 'open', {
       get: function() {
-        return (method: any, url: any, async: any, user: any, password: any) => {
-          const match = me.matchRequest(url, method);
+        return (method: Method, url: string, async: boolean, user: string, password: string) => {
+          const match: MockMetaInfo | null = me.matchRequest(url, method);
           if (match) {
+            // 'this' points XMLHttpRequest instance.
             this.isMockRequest = true;
             this.mockRequestInfo = match;
+            this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, };
             return;
           }
           return original.call(this, method, url, async, user, password);
@@ -90,9 +55,7 @@ export default class XMLHttpRequestInterceptor {
       get: function() {
         return (body: any) => {
           if (this.isMockRequest) {
-            return this.mockRequestInfo.delay && this.mockRequestInfo.delay > 0
-              ? setTimeout(() => me.doCompleteCallbacks(this), +this.mockRequestInfo.delay)
-              : me.doCompleteCallbacks(this);
+            return me.doMockRequest(this, this.mockRequestInfo, this.xhrRequestInfo);
           }
           return original.call(this, body);
         };
@@ -101,17 +64,44 @@ export default class XMLHttpRequestInterceptor {
     return this;
   }
 
-  private doCompleteCallbacks(xhrInstance: any) {
-    if (typeof xhrInstance.onreadystatechange === 'function') {
-      xhrInstance.onreadystatechange()
+  private doMockRequest(xhr: XMLHttpRequestInstance, match: MockMetaInfo, requestInfo: XhrRequestInfo) {
+    if (match.file) {
+      import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
+        xhr.mockRequestInfo.data = this.formatMockData(mock.default, requestInfo);
+        this.doMockResponse(xhr, match);
+      });
+      return;
     }
 
-    if (typeof xhrInstance.onload === 'function') {
-      xhrInstance.onload()
+    xhr.mockRequestInfo.data = this.formatMockData(match.data, requestInfo);
+    this.doMockResponse(xhr, match);
+  }
+
+  private doMockResponse(xhr: XMLHttpRequestInstance, match: MockMetaInfo,) {
+    if (match.delay && match.delay > 0) {
+      setTimeout(() => {
+        this.doCompleteCallbacks(xhr)
+      }, +match.delay);
+    } else {
+      this.doCompleteCallbacks(xhr)
+    }
+  }
+
+  formatMockData(mockData: any, requestInfo: XhrRequestInfo) {
+    return typeof mockData === 'function' ? mockData(requestInfo) : mockData;
+  }
+
+  private doCompleteCallbacks(xhr: XMLHttpRequest) {
+    if (typeof xhr.onreadystatechange === 'function') {
+      xhr.onreadystatechange(undefined as any)
     }
 
-    if (typeof xhrInstance.onloadend === 'function') {
-      xhrInstance.onloadend()
+    if (typeof xhr.onload === 'function') {
+      xhr.onload(undefined as any)
+    }
+
+    if (typeof xhr.onloadend === 'function') {
+      xhr.onloadend(undefined as any)
     }
   }
 
@@ -157,7 +147,7 @@ export default class XMLHttpRequestInterceptor {
     Object.defineProperty(this.xhr, 'status', {
       get: function() {
         if (this.isMockRequest) {
-          return 200;
+          return this.mockRequestInfo.status || 200;
         }
         return typeof original === 'function' ? original.call(this) : original;
       }
@@ -170,7 +160,7 @@ export default class XMLHttpRequestInterceptor {
     Object.defineProperty(this.xhr, 'statusText', {
       get: function() {
         if (this.isMockRequest) {
-          return 'OK';
+          return HTTPStatusCodes[this.mockRequestInfo.status || 200] || '';
         }
         return typeof original === 'function' ? original.call(this) : original;
       }

@@ -1,4 +1,3 @@
-import { HTTPStatusCodes } from '../config';
 import { MockMetaInfo, WxRequestInfo } from '../types';
 import Base from './base';
 
@@ -38,7 +37,7 @@ export default class WxRequestInterceptor extends Base {
   private doMockRequest(match: MockMetaInfo, requestInfo: WxRequestInfo) {
     if (match.file) {
       // To avoid "Critical dependency: the request of a dependency is an expression" error
-      import(`${process.env.HRM_MOCK_DIR}${match.file}`).then((mock) => {
+      import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
         const mockData = this.formatMockData(mock.default, match, requestInfo);
         this.doMockResponse(mockData, match, requestInfo);
       });
@@ -61,12 +60,11 @@ export default class WxRequestInterceptor extends Base {
 
   formatMockData(mockData: any, match: MockMetaInfo, requestInfo: WxRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
-    const status = match.status || 200;
 
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
     return {
-      data: data || HTTPStatusCodes[status] || '',
-      statusCode: status,
+      data,
+      statusCode: match.status || 200,
       header: {
         ...match.header,
         'is-mock': 'yes'

@@ -12,11 +12,11 @@ export default class Index {
    * @param {string} type
    */
   static setup(type: string) {
-    if (type === 'wx.request' || (wx && wx.request)) {
+    if (type === 'wx.request' || (typeof wx !== 'undefined' && wx.request)) {
       return WxRequestResponseMock.setup();
     }
 
-    if (type === 'xhr' || (window && window.XMLHttpRequest)) {
+    if (type === 'xhr' || (typeof window !== 'undefined' && window.XMLHttpRequest)) {
       return XMLHttpRequestResponseMock.setup();
     }
     // TODO: add unit tests for fetch

@@ -17,6 +17,8 @@ export default class XMLHttpRequestInterceptor extends Base {
     this.interceptOpen();
     this.interceptSend();
     this.interceptSetRequestHeader();
+    this.interceptGetAllResponseHeaders();
+    this.interceptGetResponseHeader();
 
     // intercept getters
     this.interceptReadyState();
@@ -24,15 +26,24 @@ export default class XMLHttpRequestInterceptor extends Base {
     this.interceptStatusText();
     this.interceptResponseText();
     this.interceptResponse();
+    this.interceptResponseURL();
+    this.interceptResponseXML();
     return this;
   }
 
+  // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
   private interceptOpen() {
     const me = this;
     const original = this.xhr.open;
     Object.defineProperty(this.xhr, 'open', {
       get: function() {
-        return (method: Method, url: string, async: boolean, user: string, password: string) => {
+        return (
+          method: Method,
+          url: string,
+          async: boolean = true,
+          user: string | null = null,
+          password: string | null = null
+        ) => {
           const match: MockMetaInfo | null = me.matchRequest(url, method);
           if (match) {
             // 'this' points XMLHttpRequest instance.
@@ -55,6 +66,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (body: any) => {
           if (this.isMockRequest) {
+            this.xhrRequestInfo.body = body;
             return me.doMockRequest(this, this.mockRequestInfo, this.xhrRequestInfo);
           }
           return original.call(this, body);
@@ -91,6 +103,16 @@ export default class XMLHttpRequestInterceptor extends Base {
     return typeof mockData === 'function' ? mockData(requestInfo) : mockData;
   }
 
+  /**
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#event_handlers
+   * Event handlers
+   *  onreadystatechange as a property of the XMLHttpRequest instance is supported in all browsers.
+   * Since then, a number of additional on* event handler properties have been implemented in various
+   * browsers (onload, onerror, onprogress, etc.). See Using XMLHttpRequest. More recent browsers,
+   * including Firefox, also support listening to the XMLHttpRequest events via standard addEventListener() APIs
+   * in addition to setting on* properties to a handler function.
+   * @param {XMLHttpRequest} xhr
+   */
   private doCompleteCallbacks(xhr: XMLHttpRequest) {
     if (typeof xhr.onreadystatechange === 'function') {
       xhr.onreadystatechange(undefined as any)
@@ -103,6 +125,50 @@ export default class XMLHttpRequestInterceptor extends Base {
     if (typeof xhr.onloadend === 'function') {
       xhr.onloadend(undefined as any)
     }
+
+    if (typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function') {
+      xhr.dispatchEvent(new Event('readystatechange'));
+      xhr.dispatchEvent(new Event('load'));
+      xhr.dispatchEvent(new Event('loadend'));
+    }
+  }
+
+  // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
+  private interceptGetAllResponseHeaders() {
+    const original = this.xhr.getAllResponseHeaders;
+    Object.defineProperty(this.xhr, 'getAllResponseHeaders', {
+      get: function() {
+        return (body: any) => {
+          if (this.isMockRequest) {
+            return Object.entries({...this.mockRequestInfo.header, 'is-mock': 'yes'})
+              .map(([key, val]) => key.toLowerCase()+': '+val)
+              .join('\r\n');
+          }
+          return original.call(this, body);
+        };
+      }
+    });
+    return this;
+  }
+
+  // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getResponseHeader
+  private interceptGetResponseHeader() {
+    const original = this.xhr.getResponseHeader;
+    Object.defineProperty(this.xhr, 'getResponseHeader', {
+      get: function() {
+        return (field: string) => {
+          if (this.isMockRequest) {
+            if (/^is-mock$/.test(field)) {
+              return 'yes';
+            }
+            const item = Object.entries(this.mockRequestInfo.header).find(([key]) => key.toLowerCase() === field);
+            return item ? item[1] : null;
+          }
+          return original.call(this, field);
+        };
+      }
+    });
+    return this;
   }
 
   private interceptSetRequestHeader() {
@@ -188,6 +254,32 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         if (this.isMockRequest) {
           return this.responseType !== '' ? this.mockRequestInfo.data : this.responseText;
+        }
+        return typeof original === 'function' ? original.call(this) : original;
+      }
+    });
+    return this;
+  }
+
+  private interceptResponseURL() {
+    const original = this.getGetter('responseURL');
+    Object.defineProperty(this.xhr, 'responseURL', {
+      get: function() {
+        if (this.isMockRequest) {
+          return this.xhrRequestInfo.url;
+        }
+        return typeof original === 'function' ? original.call(this) : original;
+      }
+    });
+    return this;
+  }
+
+  private interceptResponseXML() {
+    const original = this.getGetter('responseXML');
+    Object.defineProperty(this.xhr, 'responseXML', {
+      get: function() {
+        if (this.isMockRequest) {
+          return this.responseType === 'document' ? this.response : null;
         }
         return typeof original === 'function' ? original.call(this) : original;
       }

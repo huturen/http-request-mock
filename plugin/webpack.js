@@ -392,7 +392,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const val = description.replace(/\n+.*/g, '').trim();
       if (key === 'header') {
         if (/^[\w.-]+\s*:\s*.+$/.test(val)) {
-          header[val.slice(0, val.indexOf(':')).trim()] = val.slice(val.indexOf(':')+1).trim();
+          header[val.slice(0, val.indexOf(':')).trim().toLowerCase()] = val.slice(val.indexOf(':')+1).trim();
         }
         continue;
       }

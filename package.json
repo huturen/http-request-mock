@@ -7,9 +7,7 @@
     "test": "jest",
     "clean": "del-cli dist",
     "build": "npm run clean && tsc",
-    "dev": "tsc -w",
-    "wp-dev": "npm run clean && webpack --mode=development -w",
-    "wp-build": "npm run clean && webpack --mode=production"
+    "dev": "tsc -w"
   },
   "keywords": [
     "xhr",

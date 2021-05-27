@@ -2,16 +2,31 @@ import { Method, MockMetaInfo } from '../types';
 export default class BaseInteceptor {
   protected mockData: any;
 
+  /**
+   * Set global mock data configuration.
+   * @param {object} data
+   */
   setMockData(data: object) {
     this.mockData = data;
     return this;
   }
 
+  /**
+   * Add an mock item to global mock data configuration.
+   * @param {string} key
+   * @param {any} val
+   */
   addMockData(key: string, val: any) {
     this.mockData[key] = val;
     return this;
   }
 
+  /**
+   * Check whether the specified request url matchs a defined mock item.
+   * If a match were found, return mock meta information, otherwise a null is returned.
+   * @param {string} reqUrl
+   * @param {string} reqMethod
+   */
   protected matchRequest(reqUrl: string, reqMethod: Method | undefined): MockMetaInfo | null {
     const requestMethod = reqMethod || 'get';
 

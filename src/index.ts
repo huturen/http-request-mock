@@ -1,5 +1,5 @@
-import WxRequestResponseMock from './mocker/wx-request';
-import XMLHttpRequestResponseMock from './mocker/xml-http-request';
+import WxRequestResponseMocker from './mocker/wx-request';
+import XMLHttpRequestResponseMocker from './mocker/xml-http-request';
 
 
 export default class Index {
@@ -13,15 +13,15 @@ export default class Index {
    */
   static setup(type: string) {
     if (type === 'wx.request' || (typeof wx !== 'undefined' && wx.request)) {
-      return WxRequestResponseMock.setup();
+      return WxRequestResponseMocker.setup();
     }
 
     if (type === 'xhr' || (typeof window !== 'undefined' && window.XMLHttpRequest)) {
-      return XMLHttpRequestResponseMock.setup();
+      return XMLHttpRequestResponseMocker.setup();
     }
     // TODO: add unit tests for fetch
     // if (type === 'fetch' || (window && window.fetch)) {
-    //   return XMLHttpRequestResponseMock.setup();
+    //   return XMLHttpRequestResponseMocker.setup();
     // }
 
     throw new Error('Invalid mock enviroment.');
@@ -41,11 +41,11 @@ export default class Index {
    */
   static setupForUnitTest(type = 'xhr') {
     if (type === 'wx.request') {
-      return WxRequestResponseMock.setupForUnitTest();
+      return WxRequestResponseMocker.setupForUnitTest();
     }
 
     if (type === 'xhr') {
-      return XMLHttpRequestResponseMock.setupForUnitTest();
+      return XMLHttpRequestResponseMocker.setupForUnitTest();
     }
 
     throw new Error('Invalid mock enviroment.');

@@ -14,15 +14,24 @@ export default class WxRequestMocker extends Base {
     return this;
   }
 
+  /**
+   * Setup request mocker.
+   */
   static setup() {
     return new WxRequestMocker();
   }
 
-  // backward compatibility
+  /**
+   * The same as setup method but for backward compatibility.
+   */
   static init() {
     return new WxRequestMocker();
   }
 
+
+  /**
+   * Setup request mocker for unit test.
+   */
   static setupForUnitTest() {
     wx.request = <any> function() {};
     return new WxRequestMocker();

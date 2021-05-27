@@ -6,12 +6,15 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   constructor() {
     super();
-    // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
     this.xhr = window.XMLHttpRequest.prototype;
     this.mockData = {};
     this.intercept();
   }
 
+  /**
+   * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
+   * Logic of intercepting XMLHttpRequest object.
+   */
   private intercept() {
     // intercept methods
     this.interceptOpen();
@@ -31,7 +34,10 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
-  // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
+  /**
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/open
+   * Logic of intercepting XMLHttpRequest.open method.
+   */
   private interceptOpen() {
     const me = this;
     const original = this.xhr.open;
@@ -59,6 +65,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.send method.
+   */
   private interceptSend() {
     const me = this;
     const original = this.xhr.send;
@@ -76,6 +85,12 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Make mock request.
+   * @param {XMLHttpRequestInstance} xhr
+   * @param {MockMetaInfo} match
+   * @param {XhrRequestInfo} requestInfo
+   */
   private doMockRequest(xhr: XMLHttpRequestInstance, match: MockMetaInfo, requestInfo: XhrRequestInfo) {
     if (match.file) {
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
@@ -89,6 +104,11 @@ export default class XMLHttpRequestInterceptor extends Base {
     this.doMockResponse(xhr, match);
   }
 
+  /**
+   * Make mock response.
+   * @param {XMLHttpRequestInstance} xhr
+   * @param {MockMetaInfo} match
+   */
   private doMockResponse(xhr: XMLHttpRequestInstance, match: MockMetaInfo,) {
     if (match.delay && match.delay > 0) {
       setTimeout(() => {
@@ -99,14 +119,19 @@ export default class XMLHttpRequestInterceptor extends Base {
     }
   }
 
+  /**
+   * Format mock data.
+   * @param {any} mockData
+   * @param {XhrRequestInfo} requestInfo
+   */
   formatMockData(mockData: any, requestInfo: XhrRequestInfo) {
     return typeof mockData === 'function' ? mockData(requestInfo) : mockData;
   }
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#event_handlers
-   * Event handlers
-   *  onreadystatechange as a property of the XMLHttpRequest instance is supported in all browsers.
+   * Call some necessary callbacks if specified. Trigger some necessary events.
+   * 'onreadystatechange' as a property of the XMLHttpRequest instance is supported in all browsers.
    * Since then, a number of additional on* event handler properties have been implemented in various
    * browsers (onload, onerror, onprogress, etc.). See Using XMLHttpRequest. More recent browsers,
    * including Firefox, also support listening to the XMLHttpRequest events via standard addEventListener() APIs
@@ -133,7 +158,10 @@ export default class XMLHttpRequestInterceptor extends Base {
     }
   }
 
-  // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
+  /**
+   * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
+   * Logic of intercepting XMLHttpRequest.getAllResponseHeaders method.
+   */
   private interceptGetAllResponseHeaders() {
     const original = this.xhr.getAllResponseHeaders;
     Object.defineProperty(this.xhr, 'getAllResponseHeaders', {
@@ -151,7 +179,10 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
-  // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getResponseHeader
+  /**
+   * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/getResponseHeader
+   * Logic of intercepting XMLHttpRequest.getResponseHeader method.
+   */
   private interceptGetResponseHeader() {
     const original = this.xhr.getResponseHeader;
     Object.defineProperty(this.xhr, 'getResponseHeader', {
@@ -171,6 +202,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.interceptSetRequestHeader method.
+   */
   private interceptSetRequestHeader() {
     const original = this.xhr.setRequestHeader;
     Object.defineProperty(this.xhr, 'setRequestHeader', {
@@ -186,6 +220,10 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Get getter function by key.
+   * @param {string} key
+   */
   private getGetter(key: string) {
     const descriptor = Object.getOwnPropertyDescriptor(this.xhr, key);
     if (descriptor) {
@@ -195,6 +233,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this.xhr[key];
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.readyState getter.
+   */
   private interceptReadyState() {
     const original = this.getGetter('readyState');
     Object.defineProperty(this.xhr, 'readyState', {
@@ -208,6 +249,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.status getter.
+   */
   private interceptStatus() {
     const original = this.getGetter('status');
     Object.defineProperty(this.xhr, 'status', {
@@ -221,6 +265,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.statusText getter.
+   */
   private interceptStatusText() {
     const original = this.getGetter('statusText');
     Object.defineProperty(this.xhr, 'statusText', {
@@ -234,6 +281,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.responseText getter.
+   */
   private interceptResponseText() {
     const original = this.getGetter('responseText');
     Object.defineProperty(this.xhr, 'responseText', {
@@ -248,6 +298,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.response getter.
+   */
   private interceptResponse() {
     const original = this.getGetter('response');
     Object.defineProperty(this.xhr, 'response', {
@@ -261,6 +314,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.responseURL getter.
+   */
   private interceptResponseURL() {
     const original = this.getGetter('responseURL');
     Object.defineProperty(this.xhr, 'responseURL', {
@@ -274,6 +330,9 @@ export default class XMLHttpRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Logic of intercepting XMLHttpRequest.responseXML getter.
+   */
   private interceptResponseXML() {
     const original = this.getGetter('responseXML');
     Object.defineProperty(this.xhr, 'responseXML', {

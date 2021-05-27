@@ -12,7 +12,10 @@ export default class WxRequestInterceptor extends Base {
     this.intercept();
   }
 
-  // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+  /**
+   * https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+   * Intercept wx.request object.
+   */
   private intercept() {
     Object.defineProperty(wx, 'request', {
         configurable: true,
@@ -34,6 +37,11 @@ export default class WxRequestInterceptor extends Base {
     return this;
   }
 
+  /**
+   * Make mock request.
+   * @param {MockMetaInfo} match
+   * @param {WxRequestInfo} requestInfo
+   */
   private doMockRequest(match: MockMetaInfo, requestInfo: WxRequestInfo) {
     if (match.file) {
       // To avoid "Critical dependency: the request of a dependency is an expression" error
@@ -48,6 +56,12 @@ export default class WxRequestInterceptor extends Base {
     this.doMockResponse(mockData, match, requestInfo);
   }
 
+  /**
+   * Make mock response.
+   * @param {any} mockData
+   * @param {MockMetaInfo} match
+   * @param {WxRequestInfo} requestInfo
+   */
   private doMockResponse(mockData: any, match: MockMetaInfo, requestInfo: WxRequestInfo) {
     if (match.delay && match.delay > 0) {
       setTimeout(() => {
@@ -58,6 +72,12 @@ export default class WxRequestInterceptor extends Base {
     }
   }
 
+  /**
+   * Format mock data to fit wx.request callbacks.
+   * @param {any} mockData
+   * @param {MockMetaInfo} match
+   * @param {WxRequestInfo} requestInfo
+   */
   formatMockData(mockData: any, match: MockMetaInfo, requestInfo: WxRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
 
@@ -74,6 +94,11 @@ export default class WxRequestInterceptor extends Base {
     };
   }
 
+  /**
+   * Call some necessary callbacks if specified.
+   * @param {WxRequestInfo} requestInfo
+   * @param {any} mockData
+   */
   private doCompleteCallbacks(requestInfo: WxRequestInfo, mockData: any) {
     if (typeof requestInfo.success === 'function') {
       requestInfo.success(mockData);

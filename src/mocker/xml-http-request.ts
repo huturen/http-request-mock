@@ -15,15 +15,23 @@ export default class XMLHttpRequestMocker extends Base {
     return this;
   }
 
+  /**
+   * Setup request mocker.
+   */
   static setup() {
     return new XMLHttpRequestMocker();
   }
 
-  // backward compatibility
+  /**
+   * The same as setup method but for backward compatibility.
+   */
   static init() {
     return new XMLHttpRequestMocker();
   }
 
+  /**
+   * Setup request mocker for unit test.
+   */
   static setupForUnitTest() {
     window.XMLHttpRequest = <any> function() {};
     window.XMLHttpRequest.prototype = <any>{

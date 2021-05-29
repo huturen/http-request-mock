@@ -19,11 +19,6 @@ export default class FetchMocker extends Base {
     return new FetchMocker();
   }
 
-  // backward compatibility
-  static init() {
-    return new FetchMocker();
-  }
-
   static setupForUnitTest() {
     window.fetch = <any> function() {};
   }

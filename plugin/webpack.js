@@ -17,7 +17,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {string} runtime Optional, the style of mock configure entry file, one of [internal external custom],
    *                         default to 'internal' which use the build-in mock configure entry file.
    * @param {boolean} transpile Optional, whether or not to transpile files in the mock directory, default to true.
-   *                            If mock directory was in src/ or other directory that has configured to be transpiled,
+   *                            If mock directory were in src/ or other directory that has configured to be transpiled,
    *                            then set transpile to false. If this option would confuse you, let it be true.
    */
   constructor({

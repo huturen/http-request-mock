@@ -1,24 +1,35 @@
-import { Method, MockMetaInfo } from '../types';
+import Mocker from '../mocker';
+import { Method, MockItemInfo } from '../types';
+import InterceptorFetch from './fetch';
+import InterceptorWxRequest from './wx-request';
+import InterceptorXhr from './xml-http-request';
 export default class BaseInteceptor {
-  protected mockData: any;
+  protected mocker: Mocker;
+  protected inited: boolean = false;
 
-  /**
-   * Set global mock data configuration.
-   * @param {object} data
-   */
-  setMockData(data: object) {
-    this.mockData = data;
-    return this;
+  constructor(mocker: Mocker) {
+    this.mocker = mocker;
   }
 
   /**
-   * Add an mock item to global mock data configuration.
-   * @param {string} key
-   * @param {any} val
+   * Setup request mocker.
    */
-  addMockData(key: string, val: any) {
-    this.mockData[key] = val;
-    return this;
+  public static setup(mocker: Mocker) {
+    return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr> new this(mocker);
+  }
+
+  /**
+   * return global variable
+   */
+  public static global() : any {
+    if (typeof window !== 'undefined') {
+      return window;
+    } else if (typeof global !== 'undefined')  {
+      return global;
+    } else if (typeof self !== 'undefined') {
+      return self;
+    }
+    throw new Error('Detect global variable error');
   }
 
   /**
@@ -27,37 +38,7 @@ export default class BaseInteceptor {
    * @param {string} reqUrl
    * @param {string} reqMethod
    */
-  protected matchRequest(reqUrl: string, reqMethod: Method | undefined): MockMetaInfo | null {
-    const requestMethod = reqMethod || 'get';
-
-    for(let key in this.mockData) {
-      try {
-        const info = this.mockData[key];
-        if (info.disable === 'yes') {
-          continue;
-        }
-
-        const method = `${info.method}`.toLowerCase();
-        if (method !== 'any' && method !== `${requestMethod}`.toLowerCase()) {
-          continue;
-        }
-
-        if (Array.isArray(info.regexp) && info.regexp.length === 2
-          && new RegExp(info.regexp[0], info.regexp[1]).test(reqUrl)
-        ) {
-          return info;
-        }
-
-        if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
-          return info;
-        }
-
-        if (reqUrl.indexOf(info.url) !== -1) {
-          return info;
-        }
-      } catch(e) {}
-    }
-    return null;
+  protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
+    return this.mocker.matchMockItem(reqUrl, reqMethod);
   }
-
 }

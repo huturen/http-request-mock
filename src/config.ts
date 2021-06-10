@@ -1,9 +1,9 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-type statusToText = {
+type StatusToText = {
   [key: string]: any
 };
 
-export const HTTPStatusCodes: statusToText = {
+export const HTTPStatusCodes: StatusToText = {
   100: 'Continue',
   101: 'Switching Protocols',
   103: 'Early Hints',

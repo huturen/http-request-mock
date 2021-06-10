@@ -1,15 +1,34 @@
-import { MockMetaInfo, WxRequestInfo } from '../types';
+import Mocker from '../mocker';
+import { MockItemInfo, WxRequestInfo } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
+  private static instance: WxRequestInterceptor;
   private wxRequest: any;
 
-  constructor() {
-    super();
+  constructor(mocker: Mocker) {
+    super(mocker);
 
+    if (WxRequestInterceptor.instance) {
+      return WxRequestInterceptor.instance;
+    }
+
+    WxRequestInterceptor.instance = this;
     this.wxRequest = wx.request.bind(wx);
-    this.mockData = {};
     this.intercept();
+    return this;
+  }
+
+  /**
+   * Setup request mocker for unit test.
+   */
+  static setupForUnitTest(mocker: Mocker) {
+    const global = super.global();
+    global.wx = global.wx || {};
+    if (!global.wx.request) {
+      global.wx.request = function() {};
+    }
+    return new WxRequestInterceptor(mocker);
   }
 
   /**
@@ -26,7 +45,7 @@ export default class WxRequestInterceptor extends Base {
             return;
           }
 
-          const match: MockMetaInfo | null = this.matchRequest(requestInfo.url, requestInfo.method);
+          const match: MockItemInfo | null = this.matchMockRequest(requestInfo.url, requestInfo.method);
           if (match) {
             this.doMockRequest(match, requestInfo);
           } else {
@@ -39,10 +58,10 @@ export default class WxRequestInterceptor extends Base {
 
   /**
    * Make mock request.
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  private doMockRequest(match: MockMetaInfo, requestInfo: WxRequestInfo) {
+  private doMockRequest(match: MockItemInfo, requestInfo: WxRequestInfo) {
     if (match.file) {
       // To avoid "Critical dependency: the request of a dependency is an expression" error
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
@@ -59,10 +78,10 @@ export default class WxRequestInterceptor extends Base {
   /**
    * Make mock response.
    * @param {any} mockData
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  private doMockResponse(mockData: any, match: MockMetaInfo, requestInfo: WxRequestInfo) {
+  private doMockResponse(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
     if (match.delay && match.delay > 0) {
       setTimeout(() => {
         this.doCompleteCallbacks(requestInfo, mockData)
@@ -75,10 +94,10 @@ export default class WxRequestInterceptor extends Base {
   /**
    * Format mock data to fit wx.request callbacks.
    * @param {any} mockData
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  formatMockData(mockData: any, match: MockMetaInfo, requestInfo: WxRequestInfo) {
+  formatMockData(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
 
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html

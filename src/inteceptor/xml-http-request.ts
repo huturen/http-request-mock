@@ -1,14 +1,74 @@
 import { HTTPStatusCodes } from '../config';
-import { Method, MockMetaInfo, XhrRequestInfo, XMLHttpRequestInstance } from '../types';
+import Mocker from '../mocker';
+import { Method, MockItemInfo, XhrRequestInfo, XMLHttpRequestInstance } from '../types';
 import Base from './base';
+
 export default class XMLHttpRequestInterceptor extends Base {
+  private static instance: XMLHttpRequestInterceptor;
   private xhr: any;
 
-  constructor() {
-    super();
+  constructor(mocker: Mocker) {
+    super(mocker);
+
+    if (XMLHttpRequestInterceptor.instance) {
+      return XMLHttpRequestInterceptor.instance;
+    }
+
+    XMLHttpRequestInterceptor.instance = this;
     this.xhr = window.XMLHttpRequest.prototype;
-    this.mockData = {};
     this.intercept();
+    return this;
+  }
+
+  /**
+   * Setup request mocker for unit test.
+   */
+  static setupForUnitTest(mocker: Mocker) {
+    const global = super.global();
+    global.XMLHttpRequest = global.XMLHttpRequest || function() {};
+    if (!global.XMLHttpRequest.prototype) {
+      global.XMLHttpRequest.prototype = {
+        open: function() {
+        },
+        send: function() {
+        },
+        setRequestHeader: function() {
+        },
+        onreadystatechange: function() {
+        },
+        load: function() {
+        },
+        loadend: function() {
+        },
+        getAllResponseHeaders: function() {
+        },
+        getResponseHeader: function() {
+        },
+        get readyState() {
+          return 4;
+        },
+        get status() {
+          return 200;
+        },
+        get statusText() {
+          return '';
+        },
+        get response() {
+          return '';
+        },
+        get responseText() {
+          return '';
+        },
+        get responseURL() {
+          return '';
+        },
+        get responseXML() {
+          return '';
+        },
+      };
+    }
+
+    return new XMLHttpRequestInterceptor(mocker);
   }
 
   /**
@@ -50,7 +110,7 @@ export default class XMLHttpRequestInterceptor extends Base {
           user: string | null = null,
           password: string | null = null
         ) => {
-          const match: MockMetaInfo | null = me.matchRequest(url, method);
+          const match: MockItemInfo | null = me.matchMockRequest(url, method);
           if (match) {
             // 'this' points XMLHttpRequest instance.
             this.isMockRequest = true;
@@ -88,10 +148,10 @@ export default class XMLHttpRequestInterceptor extends Base {
   /**
    * Make mock request.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {XhrRequestInfo} requestInfo
    */
-  private doMockRequest(xhr: XMLHttpRequestInstance, match: MockMetaInfo, requestInfo: XhrRequestInfo) {
+  private doMockRequest(xhr: XMLHttpRequestInstance, match: MockItemInfo, requestInfo: XhrRequestInfo) {
     if (match.file) {
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
         xhr.mockRequestInfo.data = this.formatMockData(mock.default, requestInfo);
@@ -107,9 +167,9 @@ export default class XMLHttpRequestInterceptor extends Base {
   /**
    * Make mock response.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    */
-  private doMockResponse(xhr: XMLHttpRequestInstance, match: MockMetaInfo,) {
+  private doMockResponse(xhr: XMLHttpRequestInstance, match: MockItemInfo,) {
     if (match.delay && match.delay > 0) {
       setTimeout(() => {
         this.doCompleteCallbacks(xhr)

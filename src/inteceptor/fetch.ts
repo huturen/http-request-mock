@@ -1,18 +1,32 @@
 import { HTTPStatusCodes } from '../config';
-import { FetchRequestInfo, MockMetaInfo } from '../types';
+import Mocker from '../mocker';
+import { FetchRequestInfo, MockItemInfo } from '../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
+  private static instance: FetchInterceptor;
   private fetch: any;
 
-  constructor() {
-    super();
+  constructor(mocker: Mocker) {
+    super(mocker);
 
+    if (FetchInterceptor.instance) {
+      return FetchInterceptor.instance;
+    }
+
+    FetchInterceptor.instance = this;
     this.fetch = window.fetch.bind(window);
-    this.mockData = {};
     this.intercept();
+    return this;
   }
 
+  static setupForUnitTest(mocker: Mocker) {
+    const global = super.global();
+    if (!global.fetch) {
+      global.fetch = function() {};
+    }
+    return new FetchInterceptor(mocker);
+  }
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
@@ -26,7 +40,7 @@ export default class FetchInterceptor extends Base{
       const method = params && params.method ? params.method : 'GET';
 
       return new Promise((resolve, reject) => {
-        const match:MockMetaInfo | null  = me.matchRequest(url, method);
+        const match:MockItemInfo | null  = me.matchMockRequest(url, method);
         if (match) {
           const requestInfo = <FetchRequestInfo>{ url, ...params };
           me.doMockRequest(match, requestInfo, resolve);
@@ -35,15 +49,16 @@ export default class FetchInterceptor extends Base{
         }
       });
     };
+    return this;
   }
 
   /**
    * Make mock request.
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {FetchRequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockRequest(match: MockMetaInfo, requestInfo: FetchRequestInfo, resolve: Function) {
+  private doMockRequest(match: MockItemInfo, requestInfo: FetchRequestInfo, resolve: Function) {
     if (match.file) {
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
         const mockData = this.formatMockData(mock.default, match, requestInfo);
@@ -58,11 +73,11 @@ export default class FetchInterceptor extends Base{
 
   /**
    * Make mock request.
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {FetchRequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockResponse(mockData: any, match: MockMetaInfo, resolve: Function) {
+  private doMockResponse(mockData: any, match: MockItemInfo, resolve: Function) {
     if (match) {
       if (match.delay && match.delay > 0) {
         setTimeout(() => {
@@ -79,32 +94,45 @@ export default class FetchInterceptor extends Base{
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
    * @param {any} mockData
-   * @param {MockMetaInfo} match
+   * @param {MockItemInfo} match
    * @param {FetchRequestInfo} requestInfo
    */
-  formatMockData(mockData: any, match: MockMetaInfo, requestInfo: FetchRequestInfo) {
+  formatMockData(mockData: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
+    const status = match.status || 200;
+    const statusText = HTTPStatusCodes[status] || '';
+
+    const headers = typeof Headers === 'function'
+      ? new Headers({ ...match.header, 'is-mock': 'yes' })
+      : { ...match.header, 'is-mock': 'yes' };
+
+    const body = typeof Blob === 'function'
+      ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
+      : data;
+
+    if (typeof Response === 'function') {
+      const response = new Response(body,{ status, statusText, headers });
+      Object.defineProperty(response, 'url', { value: requestInfo.url });
+      return response;
+    }
 
     const response = {
-      // If you needed a ReadableStream boject, you could define it in your mock file.
-      body: data,
+      // If you should need some other complex object, you could define it in your mock file.
+      body,
       bodyUsed: false,
-      headers: {
-        ...match.header,
-        'is-mock': 'yes'
-      },
+      headers,
       ok: true,
       redirected: false,
-      status: match.status,
-      statusText: HTTPStatusCodes[match.status || 200] || '',
+      status,
+      statusText,
       url: requestInfo.url,
       type: 'basic', // cors
       // response data depends on prepared data
-      json: async () => data,
-      arrayBuffer: async () => data,
-      blob: async () => data,
-      formData: async () => data,
-      text: async () => typeof data === 'string' ? data : JSON.stringify(data),
+      json: Promise.resolve(data),
+      arrayBuffer: Promise.resolve(data),
+      blob: body,
+      formData: Promise.resolve(data),
+      text: Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
       // other methods that may be used
       clone: async () => response,
       error: async () => response,

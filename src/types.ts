@@ -13,7 +13,7 @@ export enum Disable {
   no = 'no',
 };
 
-export interface MockMetaInfo {
+export interface MockItemInfo {
   url: RegExp | string;
   regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   method?: Method;
@@ -23,6 +23,10 @@ export interface MockMetaInfo {
   data?: any;
   status?: number; // http status code
   file?: string;
+};
+
+export type MockConfigData = {
+  [key: string]: MockItemInfo
 };
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
@@ -49,6 +53,25 @@ export interface XhrRequestInfo {
 
 export interface XMLHttpRequestInstance extends XMLHttpRequest {
   isMockRequest: boolean;
-  mockRequestInfo: MockMetaInfo
+  mockRequestInfo: MockItemInfo
   xhrRequestInfo: XhrRequestInfo
 }
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+export interface FetchRequestInfo {
+  url: string;
+  method?: Method | undefined;
+  mode?: string;
+  cache?: string;
+  credentials?: string;
+  headers?: object;
+  redirect?: string;
+  referrer?: string;
+  integrity?: string;
+  keepalive?: boolean;
+  signal?: any;
+  referrerPolicy?: string;
+  body?: any;
+};

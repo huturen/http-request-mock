@@ -14,7 +14,7 @@ export default class WxRequestInterceptor extends Base {
     }
 
     WxRequestInterceptor.instance = this;
-    this.wxRequest = wx.request.bind(wx);
+    this.wxRequest = this.global.wx.request.bind(wx);
     this.intercept();
     return this;
   }
@@ -23,7 +23,7 @@ export default class WxRequestInterceptor extends Base {
    * Setup request mocker for unit test.
    */
   static setupForUnitTest(mocker: Mocker) {
-    const global = super.global();
+    const global = Base.getGlobal();
     global.wx = global.wx || {};
     if (!global.wx.request) {
       global.wx.request = function() {};

@@ -5,10 +5,11 @@ import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
 export default class BaseInteceptor {
   protected mocker: Mocker;
-  protected inited: boolean = false;
+  protected global: any;
 
   constructor(mocker: Mocker) {
     this.mocker = mocker;
+    this.global = BaseInteceptor.getGlobal();
   }
 
   /**
@@ -21,7 +22,7 @@ export default class BaseInteceptor {
   /**
    * return global variable
    */
-  public static global() : any {
+  public static getGlobal() : any {
     if (typeof window !== 'undefined') {
       return window;
     } else if (typeof global !== 'undefined')  {

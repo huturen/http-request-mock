@@ -15,7 +15,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     }
 
     XMLHttpRequestInterceptor.instance = this;
-    this.xhr = window.XMLHttpRequest.prototype;
+    this.xhr = this.global.XMLHttpRequest.prototype;
     this.intercept();
     return this;
   }
@@ -24,8 +24,10 @@ export default class XMLHttpRequestInterceptor extends Base {
    * Setup request mocker for unit test.
    */
   static setupForUnitTest(mocker: Mocker) {
-    const global = super.global();
-    global.XMLHttpRequest = global.XMLHttpRequest || function() {};
+    const global = Base.getGlobal();
+    if (!global.XMLHttpRequest) {
+      global.XMLHttpRequest = function() {};
+    }
     if (!global.XMLHttpRequest.prototype) {
       global.XMLHttpRequest.prototype = {
         open: function() {
@@ -116,6 +118,7 @@ export default class XMLHttpRequestInterceptor extends Base {
             this.isMockRequest = true;
             this.mockRequestInfo = match;
             this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, };
+            this.formattedMockData = undefined;
             return;
           }
           return original.call(this, method, url, async, user, password);
@@ -160,7 +163,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       return;
     }
 
-    xhr.mockRequestInfo.data = this.formatMockData(match.data, requestInfo);
+    xhr.formattedMockData = this.formatMockData(match.data, requestInfo);
     this.doMockResponse(xhr, match);
   }
 
@@ -249,7 +252,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (field: string) => {
           if (this.isMockRequest) {
-            if (/^is-mock$/.test(field)) {
+            if (/^is-mock$/i.test(field)) {
               return 'yes';
             }
             const item = Object.entries(this.mockRequestInfo.header).find(([key]) => key.toLowerCase() === field);
@@ -349,7 +352,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'responseText', {
       get: function() {
         if (this.isMockRequest) {
-          const data = this.mockRequestInfo.data;
+          const data = this.formattedMockData;
           return typeof data === 'string' ? data : JSON.stringify(data);
         }
         return typeof original === 'function' ? original.call(this) : original;
@@ -366,7 +369,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'response', {
       get: function() {
         if (this.isMockRequest) {
-          return this.responseType !== '' ? this.mockRequestInfo.data : this.responseText;
+          return this.responseType !== '' ? this.formattedMockData : this.responseText;
         }
         return typeof original === 'function' ? original.call(this) : original;
       }

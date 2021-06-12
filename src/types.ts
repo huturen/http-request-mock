@@ -25,7 +25,7 @@ export interface MockItemInfo {
   file?: string;
 };
 
-export type MockConfigData = {
+export interface MockConfigData {
   [key: string]: MockItemInfo
 };
 
@@ -55,6 +55,7 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
   isMockRequest: boolean;
   mockRequestInfo: MockItemInfo
   xhrRequestInfo: XhrRequestInfo
+  formattedMockData: any,
 }
 
 

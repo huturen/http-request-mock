@@ -15,13 +15,14 @@ export default class FetchInterceptor extends Base{
     }
 
     FetchInterceptor.instance = this;
-    this.fetch = window.fetch.bind(window);
+    this.fetch = this.global.fetch.bind(this.global);
     this.intercept();
+
     return this;
   }
 
   static setupForUnitTest(mocker: Mocker) {
-    const global = super.global();
+    const global = Base.getGlobal();
     if (!global.fetch) {
       global.fetch = function() {};
     }
@@ -34,9 +35,21 @@ export default class FetchInterceptor extends Base{
    */
   private intercept() {
     const me = this;
-    window.fetch = function() {
+    this.global.fetch = function() {
       const args = [ ...(arguments as any) ];
-      const [ url, params ] = args;
+
+      let url: any;
+      let params: any;
+      // https://developer.mozilla.org/en-US/docs/Web/API/Request
+      // Note: the first argument of fetch maybe a Request object.
+      if (typeof args[0] === 'object' ) {
+        url = args[0].url || '';
+        params = args[0];
+      } else {
+        url = args[0];
+        params = args[1];
+      }
+
       const method = params && params.method ? params.method : 'GET';
 
       return new Promise((resolve, reject) => {
@@ -128,15 +141,15 @@ export default class FetchInterceptor extends Base{
       url: requestInfo.url,
       type: 'basic', // cors
       // response data depends on prepared data
-      json: Promise.resolve(data),
-      arrayBuffer: Promise.resolve(data),
-      blob: body,
-      formData: Promise.resolve(data),
-      text: Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
+      json: () => Promise.resolve(data),
+      arrayBuffer: () => Promise.resolve(data),
+      blob: () => Promise.resolve(body),
+      formData: () => Promise.resolve(data),
+      text: () => Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
       // other methods that may be used
-      clone: async () => response,
-      error: async () => response,
-      redirect: async () => response,
+      clone: () => response,
+      error: () => response,
+      redirect: () => response,
     };
     return response;
   }

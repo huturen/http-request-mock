@@ -16,7 +16,7 @@ const xhrPromise = (url, method) => new Promise(resolve => {
 });
 
 describe('mock XMLHttpRequest raw request', () => {
-  it('string url[xhr.api.org/string should match request[http://xhr.api.org/string]', (done) => {
+  it('mock url[xhr.api.org/string] should match request[http://xhr.api.org/string]', (done) => {
     mocker.get('xhr.api.org/string', 'xhr.api.org');
 
     xhrRequest('GET', 'https://xhr.api.org/string', null, xhr =>{
@@ -27,7 +27,7 @@ describe('mock XMLHttpRequest raw request', () => {
     });
   });
 
-  it('regexp url[/^.*\/regexp$/] should match request[http://xhr.api.org/xhr/regexp]', (done) => {
+  it('mock url[/^.*\/regexp$/] should match request[http://xhr.api.org/xhr/regexp]', (done) => {
     mocker.post('xhr.api.org/regexp', 'xhr.api.org.regexp');
 
     xhrRequest('POST', 'https://xhr.api.org/regexp', null, xhr =>{

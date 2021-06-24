@@ -4,7 +4,7 @@ import HttpRequestMock from '../src/index';
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
 describe('mock axios request', () => {
-  it('string url[www.api.com/axios/abc] should match request[http://www.api.com/axios/abc]', (done) => {
+  it('mock url[www.api.com/axios/abc] should match request[http://www.api.com/axios/abc]', (done) => {
     mocker.mock({
       url: 'www.api.com/axios/abc',
       method: 'get',
@@ -17,7 +17,7 @@ describe('mock axios request', () => {
     });
   });
 
-  it('regexp url[/^.*\/regexp$/] should match request[http://www.api.com/axios/regexp]', (done) => {
+  it('mock url[/^.*\/regexp$/] should match request[http://www.api.com/axios/regexp]', (done) => {
     mocker.mock({
       url: /^.*\/regexp$/,
       method: 'get',

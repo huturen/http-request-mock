@@ -3,7 +3,7 @@ import HttpRequestMock from '../src/index';
 const mocker = HttpRequestMock.setupForUnitTest('fetch');
 
 describe('mock fetch request', () => {
-  it('string url[www.api.com/fetch/abc] should match request[http://www.api.com/fetch/abc]', (done) => {
+  it('mock url[www.api.com/fetch/abc] should match request[http://www.api.com/fetch/abc]', (done) => {
     mocker.mock({
       url: 'www.api.com/fetch/abc',
       method: 'get',
@@ -18,7 +18,7 @@ describe('mock fetch request', () => {
     });
   });
 
-  it('regexp url[/^.*\/regexp$/] should match request[http://www.api.com/fetch/regexp]', (done) => {
+  it('mock url[/^.*\/regexp$/] should match request[http://www.api.com/fetch/regexp]', (done) => {
     mocker.mock({
       url: /^.*\/regexp$/,
       method: 'get',

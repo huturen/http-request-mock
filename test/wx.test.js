@@ -8,8 +8,8 @@ const wxrequest = (url, method) => new Promise(resolve => {
   }});
 });
 
-describe('mock fetch request', () => {
-  it('string url[wx.api.com/abc] should match request[http://wx.api.com/abc]', (done) => {
+describe('mock wx.request request', () => {
+  it('mock url[wx.api.com/abc] should match request[http://wx.api.com/abc]', (done) => {
     mocker.mock({
       url: 'wx.api.com/abc',
       method: 'get',
@@ -22,7 +22,7 @@ describe('mock fetch request', () => {
     });
   });
 
-  it('regexp url[/^.*\/regexp$/] should match request[http://wx.api.com/regexp]', (done) => {
+  it('mock url[/^.*\/regexp$/] should match request[http://wx.api.com/regexp]', (done) => {
     mocker.mock({
       url: /^.*\/regexp$/,
       method: 'get',

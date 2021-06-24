@@ -57,6 +57,7 @@
     "del-cli": "^3.0.1",
     "husky": "^4.3.0",
     "jest": "^26.5.2",
+    "jquery": "^3.6.0",
     "node-loader": "^1.0.2",
     "standard-version": "^9.0.0",
     "ts-loader": "^8.1.0",

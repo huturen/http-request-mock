@@ -25,9 +25,8 @@ export default class XMLHttpRequestInterceptor extends Base {
    */
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
-    if (!global.XMLHttpRequest) {
-      global.XMLHttpRequest = function() {};
-    }
+    global.XMLHttpRequest = global.XMLHttpRequest || function() {};
+
     if (!global.XMLHttpRequest.prototype) {
       global.XMLHttpRequest.prototype = {
         open: function() {
@@ -118,7 +117,7 @@ export default class XMLHttpRequestInterceptor extends Base {
             this.isMockRequest = true;
             this.mockRequestInfo = match;
             this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, };
-            this.formattedMockData = undefined;
+            this.mockResponse = null;
             return;
           }
           return original.call(this, method, url, async, user, password);
@@ -157,13 +156,13 @@ export default class XMLHttpRequestInterceptor extends Base {
   private doMockRequest(xhr: XMLHttpRequestInstance, match: MockItemInfo, requestInfo: XhrRequestInfo) {
     if (match.file) {
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        xhr.mockRequestInfo.data = this.formatMockData(mock.default, requestInfo);
+        xhr.mockResponse = this.getMockResponse(mock.default, requestInfo);
         this.doMockResponse(xhr, match);
       });
       return;
     }
 
-    xhr.formattedMockData = this.formatMockData(match.data, requestInfo);
+    xhr.mockResponse = this.getMockResponse(match.data, requestInfo);
     this.doMockResponse(xhr, match);
   }
 
@@ -187,7 +186,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {any} mockData
    * @param {XhrRequestInfo} requestInfo
    */
-  formatMockData(mockData: any, requestInfo: XhrRequestInfo) {
+  getMockResponse(mockData: any, requestInfo: XhrRequestInfo) {
     return typeof mockData === 'function' ? mockData(requestInfo) : mockData;
   }
 
@@ -352,7 +351,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'responseText', {
       get: function() {
         if (this.isMockRequest) {
-          const data = this.formattedMockData;
+          const data = this.mockResponse;
           return typeof data === 'string' ? data : JSON.stringify(data);
         }
         return typeof original === 'function' ? original.call(this) : original;
@@ -363,13 +362,54 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Logic of intercepting XMLHttpRequest.response getter.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/responseType
+   * When setting responseType to a particular value, the author should make
+   * sure that the server is actually sending a response compatible with that
+   * format. If the server returns data that is not compatible with the
+   * responseType that was set, the value of response will be null.
    */
   private interceptResponse() {
     const original = this.getGetter('response');
     Object.defineProperty(this.xhr, 'response', {
       get: function() {
         if (this.isMockRequest) {
-          return this.responseType !== '' ? this.formattedMockData : this.responseText;
+          const type = this.responseType;
+          // An empty responseType string is the same as "text", the default type.
+          if (type === 'text' || type === '') {
+            return this.responseText;
+          }
+          // The response is a JavaScript ArrayBuffer containing binary data.
+          if (type === 'arraybuffer' && typeof ArrayBuffer === 'function') {
+            return (this.mockResponse instanceof ArrayBuffer) ? this.mockResponse : null;
+          }
+          // The response is a Blob object containing the binary data.
+          if (type === 'blob' && typeof Blob === 'function') {
+            return (this.mockResponse instanceof Blob) ? this.mockResponse : null;
+          }
+          // The response is an HTML Document or XML XMLDocument, as appropriate based on the MIME type of
+          // the received data. See HTML in XMLHttpRequest to learn more about using XHR to fetch HTML content.
+          if (type === 'document' && (typeof Document === 'function' || typeof XMLDocument === 'function')) {
+            return ((this.mockResponse instanceof Document) || (this.mockResponse instanceof XMLDocument))
+              ? this.mockResponse
+              : null;
+          }
+          // The response is a JavaScript object created by parsing the contents of received data as JSON.
+          if (type === 'json') {
+            if (typeof this.mockResponse === 'object') {
+              return this.mockResponse;
+            }
+            if (typeof this.mockResponse === 'string') {
+              try {
+                return JSON.parse(this.mockResponse);
+              } catch(err) { // eslint-disable-line
+                console.warn('The mock response is not compatible with the responseType json: ' + err.message);
+                return null;
+              }
+            }
+            return null;
+          }
+          return this.mockResponse;
         }
         return typeof original === 'function' ? original.call(this) : original;
       }

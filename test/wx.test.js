@@ -2,95 +2,114 @@ import HttpRequestMock from '../src/index';
 
 const mocker = HttpRequestMock.setupForUnitTest('wx.request');
 
-const wxrequest = (url, method) => new Promise(resolve => {
-  wx.request({ url, method, success: res => {
-    resolve(res);
-  }});
-});
+const request = (url, method = 'get', opts = {}) => {
+  return new Promise((resolve) => {
+    wx.request({ url, method, ...opts, success: res => {
+      resolve({
+        data: res.data,
+        status: res.statusCode,
+        headers: res.header
+      });
+    }});
+  });
+};
 
 describe('mock wx.request request', () => {
-  it('mock url[wx.api.com/abc] should match request[http://wx.api.com/abc]', (done) => {
-    mocker.mock({
-      url: 'wx.api.com/abc',
-      method: 'get',
-      data: { ret: 0, msg: 'string'}
-    });
+  it('url config item should support partial matching', async () => {
+    mocker.get('www.api.com/partial', 'get content');
+    mocker.post('www.api.com/partial', 'post content');
 
-    wxrequest('http://wx.api.com/abc').then(res => {
-      expect(res.data).toMatchObject({ ret: 0, msg: 'string'});
-      done();
-    });
+    const res = await Promise.all([
+      request('http://www.api.com/partial', 'get').then(res => res.data),
+      request('https://www.api.com/partial', 'post').then(res => res.data),
+      request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.data),
+      request('https://www.api.com/partial-other', 'post').then(res => res.data),
+    ]);
+    expect(res).toMatchObject([
+      'get content', 'post content', 'get content', 'post content'
+    ]);
   });
 
-  it('mock url[/^.*\/regexp$/] should match request[http://wx.api.com/regexp]', (done) => {
-    mocker.mock({
-      url: /^.*\/regexp$/,
-      method: 'get',
-      data: { ret: 0, msg: 'regexp'}
-    });
+  it('url config item should support RegExp matching', async () => {
+    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
-    wxrequest('http://wx.api.com/regexp').then(res => {
-      expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
-      done();
-    });
+    const res = await request('http://www.api.com/regexp');
+    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
-  it('the delay mock request[http://wx.api.com/delay] should be returned in 100 ms', (done) => {
+  it('delay config item should support a delayed response', (done) => {
     mocker.mock({
-      url: 'http://wx.api.com/delay',
-      method: 'any',
+      url: 'http://www.api.com/delay',
       delay: 100,
       data: { ret: 0, msg: 'delay'}
     });
 
     let result = null;
-    wxrequest('http://wx.api.com/delay').then(res => {
-      result = res.data;
-      done();
+    request('http://www.api.com/delay').then(res => {
+      result = res.data
     });
-    setTimeout(() => expect(result).toBe(null), 10);
+    expect(result).toBe(null);
+
+    setTimeout(() => {
+      expect(result).toBe(null);
+    }, 90);
+
     setTimeout(() => {
       expect(result).toMatchObject({ ret: 0, msg: 'delay'});
       done();
-    }, 100 + 10); // gap 10ms
+    }, 110); // gap 10ms
   });
 
-  it('methods(get|post|put|patch|delete) should be mocked correctly', (done) => {
-    mocker.get('http://wx.api.com/get', 'get');
-    mocker.post('http://wx.api.com/post', 'post');
-    mocker.put('http://wx.api.com/put', 'put');
-    mocker.patch('http://wx.api.com/patch', 'patch');
-    mocker.delete('http://wx.api.com/delete', 'delete');
-
-    Promise.all([
-      wxrequest('http://wx.api.com/get', 'get').then(res => res.data),
-      wxrequest('http://wx.api.com/post', 'post').then(res => res.data),
-      wxrequest('http://wx.api.com/put', 'put').then(res => res.data),
-      wxrequest('http://wx.api.com/patch', 'patch').then(res => res.data),
-      wxrequest('http://wx.api.com/delete', 'delete').then(res => res.data),
-    ]).then(res => {
-      expect(res).toMatchObject(['get', 'post', 'put', 'patch', 'delete']);
-      done();
-    });
-  });
-
-  it('request http://wx.api.com/status404 should return 404', (done) => {
+  it('status config itme should support a customized http status code response', (done) => {
     mocker.mock({
-      url: 'http://wx.api.com/status404',
-      method: 'any',
+      url: 'http://www.api.com/status404',
       status: 404,
       data: 'not found'
     });
 
-    wxrequest('http://wx.api.com/status404').then(res => {
-      expect(res.statusCode).toBe(404);
+    request('http://www.api.com/status404').then(res => {
+      expect(res.status).toBe(404);
+      expect(res.data).toBe('not found');
       done();
     });
   });
 
-  it('request http://wx.api.com/headers should match customized headers', (done) => {
+  it('method config itme should support mock a GET|POST|PUT|PATCH|DELETE http request', async () => {
+    mocker.get('http://www.api.com/get', 'get');
+    mocker.post('http://www.api.com/post', 'post');
+    mocker.put('http://www.api.com/put', 'put');
+    mocker.patch('http://www.api.com/patch', 'patch');
+    mocker.delete('http://www.api.com/delete', 'delete');
+
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', data: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', data: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', data: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', data: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', data: 'method-delete'});
+
+    const res = await Promise.all([
+      request('http://www.api.com/get', 'get').then(res => res.data),
+      request('http://www.api.com/post', 'post').then(res => res.data),
+      request('http://www.api.com/put', 'put').then(res => res.data),
+      request('http://www.api.com/patch', 'patch').then(res => res.data),
+      request('http://www.api.com/delete', 'delete').then(res => res.data),
+
+      request('http://www.api.com/method-get', 'get').then(res => res.data),
+      request('http://www.api.com/method-post', 'post').then(res => res.data),
+      request('http://www.api.com/method-put', 'put').then(res => res.data),
+      request('http://www.api.com/method-patch', 'patch').then(res => res.data),
+      request('http://www.api.com/method-delete', 'delete').then(res => res.data),
+    ]);
+
+    expect(res).toMatchObject([
+      'get', 'post', 'put', 'patch', 'delete',
+      'method-get', 'method-post', 'method-put', 'method-patch', 'method-delete',
+    ]);
+  });
+
+  it('header config itme should support customized response headers', async () => {
     mocker.mock({
-      url: 'http://wx.api.com/headers',
+      url: 'http://www.api.com/headers',
       method: 'any',
       data: 'headers',
       header: {
@@ -99,21 +118,54 @@ describe('mock wx.request request', () => {
       }
     });
 
-    wxrequest('http://wx.api.com/headers').then(res => {
-      expect(res.statusCode).toBe(200);
-      expect(res.header).toMatchObject({
-        custom: 'a-customized-header',
-        another: 'another-header',
-        'is-mock': 'yes',
-      });
-      done();
+    const res = await request('http://www.api.com/headers');
+    expect(res.status).toBe(200);
+    expect(res.headers).toMatchObject({
+      custom: 'a-customized-header',
+      another: 'another-header',
+      'is-mock': 'yes',
     });
   });
 
-  it('request http://wx.api.com/function should get different result between two requests', async (done) => {
+  it('mock response should support customized data types', async () => {
+    mocker.any('http://www.api.com/string', 'string');
+    mocker.any('http://www.api.com/object', {obj: 'yes'});
+    mocker.any('http://www.api.com/blob', new Blob(['test-blob']));
+    mocker.any('http://www.api.com/arraybuffer', new ArrayBuffer(8));
+
+
+    const res = await Promise.all([
+      request('http://www.api.com/string', 'get').then(res => res.data),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
+      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
+      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
+    ]);
+    expect(res[0]).toBe('string');
+    expect(res[1]).toMatchObject({obj: 'yes'});
+    expect(res[2]).toBeInstanceOf(Blob);
+    expect(res[3]).toBeInstanceOf(ArrayBuffer);
+  });
+
+  it('mock response function should support get request info', async () => {
+    let requestInfo = {};
+    mocker.mock({
+      url: 'http://www.api.com/request-info',
+      method: 'get',
+      data: (reqInfo) => {
+        requestInfo = reqInfo;
+        return requestInfo;
+      }
+    });
+
+    await request('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(requestInfo.url).toBe('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(/^get$/i.test(requestInfo.method)).toBe(true);
+  });
+
+  it('mock response should support dynamic response\'s body content', async () => {
     let index = 0;
     mocker.mock({
-      url: 'http://wx.api.com/function',
+      url: 'http://www.api.com/function',
       method: 'any',
       data: () => {
         index = index + 1;
@@ -121,13 +173,9 @@ describe('mock wx.request request', () => {
       }
     });
 
-    await wxrequest('http://wx.api.com/function').then(res => {
-      expect(res.data).toBe('data1');
-    });
-    await wxrequest('http://wx.api.com/function').then(res => {
-      expect(res.data).toBe('data2');
-      done();
-    });
+    const res1 = await request('http://www.api.com/function');
+    const res2 = await request('http://www.api.com/function');
+    expect(res1.data).toBe('data1');
+    expect(res2.data).toBe('data2');
   });
 });
-

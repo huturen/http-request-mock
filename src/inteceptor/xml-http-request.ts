@@ -162,7 +162,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       return;
     }
 
-    xhr.mockResponse = this.getMockResponse(match.data, requestInfo);
+    xhr.mockResponse = this.getMockResponse(match.response, requestInfo);
     this.doMockResponse(xhr, match);
   }
 
@@ -183,11 +183,11 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Format mock data.
-   * @param {any} mockData
+   * @param {any} mockResponseConfig
    * @param {XhrRequestInfo} requestInfo
    */
-  getMockResponse(mockData: any, requestInfo: XhrRequestInfo) {
-    return typeof mockData === 'function' ? mockData(requestInfo) : mockData;
+  getMockResponse(mockResponseConfig: any, requestInfo: XhrRequestInfo) {
+    return typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
   }
 
   /**

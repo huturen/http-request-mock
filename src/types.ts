@@ -20,7 +20,7 @@ export interface MockItemInfo {
   header?: object,
   delay?: number;
   disable?: Disable;
-  data?: any;
+  response?: any;
   status?: number; // http status code
   file?: string;
 };

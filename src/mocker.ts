@@ -2,22 +2,22 @@ import { Method, MockConfigData, MockItemInfo } from './types';
 
 export default class Mocker {
   private static instance: Mocker;
-  private mockData: MockConfigData;
+  private mockConfigData: MockConfigData;
 
   constructor() {
     if (Mocker.instance) {
       return Mocker.instance;
     }
     Mocker.instance = this;
-    this.mockData = {};
+    this.mockConfigData = {};
   }
 
   /**
    * Set global mock data configuration.
-   * @param {object} data
+   * @param {object} mockConfigData
    */
-  public setMockData(mockData: MockConfigData) {
-    this.mockData = mockData;
+  public setMockData(mockConfigData: MockConfigData) {
+    this.mockConfigData = mockConfigData;
     return this;
   }
 
@@ -27,7 +27,7 @@ export default class Mocker {
    * @param {any} val
    */
   private addMockItem(key: string, val: MockItemInfo) {
-    this.mockData[key] = val;
+    this.mockConfigData[key] = val;
     return this;
   }
 
@@ -66,78 +66,78 @@ export default class Mocker {
   /**
    * Make a mock item that matches an HTTP GET request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public get(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'get', data: mockData, delay, status, header });
+  public get(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'get', response, delay, status, header });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP POST request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public post(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'post', data: mockData, delay, status, header });
+  public post(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'post', response, delay, status, header });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP PUT request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public put(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'put', data: mockData, delay, status, header });
+  public put(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'put', response, delay, status, header });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP PATCH request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public patch(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'patch', data: mockData, delay, status, header });
+  public patch(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'patch', response, delay, status, header });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP DELETE request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public delete(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'delete', data: mockData, delay, status, header });
+  public delete(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'delete', response, delay, status, header });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP GET, POST, PUT, PATCH or DELETE request.
    * @param {RegExp | String} url
-   * @param {any} mockData
+   * @param {any} response
    * @param {number} delay
    * @param {number} status
    * @param {object} header
    */
-  public any(url: RegExp | String, mockData: any, delay: number = 0, status: number = 200, header: object = {}) {
-    this.mock(<MockItemInfo>{ url, method: 'any', data: mockData, delay, status, header });
+  public any(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+    this.mock(<MockItemInfo>{ url, method: 'any', response, delay, status, header });
     return this;
   }
 
@@ -150,9 +150,9 @@ export default class Mocker {
   public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
     const requestMethod = reqMethod || 'get';
 
-    for(let key in this.mockData) {
+    for(let key in this.mockConfigData) {
       try {
-        const info = this.mockData[key];
+        const info = this.mockConfigData[key];
         if (info.disable === 'yes') {
           continue;
         }

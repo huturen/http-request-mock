@@ -320,12 +320,12 @@ module.exports = class HttpRequestMockMockPlugin {
       codes.push(`import data${i} from '${file}';`);
       items.push({ url: tags.url, method, index: i, delay, status, header, });
     }
-    codes.push('const mock = HttpRequestMock.setup();');
+    codes.push('const mocker = HttpRequestMock.setup();');
     for (const item of items) {
-      const mockData = `data${item.index}`;
+      const response = `data${item.index}`;
       const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
       const header = JSON.stringify(item.header, null, 2);
-      codes.push(`mock.${item.method}(${url}, ${mockData}, ${item.delay}, ${item.status}, ${header});`);
+      codes.push(`mocker.${item.method}(${url}, ${response}, ${item.delay}, ${item.status}, ${header});`);
     }
     codes.push('/* eslint-enable */');
 

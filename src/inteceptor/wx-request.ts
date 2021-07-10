@@ -71,34 +71,34 @@ export default class WxRequestInterceptor extends Base {
       return;
     }
 
-    const mockResponse = this.getMockResponse(match.data, match, requestInfo);
+    const mockResponse = this.getMockResponse(match.response, match, requestInfo);
     this.doMockResponse(mockResponse, match, requestInfo);
   }
 
   /**
    * Make mock response.
-   * @param {any} mockData
+   * @param {any} response
    * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  private doMockResponse(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
+  private doMockResponse(response: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
     if (match.delay && match.delay > 0) {
       setTimeout(() => {
-        this.doCompleteCallbacks(requestInfo, mockData)
+        this.doCompleteCallbacks(requestInfo, response)
       }, +match.delay);
     } else {
-      this.doCompleteCallbacks(requestInfo, mockData)
+      this.doCompleteCallbacks(requestInfo, response)
     }
   }
 
   /**
    * Format mock data to fit wx.request callbacks.
-   * @param {any} mockData
+   * @param {any} mockResponseConfig
    * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  getMockResponse(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
-    const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
+  getMockResponse(mockResponseConfig: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
+    const data = typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
 
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
     return {
@@ -116,15 +116,15 @@ export default class WxRequestInterceptor extends Base {
   /**
    * Call some necessary callbacks if specified.
    * @param {WxRequestInfo} requestInfo
-   * @param {any} mockData
+   * @param {any} response
    */
-  private doCompleteCallbacks(requestInfo: WxRequestInfo, mockData: any) {
+  private doCompleteCallbacks(requestInfo: WxRequestInfo, response: any) {
     if (typeof requestInfo.success === 'function') {
-      requestInfo.success(mockData);
+      requestInfo.success(response);
     }
 
     if (typeof requestInfo.complete === 'function') {
-      requestInfo.complete(mockData);
+      requestInfo.complete(response);
     }
   }
 }

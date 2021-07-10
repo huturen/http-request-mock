@@ -74,14 +74,14 @@ export default class FetchInterceptor extends Base{
   private doMockRequest(match: MockItemInfo, requestInfo: FetchRequestInfo, resolve: Function) {
     if (match.file) {
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        const mockData = this.formatMockData(mock.default, match, requestInfo);
-        this.doMockResponse(mockData, match, resolve);
+        const mockResponse = this.getMockResponse(mock.default, match, requestInfo);
+        this.doMockResponse(mockResponse, match, resolve);
       });
       return;
     }
 
-    const mockData = this.formatMockData(match.data, match, requestInfo);
-    this.doMockResponse(mockData, match, resolve);
+    const mockResponse = this.getMockResponse(match.data, match, requestInfo);
+    this.doMockResponse(mockResponse, match, resolve);
   }
 
   /**
@@ -110,7 +110,7 @@ export default class FetchInterceptor extends Base{
    * @param {MockItemInfo} match
    * @param {FetchRequestInfo} requestInfo
    */
-  formatMockData(mockData: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
+  getMockResponse(mockData: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
     const status = match.status || 200;
     const statusText = HTTPStatusCodes[status] || '';

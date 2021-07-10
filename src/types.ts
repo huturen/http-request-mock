@@ -55,7 +55,7 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
   isMockRequest: boolean;
   mockRequestInfo: MockItemInfo
   xhrRequestInfo: XhrRequestInfo
-  formattedMockData: any,
+  mockResponse: any,
 }
 
 

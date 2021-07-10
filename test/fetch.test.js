@@ -2,95 +2,120 @@ import HttpRequestMock from '../src/index';
 
 const mocker = HttpRequestMock.setupForUnitTest('fetch');
 
+const request = (url, method = 'get', opts = {}) => {
+  return new Promise((resolve, reject) => {
+    fetch(url, { url, method, ...opts }).then(res => {
+      res.json().then(data => {
+        resolve({
+          data: data,
+          status: res.status,
+          headers: [...res.headers].reduce((res, item) => {
+            const [key, val] = item;
+            res[key] = val;
+            return res;
+          }, {})
+        });
+      });
+    }).catch(reject);
+  });
+};
+
 describe('mock fetch request', () => {
-  it('mock url[www.api.com/fetch/abc] should match request[http://www.api.com/fetch/abc]', (done) => {
-    mocker.mock({
-      url: 'www.api.com/fetch/abc',
-      method: 'get',
-      data: { ret: 0, msg: 'string'}
-    });
+  it('url config item should support partial matching', async () => {
+    mocker.get('www.api.com/partial', 'get content');
+    mocker.post('www.api.com/partial', 'post content');
 
-    fetch('http://www.api.com/fetch/abc').then(res => {
-      return res.json();
-    }).then(json => {
-      expect(json).toMatchObject({ ret: 0, msg: 'string'});
-      done();
-    });
+    const res = await Promise.all([
+      request('http://www.api.com/partial', 'get').then(res => res.data),
+      request('https://www.api.com/partial', 'post').then(res => res.data),
+      request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.data),
+      request('https://www.api.com/partial-other', 'post').then(res => res.data),
+    ]);
+    expect(res).toMatchObject([
+      'get content', 'post content', 'get content', 'post content'
+    ]);
   });
 
-  it('mock url[/^.*\/regexp$/] should match request[http://www.api.com/fetch/regexp]', (done) => {
-    mocker.mock({
-      url: /^.*\/regexp$/,
-      method: 'get',
-      data: { ret: 0, msg: 'regexp'}
-    });
+  it('url config item should support RegExp matching', async () => {
+    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
-    fetch('http://www.api.com/fetch/regexp').then(res => {
-      return res.json();
-    }).then(json => {
-      expect(json).toMatchObject({ ret: 0, msg: 'regexp'});
-      done();
-    });
+    const res = await request('http://www.api.com/regexp');
+    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
-  it('the delay mock request[http://www.api.com/fetch/delay] should be returned in 100 ms', (done) => {
+  it('delay config item should support a delayed response', (done) => {
     mocker.mock({
-      url: 'http://www.api.com/fetch/delay',
-      method: 'any',
+      url: 'http://www.api.com/delay',
       delay: 100,
       data: { ret: 0, msg: 'delay'}
     });
 
     let result = null;
-    fetch('http://www.api.com/fetch/delay').then(res => {
-      return res.json();
-    }).then(json => {
-      result = json;
-      done();
+    request('http://www.api.com/delay').then(res => {
+      result = res.data
     });
-    setTimeout(() => expect(result).toBe(null), 10);
+    expect(result).toBe(null);
+
+    setTimeout(() => {
+      expect(result).toBe(null);
+    }, 90);
+
     setTimeout(() => {
       expect(result).toMatchObject({ ret: 0, msg: 'delay'});
       done();
-    }, 100 + 10); // gap 10ms
+    }, 110); // gap 10ms
   });
 
-  it('methods(get|post|put|patch|delete) should be mocked correctly', (done) => {
-    mocker.get('http://www.api.com/fetch/get', 'get');
-    mocker.post('http://www.api.com/fetch/post', 'post');
-    mocker.put('http://www.api.com/fetch/put', 'put');
-    mocker.patch('http://www.api.com/fetch/patch', 'patch');
-    mocker.delete('http://www.api.com/fetch/delete', 'delete');
-
-    Promise.all([
-      fetch('http://www.api.com/fetch/get', { method: 'get' }).then(res => res.text()),
-      fetch('http://www.api.com/fetch/post', { method: 'post' }).then(res => res.text()),
-      fetch('http://www.api.com/fetch/put', { method: 'put' }).then(res => res.text()),
-      fetch('http://www.api.com/fetch/patch', { method: 'patch' }).then(res => res.text()),
-      fetch('http://www.api.com/fetch/delete', { method: 'delete' }).then(res => res.text()),
-    ]).then(res => {
-      expect(res).toMatchObject(['get', 'post', 'put', 'patch', 'delete']);
-      done();
-    });
-  });
-
-  it('request http://www.api.com/fetch/status404 should return 404', (done) => {
+  it('status config itme should support a customized http status code response', (done) => {
     mocker.mock({
-      url: 'http://www.api.com/fetch/status404',
-      method: 'any',
+      url: 'http://www.api.com/status404',
       status: 404,
       data: 'not found'
     });
 
-    fetch('http://www.api.com/fetch/status404').then(res => {
+    request('http://www.api.com/status404').then(res => {
       expect(res.status).toBe(404);
+      expect(res.data).toBe('not found');
       done();
     });
   });
 
-  it('request http://www.api.com/fetch/headers should match customized headers', (done) => {
+  it('method config itme should support mock a GET|POST|PUT|PATCH|DELETE http request', async () => {
+    mocker.get('http://www.api.com/get', 'get');
+    mocker.post('http://www.api.com/post', 'post');
+    mocker.put('http://www.api.com/put', 'put');
+    mocker.patch('http://www.api.com/patch', 'patch');
+    mocker.delete('http://www.api.com/delete', 'delete');
+
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', data: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', data: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', data: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', data: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', data: 'method-delete'});
+
+    const res = await Promise.all([
+      request('http://www.api.com/get', 'get').then(res => res.data),
+      request('http://www.api.com/post', 'post').then(res => res.data),
+      request('http://www.api.com/put', 'put').then(res => res.data),
+      request('http://www.api.com/patch', 'patch').then(res => res.data),
+      request('http://www.api.com/delete', 'delete').then(res => res.data),
+
+      request('http://www.api.com/method-get', 'get').then(res => res.data),
+      request('http://www.api.com/method-post', 'post').then(res => res.data),
+      request('http://www.api.com/method-put', 'put').then(res => res.data),
+      request('http://www.api.com/method-patch', 'patch').then(res => res.data),
+      request('http://www.api.com/method-delete', 'delete').then(res => res.data),
+    ]);
+
+    expect(res).toMatchObject([
+      'get', 'post', 'put', 'patch', 'delete',
+      'method-get', 'method-post', 'method-put', 'method-patch', 'method-delete',
+    ]);
+  });
+
+  it('header config itme should support customized response headers', async () => {
     mocker.mock({
-      url: 'http://www.api.com/fetch/headers',
+      url: 'http://www.api.com/headers',
       method: 'any',
       data: 'headers',
       header: {
@@ -99,27 +124,54 @@ describe('mock fetch request', () => {
       }
     });
 
-    fetch('http://www.api.com/fetch/headers').then(res => {
-      expect(res.status).toBe(200);
-      if (res.headers instanceof Headers) {
-        expect(res.headers.get('custom')).toBe('a-customized-header');
-        expect(res.headers.get('another')).toBe('another-header');
-        expect(res.headers.get('is-mock')).toBe('yes');
-      } else {
-        expect(res.headers).toMatchObject({
-          custom: 'a-customized-header',
-          another: 'another-header',
-          'is-mock': 'yes',
-        });
-      }
-      done();
+    const res = await request('http://www.api.com/headers');
+    expect(res.status).toBe(200);
+    expect(res.headers).toMatchObject({
+      custom: 'a-customized-header',
+      another: 'another-header',
+      'is-mock': 'yes',
     });
   });
 
-  it('request http://www.api.com/fetch/function should get different result between two requests', async (done) => {
+  it('mock response item should support customized data types', async () => {
+    mocker.any('http://www.api.com/string', 'string');
+    mocker.any('http://www.api.com/object', {obj: 'yes'});
+    mocker.any('http://www.api.com/blob', new Blob(['test-blob']));
+    mocker.any('http://www.api.com/arraybuffer', new ArrayBuffer(8));
+
+
+    const res = await Promise.all([
+      request('http://www.api.com/string', 'get').then(res => res.data),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
+      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
+      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
+    ]);
+    expect(res[0]).toBe('string');
+    expect(res[1]).toMatchObject({obj: 'yes'});
+    expect(res[2]).toBeInstanceOf(Blob);
+    expect(res[3]).toBeInstanceOf(ArrayBuffer);
+  });
+
+  it('mock response function should support get request info', async () => {
+    let requestInfo = {};
+    mocker.mock({
+      url: 'http://www.api.com/request-info',
+      method: 'get',
+      data: (reqInfo) => {
+        requestInfo = reqInfo;
+        return requestInfo;
+      }
+    });
+
+    await request('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(requestInfo.url).toBe('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(/^get$/i.test(requestInfo.method)).toBe(true);
+  });
+
+  it('mock response should support dynamic content', async () => {
     let index = 0;
     mocker.mock({
-      url: 'http://www.api.com/fetch/function',
+      url: 'http://www.api.com/function',
       method: 'any',
       data: () => {
         index = index + 1;
@@ -127,16 +179,9 @@ describe('mock fetch request', () => {
       }
     });
 
-
-    await fetch('http://www.api.com/fetch/function').then(res => {
-      res.text().then(text => expect(text).toBe('data1'));
-    });
-    await fetch('http://www.api.com/fetch/function').then(res => {
-      res.text().then(text => {
-        expect(text).toBe('data2');
-        done();
-      });
-    });
+    const res1 = await request('http://www.api.com/function');
+    const res2 = await request('http://www.api.com/function');
+    expect(res1.data).toBe('data1');
+    expect(res2.data).toBe('data2');
   });
 });
-

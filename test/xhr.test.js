@@ -1,112 +1,184 @@
 import HttpRequestMock from '../src/index';
 
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
-const xhrRequest = (method, url, data = null, callback = () => {}) => {
-  const xhr = new XMLHttpRequest();
-  xhr.open(method, url);
-  xhr.onreadystatechange = function () {
-    callback(xhr);
-  };
-  xhr.send(data);
+
+const request = (url, method = 'get', opts = {}) => {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    for(let key in opts) {
+      xhr[key] = opts[key];
+    }
+    xhr.onreadystatechange = function () {
+      resolve({
+        data: xhr.response,
+        status: xhr.status,
+        headers: xhr.getAllResponseHeaders().split(/\r\n/).reduce((res, item) => {
+          const [key, val] = item.split(':');
+          if (!key || !val) {
+            return res;
+          }
+          res[key.trim()] = val.trim();
+          return res;
+        }, {})
+      })
+    };
+    xhr.send(opts.body || null);
+  });
 };
-const xhrPromise = (url, method) => new Promise(resolve => {
-  xhrRequest(method, url, null, xhr =>{
-    resolve(xhr.responseText);
+
+describe('mock xhr request', () => {
+  it('url config item should support partial matching', async () => {
+    mocker.get('www.api.com/partial', 'get content');
+    mocker.post('www.api.com/partial', 'post content');
+
+    const res = await Promise.all([
+      request('http://www.api.com/partial', 'get').then(res => res.data),
+      request('https://www.api.com/partial', 'post').then(res => res.data),
+      request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.data),
+      request('https://www.api.com/partial-other', 'post').then(res => res.data),
+    ]);
+    expect(res).toMatchObject([
+      'get content', 'post content', 'get content', 'post content'
+    ]);
   });
-});
 
-describe('mock XMLHttpRequest raw request', () => {
-  it('mock url[xhr.api.org/string] should match request[http://xhr.api.org/string]', (done) => {
-    mocker.get('xhr.api.org/string', 'xhr.api.org');
+  it('url config item should support RegExp matching', async () => {
+    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
-    xhrRequest('GET', 'https://xhr.api.org/string', null, xhr =>{
-      expect(xhr.readyState).toBe(4);
-      expect(xhr.status).toBe(200);
-      expect(xhr.responseText).toBe('xhr.api.org');
-      done();
+    const res = await request('http://www.api.com/regexp', 'get', { responseType: 'json' });
+    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
+  });
+
+  it('delay config item should support a delayed response', (done) => {
+    mocker.mock({
+      url: 'http://www.api.com/delay',
+      delay: 100,
+      data: { ret: 0, msg: 'delay'},
     });
-  });
-
-  it('mock url[/^.*\/regexp$/] should match request[http://xhr.api.org/xhr/regexp]', (done) => {
-    mocker.post('xhr.api.org/regexp', 'xhr.api.org.regexp');
-
-    xhrRequest('POST', 'https://xhr.api.org/regexp', null, xhr =>{
-      expect(xhr.readyState).toBe(4);
-      expect(xhr.status).toBe(200);
-      expect(xhr.responseText).toBe('xhr.api.org.regexp');
-      done();
-    });
-  });
-
-  it('the delay mock request should be returned in 100 ms', (done) => {
-    mocker.post('xhr.api.org/delay', 'xhr.api.org.post', 100);
 
     let result = null;
-    xhrRequest('POST', 'https://xhr.api.org/delay', null, xhr =>{
-      result = 'xhr.api.org.post';
+    request('http://www.api.com/delay', 'get', { responseType: 'json' }).then(res => {
+      result = res.data
     });
+    expect(result).toBe(null);
 
-    setTimeout(() => expect(result).toBe(null), 10);
     setTimeout(() => {
-      expect(result).toBe('xhr.api.org.post');
+      expect(result).toBe(null);
+    }, 90);
+
+    setTimeout(() => {
+      expect(result).toMatchObject({ ret: 0, msg: 'delay'});
       done();
-    }, 100 + 10); // gap 10ms
+    }, 110); // gap 10ms
   });
 
-  it('methods(get|post|put|patch|delete) should be mocked correctly', (done) => {
-    mocker.get('https://xhr.api.org/get', 'get');
-    mocker.post('https://xhr.api.org/post', 'post');
-    mocker.put('https://xhr.api.org/put', 'put');
-    mocker.patch('https://xhr.api.org/patch', 'patch');
-    mocker.delete('https://xhr.api.org/delete', 'delete');
+  it('status config itme should support a customized http status code response', (done) => {
+    mocker.mock({
+      url: 'http://www.api.com/status404',
+      status: 404,
+      data: 'not found'
+    });
 
-    Promise.all([
-      xhrPromise('https://xhr.api.org/get', 'get').then(res => res),
-      xhrPromise('https://xhr.api.org/post', 'post').then(res => res),
-      xhrPromise('https://xhr.api.org/put', 'put').then(res => res),
-      xhrPromise('https://xhr.api.org/patch', 'patch').then(res => res),
-      xhrPromise('https://xhr.api.org/delete', 'delete').then(res => res),
-    ]).then(res => {
-      expect(res).toMatchObject(['get', 'post', 'put', 'patch', 'delete']);
+    request('http://www.api.com/status404').then(res => {
+      expect(res.status).toBe(404);
+      expect(res.data).toBe('not found');
       done();
     });
   });
 
-  it('request https://xhr.api.org/status404  should return 404', (done) => {
-    mocker.get('https://xhr.api.org/status404', 'xhr.api.org', 0, 404);
+  it('method config itme should support mock a GET|POST|PUT|PATCH|DELETE http request', async () => {
+    mocker.get('http://www.api.com/get', 'get');
+    mocker.post('http://www.api.com/post', 'post');
+    mocker.put('http://www.api.com/put', 'put');
+    mocker.patch('http://www.api.com/patch', 'patch');
+    mocker.delete('http://www.api.com/delete', 'delete');
 
-    xhrRequest('GET', 'https://xhr.api.org/status404', null, xhr =>{
-      expect(xhr.readyState).toBe(4);
-      expect(xhr.status).toBe(404);
-      done();
-    });
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', data: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', data: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', data: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', data: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', data: 'method-delete'});
+
+    const res = await Promise.all([
+      request('http://www.api.com/get', 'get').then(res => res.data),
+      request('http://www.api.com/post', 'post').then(res => res.data),
+      request('http://www.api.com/put', 'put').then(res => res.data),
+      request('http://www.api.com/patch', 'patch').then(res => res.data),
+      request('http://www.api.com/delete', 'delete').then(res => res.data),
+
+      request('http://www.api.com/method-get', 'get').then(res => res.data),
+      request('http://www.api.com/method-post', 'post').then(res => res.data),
+      request('http://www.api.com/method-put', 'put').then(res => res.data),
+      request('http://www.api.com/method-patch', 'patch').then(res => res.data),
+      request('http://www.api.com/method-delete', 'delete').then(res => res.data),
+    ]);
+
+    expect(res).toMatchObject([
+      'get', 'post', 'put', 'patch', 'delete',
+      'method-get', 'method-post', 'method-put', 'method-patch', 'method-delete',
+    ]);
   });
 
-  it('request https://xhr.api.org/headers should match customized headers', (done) => {
-    mocker.get('https://xhr.api.org/headers', 'xhr.api.org', 0, 200, {
+  it('header config itme should support customized response headers', async () => {
+    mocker.mock({
+      url: 'http://www.api.com/headers',
+      method: 'any',
+      data: 'headers',
+      header: {
+        custom: 'a-customized-header',
+        another: 'another-header'
+      }
+    });
+
+    const res = await request('http://www.api.com/headers');
+    expect(res.status).toBe(200);
+    expect(res.headers).toMatchObject({
       custom: 'a-customized-header',
-      another: 'another-header'
-    });
-
-    xhrRequest('GET', 'https://xhr.api.org/headers', null, xhr =>{
-      expect(xhr.readyState).toBe(4);
-      expect(xhr.status).toBe(200);
-      expect(xhr.getResponseHeader('custom')).toBe('a-customized-header');
-      expect(xhr.getResponseHeader('another')).toBe('another-header');
-      expect(xhr.getResponseHeader('is-mock')).toBe('yes');
-
-      const allHeaders = xhr.getAllResponseHeaders();
-      expect(allHeaders.includes('custom')).toBe(true);
-      expect(allHeaders.includes('another')).toBe(true);
-      expect(allHeaders.includes('is-mock')).toBe(true);
-      done();
+      another: 'another-header',
+      'is-mock': 'yes',
     });
   });
 
-  it('request https://xhr.api.org/function should get different result between two requests', async (done) => {
+  it('mock response should support customized data types', async () => {
+    mocker.any('http://www.api.com/string', 'string');
+    mocker.any('http://www.api.com/object', {obj: 'yes'});
+    mocker.any('http://www.api.com/blob', new Blob(['test-blob']));
+    mocker.any('http://www.api.com/arraybuffer', new ArrayBuffer(8));
+
+
+    const res = await Promise.all([
+      request('http://www.api.com/string', 'get').then(res => res.data),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
+      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
+      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
+    ]);
+    expect(res[0]).toBe('string');
+    expect(res[1]).toMatchObject({obj: 'yes'});
+    expect(res[2]).toBeInstanceOf(Blob);
+    expect(res[3]).toBeInstanceOf(ArrayBuffer);
+  });
+
+  it('mock response function should support get request info', async () => {
+    let requestInfo = {};
+    mocker.mock({
+      url: 'http://www.api.com/request-info',
+      method: 'get',
+      data: (reqInfo) => {
+        requestInfo = reqInfo;
+        return requestInfo;
+      }
+    });
+
+    await request('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(requestInfo.url).toBe('http://www.api.com/request-info?arg1=111&arg2=222');
+    expect(/^get$/i.test(requestInfo.method)).toBe(true);
+  });
+
+  it('mock response should support dynamic content', async () => {
     let index = 0;
     mocker.mock({
-      url: 'https://xhr.api.org/function',
+      url: 'http://www.api.com/function',
       method: 'any',
       data: () => {
         index = index + 1;
@@ -114,12 +186,9 @@ describe('mock XMLHttpRequest raw request', () => {
       }
     });
 
-    await xhrPromise('https://xhr.api.org/function').then(res => {
-      expect(res).toBe('data1');
-    });
-    await xhrPromise('https://xhr.api.org/function').then(res => {
-      expect(res).toBe('data2');
-      done();
-    });
+    const res1 = await request('http://www.api.com/function');
+    const res2 = await request('http://www.api.com/function');
+    expect(res1.data).toBe('data1');
+    expect(res2.data).toBe('data2');
   });
 });

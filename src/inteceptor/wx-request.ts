@@ -65,14 +65,14 @@ export default class WxRequestInterceptor extends Base {
     if (match.file) {
       // To avoid "Critical dependency: the request of a dependency is an expression" error
       import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        const mockData = this.formatMockData(mock.default, match, requestInfo);
-        this.doMockResponse(mockData, match, requestInfo);
+        const mockResponse = this.getMockResponse(mock.default, match, requestInfo);
+        this.doMockResponse(mockResponse, match, requestInfo);
       });
       return;
     }
 
-    const mockData = this.formatMockData(match.data, match, requestInfo);
-    this.doMockResponse(mockData, match, requestInfo);
+    const mockResponse = this.getMockResponse(match.data, match, requestInfo);
+    this.doMockResponse(mockResponse, match, requestInfo);
   }
 
   /**
@@ -97,7 +97,7 @@ export default class WxRequestInterceptor extends Base {
    * @param {MockItemInfo} match
    * @param {WxRequestInfo} requestInfo
    */
-  formatMockData(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
+  getMockResponse(mockData: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
     const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
 
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html

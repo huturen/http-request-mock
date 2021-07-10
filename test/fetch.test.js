@@ -7,7 +7,7 @@ const request = (url, method = 'get', opts = {}) => {
     fetch(url, { url, method, ...opts }).then(res => {
       res.json().then(data => {
         resolve({
-          data: data,
+          data,
           status: res.status,
           headers: [...res.headers].reduce((res, item) => {
             const [key, val] = item;
@@ -47,7 +47,7 @@ describe('mock fetch request', () => {
     mocker.mock({
       url: 'http://www.api.com/delay',
       delay: 100,
-      data: { ret: 0, msg: 'delay'}
+      response: { ret: 0, msg: 'delay'}
     });
 
     let result = null;
@@ -70,7 +70,7 @@ describe('mock fetch request', () => {
     mocker.mock({
       url: 'http://www.api.com/status404',
       status: 404,
-      data: 'not found'
+      response: 'not found'
     });
 
     request('http://www.api.com/status404').then(res => {
@@ -87,11 +87,11 @@ describe('mock fetch request', () => {
     mocker.patch('http://www.api.com/patch', 'patch');
     mocker.delete('http://www.api.com/delete', 'delete');
 
-    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', data: 'method-get'});
-    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', data: 'method-post'});
-    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', data: 'method-put'});
-    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', data: 'method-patch'});
-    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', data: 'method-delete'});
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', response: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', response: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', response: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', response: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', response: 'method-delete'});
 
     const res = await Promise.all([
       request('http://www.api.com/get', 'get').then(res => res.data),
@@ -117,7 +117,7 @@ describe('mock fetch request', () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
-      data: 'headers',
+      response: 'headers',
       header: {
         custom: 'a-customized-header',
         another: 'another-header'
@@ -157,7 +157,7 @@ describe('mock fetch request', () => {
     mocker.mock({
       url: 'http://www.api.com/request-info',
       method: 'get',
-      data: (reqInfo) => {
+      response: (reqInfo) => {
         requestInfo = reqInfo;
         return requestInfo;
       }
@@ -173,7 +173,7 @@ describe('mock fetch request', () => {
     mocker.mock({
       url: 'http://www.api.com/function',
       method: 'any',
-      data: () => {
+      response: () => {
         index = index + 1;
         return 'data'+index;
       }

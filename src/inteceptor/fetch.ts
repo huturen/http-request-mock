@@ -80,24 +80,24 @@ export default class FetchInterceptor extends Base{
       return;
     }
 
-    const mockResponse = this.getMockResponse(match.data, match, requestInfo);
+    const mockResponse = this.getMockResponse(match.response, match, requestInfo);
     this.doMockResponse(mockResponse, match, resolve);
   }
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} match
+   * @param {any} response
    * @param {FetchRequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockResponse(mockData: any, match: MockItemInfo, resolve: Function) {
+  private doMockResponse(response: any, match: MockItemInfo, resolve: Function) {
     if (match) {
       if (match.delay && match.delay > 0) {
         setTimeout(() => {
-          resolve(mockData);
+          resolve(response);
         }, +match.delay);
       } else {
-        resolve(mockData);
+        resolve(response);
       }
       return;
     }
@@ -106,12 +106,12 @@ export default class FetchInterceptor extends Base{
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
-   * @param {any} mockData
+   * @param {any} mockResponseConfig
    * @param {MockItemInfo} match
    * @param {FetchRequestInfo} requestInfo
    */
-  getMockResponse(mockData: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
-    const data = typeof mockData === 'function' ? mockData(requestInfo) : mockData;
+  getMockResponse(mockResponseConfig: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
+    const data = typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
     const status = match.status || 200;
     const statusText = HTTPStatusCodes[status] || '';
 

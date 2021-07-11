@@ -66,7 +66,7 @@ describe('mock fetch request', () => {
     }, 110); // gap 10ms
   });
 
-  it('status config itme should support a customized http status code response', (done) => {
+  it('status config itme should support to customize http status code response', (done) => {
     mocker.mock({
       url: 'http://www.api.com/status404',
       status: 404,
@@ -80,7 +80,7 @@ describe('mock fetch request', () => {
     });
   });
 
-  it('method config itme should support mock a GET|POST|PUT|PATCH|DELETE http request', async () => {
+  it('method config itme should support to mock a GET|POST|PUT|PATCH|DELETE http request', async () => {
     mocker.get('http://www.api.com/get', 'get');
     mocker.post('http://www.api.com/post', 'post');
     mocker.put('http://www.api.com/put', 'put');
@@ -113,7 +113,7 @@ describe('mock fetch request', () => {
     ]);
   });
 
-  it('header config itme should support customized response headers', async () => {
+  it('header config itme should support to customize response headers', async () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
@@ -133,7 +133,7 @@ describe('mock fetch request', () => {
     });
   });
 
-  it('mock response item should support customized data types', async () => {
+  it('mock response item should support to customize data types', async () => {
     mocker.any('http://www.api.com/string', 'string');
     mocker.any('http://www.api.com/object', {obj: 'yes'});
     mocker.any('http://www.api.com/blob', new Blob(['test-blob']));
@@ -152,7 +152,7 @@ describe('mock fetch request', () => {
     expect(res[3]).toBeInstanceOf(ArrayBuffer);
   });
 
-  it('mock response function should support get request info', async () => {
+  it('mock response function should support to get request info', async () => {
     let requestInfo = {};
     mocker.mock({
       url: 'http://www.api.com/request-info',

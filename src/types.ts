@@ -22,7 +22,7 @@ export interface MockItemInfo {
   disable?: Disable;
   response?: any;
   status?: number; // http status code
-  file?: string;
+  file?: string; // to be populated by webpack
 };
 
 export interface MockConfigData {

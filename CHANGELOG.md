@@ -1,4 +1,5 @@
 ### Changelog
+[2021-07-12] add command tool for generating mock config entry file
 [2021-06-26] add superagent unit test
 [2021-06-24] add jquery unit test
 [2021-06-12] add xhr, wx.request, fetch, axios unit test
@@ -9,6 +10,9 @@
 [2021-03-29] init xhr-response-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-07-12]
+1. add command tool for generating mock config entry file
+
 [2021-06-10]
 1. support fetch request mock
 

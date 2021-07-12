@@ -3,6 +3,9 @@
   "version": "0.1.16",
   "description": "xhr response mock",
   "main": "dist/index.js",
+  "bin": {
+    "generate-mock-config": "bin/cli.js"
+  },
   "scripts": {
     "test": "jest --verbose",
     "clean": "del-cli dist",

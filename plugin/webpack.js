@@ -293,15 +293,14 @@ module.exports = class HttpRequestMockMockPlugin {
   /**
    * Generate customized mock config file entry.
    */
-  generateCustomRuntimeDepsFile() {
+  generateCustomRuntimeDepsFile(forceToUpdate = false) {
     const runtime = path.resolve(this.dir, '.runtime.js');
-    if (fs.existsSync(runtime)) return runtime;
+    if (!forceToUpdate && fs.existsSync(runtime)) return runtime;
 
     const files = this.getAllMockFiles();
     const codes = [
       '/* eslint-disable */',
-      // `import HttpRequestMock from 'xhr-response-mock';`
-      `import HttpRequestMock from '/Users/hu/web/xhr-response-mock-github/dist/index.js';`,
+      `import HttpRequestMock from 'http-request-mock';`
     ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {

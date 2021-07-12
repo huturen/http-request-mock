@@ -59,20 +59,11 @@ describe('mock superagent request', () => {
       }
     });
 
-    let result = null;
-    request('http://www.api.com/delay', 'get').then(res => {
-      result = res.data
-    });
-    expect(result).toBe(null);
-
-    setTimeout(() => {
-      expect(result).toBe(null);
-    }, 90);
-
-    setTimeout(() => {
-      expect(result).toMatchObject({ ret: 0, msg: 'delay'});
+    const time = Date.now();
+    request('http://www.api.com/delay').then(() => {
+      expect(Date.now() - time).toBeGreaterThanOrEqual(100);
       done();
-    }, 110); // gap 10ms
+    });
   });
 
   it('status config itme should support to customize http status code response', (done) => {

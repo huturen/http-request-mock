@@ -116,7 +116,7 @@ export default class XMLHttpRequestInterceptor extends Base {
             // 'this' points XMLHttpRequest instance.
             this.isMockRequest = true;
             this.mockRequestInfo = match;
-            this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, };
+            this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, header: {} };
             this.mockResponse = null;
             return;
           }
@@ -137,7 +137,15 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (body: any) => {
           if (this.isMockRequest) {
-            this.xhrRequestInfo.body = body;
+            if (body && typeof body === 'string'  && body[0] === '{' && body[body.length-1] === '}') {
+              try {
+                this.xhrRequestInfo.body = JSON.parse(body);
+              } catch(e) {
+                this.xhrRequestInfo.body = body;
+              }
+            } else {
+              this.xhrRequestInfo.body = body;
+            }
             return me.doMockRequest(this, this.mockRequestInfo, this.xhrRequestInfo);
           }
           return original.call(this, body);
@@ -273,6 +281,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (header:any, value:any) => {
           if (this.isMockRequest) {
+            this.xhrRequestInfo.header[header] = value;
             return;
           }
           return original.call(this, header, value);

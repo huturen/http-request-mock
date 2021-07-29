@@ -48,6 +48,7 @@ export interface XhrRequestInfo {
   async?: boolean;
   user?: string;
   password?: string;
+  header?: object; // request header
   body?: any; // for post request
 };
 

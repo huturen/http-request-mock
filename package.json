@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "jest --verbose",
+    "coverage": "jest --verbose --coverage test",
     "clean": "del-cli dist",
     "build": "npm run clean && tsc",
     "dev": "tsc -w"
@@ -61,6 +62,7 @@
     "husky": "^4.3.0",
     "jest": "^26.5.2",
     "jquery": "^3.6.0",
+    "mocha": "^9.0.3",
     "node-loader": "^1.0.2",
     "standard-version": "^9.0.0",
     "superagent": "^6.1.0",

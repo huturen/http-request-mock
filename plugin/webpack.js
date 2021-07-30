@@ -276,8 +276,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const isExisted = fs.existsSync(runtime);
     const codes = [
       `/* eslint-disable */`,
-      // `import HttpRequestMock from 'xhr-response-mock';`,
-      `import HttpRequestMock from '/Users/hu/web/xhr-response-mock-github/dist/index.js';`,
+      `import HttpRequestMock from 'http-request-mock';`,
       `HttpRequestMock.setup().setMockData(process.env.HRM_MOCK_DATA || {});`,
       `/* eslint-enable */`,
     ].join('\n');

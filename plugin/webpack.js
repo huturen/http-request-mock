@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const { createLoader } = require('simple-functional-loader');
-const { parse, tokenizers } = require('comment-parser/lib');
+const { parse, tokenizers } = require('comment-parser');
 
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
 module.exports = class HttpRequestMockMockPlugin {
@@ -295,13 +295,9 @@ module.exports = class HttpRequestMockMockPlugin {
   generateVerboseRuntimeDepsFile() {
     const runtime = path.resolve(this.dir, '.runtime.js');
     const isExisted = fs.existsSync(runtime);
-    if (!forceToUpdate && fs.existsSync(runtime)) return runtime;
 
     const files = this.getAllMockFiles();
-    const codes = [
-      '/* eslint-disable */',
-      `import HttpRequestMock from 'http-request-mock';`
-    ];
+    const codes = [ '/* eslint-disable */' ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
       const file = files[i];
@@ -319,12 +315,14 @@ module.exports = class HttpRequestMockMockPlugin {
       codes.push(`import data${i} from '${file}';`);
       items.push({ url: tags.url, method, index: i, delay, status, header, });
     }
+    codes.push(`import HttpRequestMock from 'http-request-mock';`);
     codes.push('const mocker = HttpRequestMock.setup();');
     for (const item of items) {
       const response = `data${item.index}`;
       const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
       const header = JSON.stringify(item.header, null, 2);
-      codes.push(`mocker.${item.method}(${url}, ${response}, ${item.delay}, ${item.status}, ${header});`);
+      const args = [response, item.delay, item.status, header].join(', ');
+      codes.push(`mocker.${item.method}(\n  ${url},\n  ${args}\n);`);
     }
     codes.push('/* eslint-enable */');
     const codeSource = codes.join('\n');

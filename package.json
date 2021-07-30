@@ -1,10 +1,10 @@
 {
   "name": "http-request-mock",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
-    "generate-mock-config": "bin/cli.js"
+    "http-request-mock-cli": "bin/cli.js"
   },
   "scripts": {
     "test": "jest --verbose",
@@ -41,8 +41,10 @@
   ],
   "files": [
     "bin/cli.js",
+    "experiment",
     "plugin/webpack.js",
     "plugin/runtime.js",
+    "src",
     "dist",
     "test",
     "README.MD"
@@ -97,6 +99,7 @@
   },
   "dependencies": {
     "comment-parser": "^1.1.4",
+    "get-root-path": "^2.0.2",
     "simple-functional-loader": "^1.2.1"
   }
 }

@@ -1,4 +1,4 @@
-# http-mock-request
+# http-request-mock
 
 无侵入mock，模拟http, https网络请求，再也不需要修改你的源代码来模拟数据返回了。
 
@@ -70,7 +70,7 @@
 
 ## 安装
 
-`npm install --save-dev http-mock-request`
+`npm install --save-dev http-request-mock`
 
 
 

@@ -7,7 +7,7 @@ const { parse, tokenizers } = require('comment-parser/lib');
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
 module.exports = class HttpRequestMockMockPlugin {
   /**
-   * http-mock-request parameters
+   * http-request-mock parameters
    *
    * @param {RegExp} entry Required, entry file which mock dependencies will be injected into.
    * @param {string} dir Required, mock directory which contains all mock files & the runtime mock configure file.

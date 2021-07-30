@@ -1,5 +1,5 @@
 ### Changelog
-[2021-07-30] release v1.0.6
+[2021-07-30] fix command tool problem & release v1.1.0
 [2021-07-24] change custom to verbose for runtime config option
 [2021-07-18] add query for request info
 [2021-07-17] response supports to get request header for xhr
@@ -14,6 +14,9 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-07-30]
+1. release v1.1.0
+
 [2021-07-18]
 1. add query for request info
 

@@ -344,7 +344,9 @@ module.exports = {
 
 如果你不使用webpack，可以使用自带的命令，生成mock配置入口文件。
 
-TODO: 待完善...
+在项目目录下运行 `npx http-request-mock-cli` 然后跟着提示走。
+
+这个命令，会在mock目录下面，根据你的mock目录下面的文件，自动生成mock入口配置文件。
 
 
 

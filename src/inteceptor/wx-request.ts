@@ -47,6 +47,7 @@ export default class WxRequestInterceptor extends Base {
 
           const match: MockItemInfo | null = this.matchMockRequest(requestInfo.url, requestInfo.method);
           if (match) {
+            requestInfo.query = this.getQuery(requestInfo.url);
             this.doMockRequest(match, requestInfo);
           } else {
             this.wxRequest(requestInfo); // fallback to original wx.request

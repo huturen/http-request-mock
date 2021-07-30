@@ -117,6 +117,7 @@ export default class XMLHttpRequestInterceptor extends Base {
             this.isMockRequest = true;
             this.mockRequestInfo = match;
             this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, header: {} };
+            this.xhrRequestInfo.query = me.getQuery(url);
             this.mockResponse = null;
             return;
           }

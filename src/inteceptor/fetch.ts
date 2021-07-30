@@ -42,7 +42,7 @@ export default class FetchInterceptor extends Base{
       let params: any;
       // https://developer.mozilla.org/en-US/docs/Web/API/Request
       // Note: the first argument of fetch maybe a Request object.
-      if (typeof args[0] === 'object' ) {
+      if (typeof args[0] === 'object') {
         url = args[0].url || '';
         params = args[0];
       } else {
@@ -56,6 +56,8 @@ export default class FetchInterceptor extends Base{
         const match:MockItemInfo | null  = me.matchMockRequest(url, method);
         if (match) {
           const requestInfo = <FetchRequestInfo>{ url, ...params };
+          requestInfo.query = me.getQuery(url);
+
           me.doMockRequest(match, requestInfo, resolve);
         } else {
           me.fetch(...args).then(resolve).catch(reject);

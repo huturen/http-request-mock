@@ -34,6 +34,7 @@ export interface WxRequestInfo {
   url: string;
   data?: any;
   method?: Method | undefined;
+  query?: object; // not wx.requests standard, just for response function
   header?: object;
   success?: (info: any) => any;
   fail?: (info: any) => any;
@@ -48,8 +49,9 @@ export interface XhrRequestInfo {
   async?: boolean;
   user?: string;
   password?: string;
+  query?: object; // not XHR standard, just for response function
   header?: object; // request header
-  body?: any; // for post request
+  body?: any; // not XHR standard, for post request
 };
 
 export interface XMLHttpRequestInstance extends XMLHttpRequest {
@@ -68,6 +70,7 @@ export interface FetchRequestInfo {
   mode?: string;
   cache?: string;
   credentials?: string;
+  query?: object; // not fetch standard, just for response function
   headers?: object;
   redirect?: string;
   referrer?: string;
@@ -76,4 +79,8 @@ export interface FetchRequestInfo {
   signal?: any;
   referrerPolicy?: string;
   body?: any;
+};
+
+export type Query = {
+  [key: string]: string
 };

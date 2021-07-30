@@ -14,7 +14,7 @@ module.exports = class HttpRequestMockMockPlugin {
    *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
    * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
-   * @param {string} runtime Optional, the style of mock configure entry file, one of [internal external custom],
+   * @param {string} runtime Optional, the style of mock configure entry file, one of [internal, external, verbose],
    *                         default to 'internal' which use the build-in mock configure entry file.
    * @param {boolean} transpile Optional, whether or not to transpile files in the mock directory, default to true.
    *                            If mock directory were in src/ or other directory that has configured to be transpiled,
@@ -25,7 +25,7 @@ module.exports = class HttpRequestMockMockPlugin {
     dir,
     watch,
     enable = true,
-    runtime = 'internal', // internal external customized
+    runtime = 'internal', // internal external verbose
     transpile = true,
   }) {
     if (!(entry instanceof RegExp)) {
@@ -36,8 +36,8 @@ module.exports = class HttpRequestMockMockPlugin {
       throw new Error('The HttpRequestMockMockPlugin expects [dir] to be a valid absolute dir.');
     }
 
-    if (!['internal', 'external', 'custom'].includes(runtime)) {
-      throw new Error('The HttpRequestMockMockPlugin expects [runtime] to be one of [internal, external, custom].');
+    if (!['internal', 'external', 'verbose'].includes(runtime)) {
+      throw new Error('The HttpRequestMockMockPlugin expects [runtime] to be one of [internal, external, verbose].');
     }
 
     this.entry = entry;
@@ -262,8 +262,8 @@ module.exports = class HttpRequestMockMockPlugin {
     else if (this.runtime === 'external') {
       runtimeFile = this.generateExternalRuntimeDepsFile();
     }
-    else if (this.runtime === 'custom') {
-      runtimeFile = this.generateCustomRuntimeDepsFile();
+    else if (this.runtime === 'verbose') {
+      runtimeFile = this.generateVerboseRuntimeDepsFile();
     }
     return runtimeFile;
   }
@@ -291,10 +291,11 @@ module.exports = class HttpRequestMockMockPlugin {
   }
 
   /**
-   * Generate customized mock config file entry.
+   * Generate verbose mock config file entry.
    */
-  generateCustomRuntimeDepsFile(forceToUpdate = false) {
+  generateVerboseRuntimeDepsFile() {
     const runtime = path.resolve(this.dir, '.runtime.js');
+    const isExisted = fs.existsSync(runtime);
     if (!forceToUpdate && fs.existsSync(runtime)) return runtime;
 
     const files = this.getAllMockFiles();
@@ -327,8 +328,13 @@ module.exports = class HttpRequestMockMockPlugin {
       codes.push(`mocker.${item.method}(${url}, ${response}, ${item.delay}, ${item.status}, ${header});`);
     }
     codes.push('/* eslint-enable */');
+    const codeSource = codes.join('\n');
 
-    fs.writeFileSync(runtime, codes.join('\n'));
+    if (isExisted && fs.readFileSync(runtime).toString() === codeSource) {
+      return runtime;
+    }
+
+    fs.writeFileSync(runtime, codeSource);
     return runtime;
   }
 

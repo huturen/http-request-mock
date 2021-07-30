@@ -1,7 +1,7 @@
 # http-request-mock
 
 无侵入mock，模拟http, https网络请求，再也不需要修改你的源代码来模拟网络请求返回了。
-支持 XMLHttpRequest， fetch， wx.request(小程序)。
+支持 XMLHttpRequest， fetch， wx.request(小程序)，Axios, jQuery, SuperAgent。
 
 ## 目录
 

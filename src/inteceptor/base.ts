@@ -1,5 +1,5 @@
 import Mocker from '../mocker';
-import { Method, MockItemInfo } from '../types';
+import { Method, MockItemInfo, Query } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
@@ -42,4 +42,23 @@ export default class BaseInteceptor {
   protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
     return this.mocker.matchMockItem(reqUrl, reqMethod);
   }
+
+  /**
+   * Get query parameters from the specified request url.
+   * @param {string} reqUrl
+   */
+  protected getQuery(reqUrl: string) : Query{
+    return /\?/.test(reqUrl)
+      ? reqUrl
+        .replace(/.*?\?/g, '') // no protocol, domain and path
+        .replace(/#.*$/g, '') // no hash tag
+        .split('&')
+        .reduce((res : Query, item: string) => {
+          const [k,v] = item.split('=');
+          res[k] = (v || '').trim();
+          return res;
+        }, {})
+      : {};
+  }
 }
+

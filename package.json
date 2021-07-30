@@ -1,7 +1,7 @@
 {
-  "name": "xhr-response-mock",
-  "version": "0.1.16",
-  "description": "xhr response mock",
+  "name": "http-request-mock",
+  "version": "1.0.5",
+  "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
     "generate-mock-config": "bin/cli.js"
@@ -92,7 +92,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/huturen/xhr-response-mock"
+    "url": "https://github.com/huturen/http-request-mock.git"
   },
   "dependencies": {
     "comment-parser": "^1.1.4",

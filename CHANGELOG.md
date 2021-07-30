@@ -1,4 +1,5 @@
 ### Changelog
+[2021-07-30] release v1.0.5
 [2021-07-24] change custom to verbose for runtime config option
 [2021-07-18] add query for request info
 [2021-07-17] response supports to get request header for xhr

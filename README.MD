@@ -9,6 +9,7 @@
 * [特性](#特性)
 * [安装](#安装)
 * [例子](#例子)
+    - [使用](#使用)
     - [静态响应](#静态响应)
     - [动态响应](#动态响应)
     - [延迟响应](#延迟响应)
@@ -79,9 +80,31 @@
 
 ## 例子
 
-#### 静态响应
+#### 使用
 
 要模拟一个请求，只需简单调用`mock`或者 `get`,`post`,`put`,`patch`,`delete`：
+```javascript
+import HttpRequestMock from 'http-request-mock';
+const mocker = HttpRequestMock.setup();
+
+mocker.mock({
+  url: 'www.api.com/some-api' // 或者使用正则 /.*\/some-api$/
+  method: 'get', // get post put patch delete
+  delay: 0,
+  status: 200,
+  header: { // 模拟响应头
+    'content-type': 'application/json',
+    'some-header': 'value',
+  },
+  response: 'some response data'
+});
+
+// 或者只调用指定method进行模拟:
+mocker.get('www.api.com/some-api', 'some response data');
+
+```
+
+#### 静态响应
 
 ```javascript
 // mock配置文件：

@@ -1,5 +1,5 @@
 ### Changelog
-[2021-07-30] release v1.0.5
+[2021-07-30] release v1.0.6
 [2021-07-24] change custom to verbose for runtime config option
 [2021-07-18] add query for request info
 [2021-07-17] response supports to get request header for xhr
@@ -11,7 +11,7 @@
 [2021-05-25] add load loadend event trigger
 [2021-04-30] add http status code & http response header mock
 [2021-04-29] add wx.request interceptor, preparing fetch interceptor
-[2021-03-29] init xhr-response-mock, add XMLHttpRequest interceptor
+[2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
 [2021-07-18]

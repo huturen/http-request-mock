@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
@@ -40,9 +40,10 @@
     "mocker"
   ],
   "files": [
+    "bin/cli.js",
     "plugin/webpack.js",
+    "plugin/runtime.js",
     "dist",
-    "src",
     "test",
     "README.MD"
   ],

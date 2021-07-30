@@ -15,8 +15,12 @@ console.log(`version: ${pkg.version}`);
 console.log(`root: ${root}`);
 console.log(' ');
 
+console.log('process.cwd():', process.cwd());
 console.log('global.__basedir:', global.__basedir);
 console.log('require.main.filename:', require.main.filename);
+
+console.log('To be continued...');
+process.exit('0');
 
 const isExistedDirectory = (dir) => {
   try {
@@ -45,7 +49,7 @@ if (mockDir) {
       dir: mockDir,
       entry: /fake-test/
     })
-    const file = webpack.generateCustomRuntimeDepsFile(true);
+    const file = webpack.generateVerboseRuntimeDepsFile();
     console.log(`Generate successfully: ${file}`);
     rl.close();
   });

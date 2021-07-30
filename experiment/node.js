@@ -8,7 +8,7 @@ const axios = require('axios');
 const assert = require('assert');
 
 let times = 0;
-mocker.get('www.api.com/mocha', (requestInfo) => {
+mocker.get('www.api.com/node', (requestInfo) => {
   times = times + 1;
   return { url: requestInfo.url, times };
 });
@@ -32,7 +32,7 @@ const it = (title, callback) => {
 
 describe('node enviroment test', function() {
   it('the response of XHR request should match expected result', function(done) {
-    const url = 'https://www.api.com/mocha?type=xhr';
+    const url = 'https://www.api.com/node?type=xhr';
     const xhr = new XMLHttpRequest();
     xhr.open('get', url);
     xhr.responseType = 'json';
@@ -46,7 +46,7 @@ describe('node enviroment test', function() {
   });
 
   it('the response of fetch request should match expected result', function(done) {
-    const url = 'https://www.api.com/mocha?type=fetch';
+    const url = 'https://www.api.com/node?type=fetch';
     fetch(url).then(res => res.json()).then(result => {
       assert.strictEqual(result.url, url);
       assert.strictEqual(result.times, 2);
@@ -55,7 +55,7 @@ describe('node enviroment test', function() {
   });
 
   it('the response of wx.request should match expected result', function(done) {
-    const url = 'https://www.api.com/mocha?type=wx';
+    const url = 'https://www.api.com/node?type=wx';
     wx.request({
       url,
       success: (res) => {
@@ -68,7 +68,7 @@ describe('node enviroment test', function() {
   });
 
   it('the response of axios request should match expected result', function(done) {
-    const url = 'https://www.api.com/mocha?type=axios';
+    const url = 'https://www.api.com/node?type=axios';
     axios.get(url, { responseType: 'json' }).then(res => {
       const result = res.data;
       assert.strictEqual(result.url, url);

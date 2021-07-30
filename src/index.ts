@@ -61,10 +61,10 @@ export default class Index {
    * Setup request mock for unit test.
    * @param {string} type
    */
-  static setupForUnitTest(type: string = 'all') : Mocker {
+  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'all' = 'all') : Mocker {
     const mocker = new Mocker();
 
-    if (type === 'wx.request' || type === 'wx') {
+    if (type === 'wx') {
       InterceptorWxRequest.setupForUnitTest(mocker);
     }
 

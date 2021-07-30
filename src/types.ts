@@ -13,11 +13,19 @@ export enum Disable {
   no = 'no',
 };
 
+export interface Query {
+  [key: string]: string
+};
+
+export interface Header {
+  [key: string]: string
+};
+
 export interface MockItemInfo {
   url: RegExp | string;
   regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   method?: Method;
-  header?: object,
+  header?: Header,
   delay?: number;
   disable?: Disable;
   response?: any;
@@ -79,8 +87,4 @@ export interface FetchRequestInfo {
   signal?: any;
   referrerPolicy?: string;
   body?: any;
-};
-
-export type Query = {
-  [key: string]: string
 };

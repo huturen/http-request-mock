@@ -1,6 +1,7 @@
 # http-request-mock
 
-无侵入mock，模拟http, https网络请求，再也不需要修改你的源代码来模拟数据返回了。
+无侵入mock，模拟http, https网络请求，再也不需要修改你的源代码来模拟网络请求返回了。
+支持 XMLHttpRequest， fetch， wx.request(小程序)。
 
 ## 目录
 
@@ -30,13 +31,15 @@
 
 
 本库基于拦截 `XHR(XMLHttpRequest)`,  `fetch` ,  `wx.request`实现。
+
 如果请求有匹配到mock配置，则返回mock配置数据，否则走真实的网络请求。
+
 因为是通过拦截实现，较之其他mock库，提供了更可靠的稳定性。
 
 
 
 目前现存的mock库，存在以下这些问题：
-1. 使用mock时，需要修改源代码，在mock完毕或者使用真实网络请求时，需要把代码再改回来
+1. 使用mock时，需要修改源代码，在mock完毕后可能需要再把代码改回来
 
 2. 配置复杂，需要使用这样或者那样的本地服务，或者代理
 
@@ -50,10 +53,10 @@
 
 本库提供了以下特性:
 
-* **配置简单**: 免去了格式样的本地服务，代理或其他复杂的配置，mock数据支持一次配置全局范围内共享。
+* **配置简单**: 免去了格式样的本地服务，代理或其他复杂的配置。
 * **无侵入**: 支持不侵入源代码来实现mock处理。
 * **自动拆卸**: 自动拆卸，启动跟关闭mock功能均不需要修改源码。
-* **丰富的请求库支持**: Axios(基于XHR), jQuery(基于XHR), SuperAgent(基于XHR), fetch, XHR, wx.request（小程序）。
+* **丰富的请求库支持**: Axios, jQuery, SuperAgent, fetch, XHR, wx.request。
 * **支持测试库及Node环境**: 支持jest，mocha测试库运行环境，甚至裸node运行环境。
 * **动态内容响应**: 基于请求信息，如url，查询参数，post请求包体，来动态模拟返回内容。
 * **URL局部匹配及正则匹配**: 支持URL局部匹配及RegExp正则匹配。
@@ -62,7 +65,7 @@
 * **http响应头模拟**: http响应头模拟。
 * **可和真实网络请求混用**: 部分接口使用模拟请求，部分接口使用真实请求。
 * **随应用打包**: 支持mock数据可随应用打包，以快速交付产品原型。
-* **mock文件依赖自动查找&动态引入**: 自动匹配拦截请求，并匹配mock依赖文件，并动态引入，mock文件全局范围内共享。
+* **mock文件依赖自动查找&动态引入**: 自动匹配拦截请求，并匹配mock依赖文件，并动态引入。
 * **丰富的单元测试验证**: 具有较完整的单元测试。
 * **支持跨域请求**: 支持跨域请求模拟。
 
@@ -78,7 +81,7 @@
 
 #### 静态响应
 
-要模拟一个请求，只需简单调用`mock`或者 `get`,`post`,`put`,`patch`,`delete` 方法就可以了：
+要模拟一个请求，只需简单调用`mock`或者 `get`,`post`,`put`,`patch`,`delete`：
 
 ```javascript
 // mock配置文件：
@@ -235,7 +238,7 @@ mocker.post('https://some.api.com/user', userDetail);
 ```
 
 
-注意：注释中的 @url, @method, @delay, @status, @header 等注释标签信息，会被webpack插件所解析并使用
+注意：注释中的 @url, @method 等标签信息，会被webpack插件所解析并使用
 ```javascript
 // mock文件 config.js：
 /**
@@ -272,6 +275,7 @@ import App from './App.vue';
 ### webpack插件
 
 为避免修改你的业务源码入口文件（如，src/index.js）。
+
 我们额外提供了一个内置webpack插件，引入方式如下：
 
 在你的 `webpack` 配置文件中：
@@ -294,10 +298,14 @@ module.exports = {
 };
 ```
 
-此插件，会自动解析mock目录下面的文件，并从文件的注释内容中提取
-"@url, @method, @delay, @status, @header" 这些标签信息，
+此插件，会自动解析mock目录下面的文件，并从文件的注释内容中提取：
+
+"@url, @method, @delay, @status, @header" 等标签信息，
+
 并自动注入到 entry 匹配到的入口文件中，免去了修改入口文件的必要。
-注意，enable选项，根据环境变量自动拆卸，启动跟关闭mock功能均不需要修改源码。
+
+注意：enable选项，根据环境变量自动拆卸，启动跟关闭mock均不需要修改源码。
+
 
 可以在package.json中，配置script命令，来启动自动拆卸mock功能。
 ```json
@@ -324,13 +332,15 @@ module.exports = {
 * transpile: 如果你对这个选项感到困惑，请使用默认值
 
 * runtime:
-      internal: (默认值) 使用插件自带的入口文件 *plugin/runtime.js*
-      external: 在用户定义的mock目录中， 动态生成mock入口文件 *.runtime.js*
-      verbose: 和 external 类似，只是生成的 *.runtime.js* 文件内容，具有每个mock项的详细内容
+    - internal: (默认值) 使用插件自带的入口文件 *plugin/runtime.js*
+    - external: 在用户定义的mock目录中， 动态生成mock入口文件 *.runtime.js*
+    - verbose: 和 external 类似，只是生成的 *.runtime.js* 文件内容，具有每个mock项的详细内容
+
 
 
 
 ### 命令行工具
+
 
 如果你不使用webpack，可以使用自带的命令，生成mock配置入口文件。
 
@@ -340,56 +350,74 @@ TODO: 待完善...
 
 ## API文档
 
+
 ### For HttpRequestMock
 
+
 **setup() : Mocker**:
+
 Auto detect request enviroment and set up request mock.
 
 **setupForWx() : Mocker**:
+
 Set up request mock for wx.request.
 
 **setupForXhr() : Mocker**:
+
 Set up request mock for XMLHttpRequest.
 
 **setupForFetch() : Mocker**:
+
 Set up request mock for fetch.
 
 **setupForUnitTest('wx' | 'xhr' | 'fetch' | 'all') : Mocker**:
+
 Set up request mock for unit test.
 
+---
 ### For Mocker
+
 **setMockData(mockConfigData: MockConfigData)**
+
 Set global mock data configuration.
 
 **reset()**
+
 Reset global mock data configuration.
 
 **mock(mockItem: MockItemInfo)**
+
 Check specified mock item & add it to global mock data configuration.
 
-**get(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
+**get(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+
 Make a mock item that matches an HTTP GET request.
 
-**post(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
+**post(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+
 Make a mock item that matches an HTTP POST request.
 
-**put(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
+**put(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+
 Make a mock item that matches an HTTP PUT request.
 
-**patch(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
+**patch(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+
 Make a mock item that matches an HTTP PATCH request.
 
-**delete(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
+**delete(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+
 Make a mock item that matches an HTTP DELETE request.
 
-**any(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header= {})**
-Make a mock item that matches an HTTP GET, POST, PUT, PATCH or DELETE  request.
+**any(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
 
+Make a mock item that matches an HTTP GET, POST, PUT, PATCH or DELETE  request.
 
 
 ## 单元测试
 
 本库支持常用单元测试库，支持jest， mocha，或其他 node测试环境。
+
 本库的单元测试，也是基于本库自带的库完成的验证测试。
 
 jest测试环境：
@@ -409,6 +437,7 @@ describe('mock axios request', () => {
 ```
 
 2. mocha测试环境, 请参考： `experiment/mocha.js`
+
 
 3. 其他node测试环境，请参考： `experiment/node.js`
 

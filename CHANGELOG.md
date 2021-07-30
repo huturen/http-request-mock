@@ -1,5 +1,5 @@
 ### Changelog
-[2021-07-30] fix command tool problem & release v1.1.1
+[2021-07-30] fix command tool problem & release v1.1.4
 [2021-07-24] change custom to verbose for runtime config option
 [2021-07-18] add query for request info
 [2021-07-17] response supports to get request header for xhr

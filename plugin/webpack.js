@@ -320,7 +320,7 @@ module.exports = class HttpRequestMockMockPlugin {
     for (const item of items) {
       const response = `data${item.index}`;
       const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
-      const header = JSON.stringify(item.header, null, 2);
+      const header = (JSON.stringify(item.header, null, 2) || '').replace(/\n/g, '\n  ');
       const args = [response, item.delay, item.status, header].join(', ');
       codes.push(`mocker.${item.method}(\n  ${url},\n  ${args}\n);`);
     }

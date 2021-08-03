@@ -21,6 +21,10 @@ export default class FetchInterceptor extends Base{
     return this;
   }
 
+  /**
+   * Setup request mocker for unit test.
+   * @param {Mocker} mocker
+   */
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
@@ -132,7 +136,6 @@ export default class FetchInterceptor extends Base{
     }
 
     const response = {
-      // If you should need some other complex object, you could define it in your mock file.
       body,
       bodyUsed: false,
       headers,

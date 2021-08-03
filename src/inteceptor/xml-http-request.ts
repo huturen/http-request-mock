@@ -22,6 +22,7 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Setup request mocker for unit test.
+   * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();

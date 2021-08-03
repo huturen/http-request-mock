@@ -14,6 +14,7 @@ export default class BaseInteceptor {
 
   /**
    * Setup request mocker.
+   * @param {Mocker} mocker
    */
   public static setup(mocker: Mocker) {
     return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr> new this(mocker);

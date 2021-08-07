@@ -1,6 +1,7 @@
 import Mocker from '../mocker';
 import { Method, MockItemInfo, Query } from '../types';
 import InterceptorFetch from './fetch';
+import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
 export default class BaseInteceptor {
@@ -17,7 +18,7 @@ export default class BaseInteceptor {
    * @param {Mocker} mocker
    */
   public static setup(mocker: Mocker) {
-    return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr> new this(mocker);
+    return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr | InterceptorNode> new this(mocker);
   }
 
   /**
@@ -61,5 +62,13 @@ export default class BaseInteceptor {
         }, {})
       : {};
   }
+
+  /**
+   * Check whether or not this specified obj is an object.
+   * @param {any} obj
+   */
+  protected isObject(obj: any) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+  };
 }
 

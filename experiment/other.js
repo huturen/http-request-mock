@@ -2,13 +2,14 @@
 // npm run build && node experiment/other.js
 const HttpRequestMock = require('../dist/index').default;
 // const HttpRequestMock = require('http-request-mock').default;
-const mocker = HttpRequestMock.setupForUnitTest('all');
+const mocker = HttpRequestMock.setupForUnitTest('node');
 
 const axios = require('axios');
 
 mocker.mock({
-  url: 'www.api.com/other',
+  url: '/other',
   status: 200,
+  method: 'get',
   delay: 1000,
   header: {
     'content-type': 'application/text',
@@ -21,7 +22,12 @@ mocker.mock({
 });
 
 let time = Date.now();
-axios.get('https://www.api.com/other?abc=1234&efg=xxx').then(res => {
+axios.get('https://abc:123@www.api.com/other?abc=1234&efg=xxx', {
+  params: {
+    jjyy: 'zzdd123',
+  },
+  proxy: false,
+}).then(res => {
   console.log('spent:', Date.now() - time);
   console.log('response body:', res.data);
   console.log('response header:', res.headers);

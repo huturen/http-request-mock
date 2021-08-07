@@ -1,4 +1,4 @@
-import { Method, MockConfigData, MockItemInfo } from './types';
+import { Header, Method, MockConfigData, MockItemInfo } from './types';
 
 export default class Mocker {
   private static instance: Mocker;
@@ -44,10 +44,11 @@ export default class Mocker {
   /**
    * Check specified mock item & add it to global mock data configuration.
    * @param {MockItemInfo} mockItem
+   * @returns false | MockItemInfo
    */
   public mock(mockItem: MockItemInfo) {
     if (!mockItem.url || (typeof mockItem.url !== 'string' && !(mockItem.url instanceof RegExp))) {
-      return this;
+      return false;
     }
 
     mockItem.method = /^(get|post|put|patch|delete|any)$/i.test(mockItem.method || '')
@@ -60,7 +61,7 @@ export default class Mocker {
 
     const key = `${mockItem.url}-${mockItem.method}`;
     this.addMockItem(key, mockItem);
-    return this;
+    return mockItem;
   }
 
   /**
@@ -71,7 +72,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public get(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public get(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'get', response, delay, status, header });
     return this;
   }
@@ -84,7 +85,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public post(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public post(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'post', response, delay, status, header });
     return this;
   }
@@ -97,7 +98,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public put(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public put(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'put', response, delay, status, header });
     return this;
   }
@@ -110,7 +111,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public patch(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public patch(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'patch', response, delay, status, header });
     return this;
   }
@@ -123,7 +124,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public delete(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public delete(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'delete', response, delay, status, header });
     return this;
   }
@@ -136,7 +137,7 @@ export default class Mocker {
    * @param {number} status
    * @param {object} header
    */
-  public any(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: object = {}) {
+  public any(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
     this.mock(<MockItemInfo>{ url, method: 'any', response, delay, status, header });
     return this;
   }

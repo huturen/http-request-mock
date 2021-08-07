@@ -25,10 +25,10 @@ export interface MockItemInfo {
   url: RegExp | string;
   regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   method?: Method;
-  header?: Header,
+  header?: Header, // response header
   delay?: number;
   disable?: Disable;
-  response?: any;
+  response?: any; // response body
   status?: number; // http status code
   file?: string; // to be populated by webpack
 };
@@ -43,7 +43,7 @@ export interface WxRequestInfo {
   data?: any;
   method?: Method | undefined;
   query?: object; // not wx.requests standard, just for response function
-  header?: object;
+  header?: object; // request header
   success?: (info: any) => any;
   fail?: (info: any) => any;
   complete?: (info: any) => any;
@@ -79,7 +79,7 @@ export interface FetchRequestInfo {
   cache?: string;
   credentials?: string;
   query?: object; // not fetch standard, just for response function
-  headers?: object;
+  headers?: object; // request header
   redirect?: string;
   referrer?: string;
   integrity?: string;

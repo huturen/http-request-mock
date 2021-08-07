@@ -1,4 +1,5 @@
 import { HTTPStatusCodes } from '../config';
+import FakeXMLHttpRequest from '../fake/xhr';
 import Mocker from '../mocker';
 import { Method, MockItemInfo, XhrRequestInfo, XMLHttpRequestInstance } from '../types';
 import Base from './base';
@@ -26,49 +27,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    */
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
-    global.XMLHttpRequest = global.XMLHttpRequest || function() {};
-
-    if (!global.XMLHttpRequest.prototype) {
-      global.XMLHttpRequest.prototype = {
-        open: function() {
-        },
-        send: function() {
-        },
-        setRequestHeader: function() {
-        },
-        onreadystatechange: function() {
-        },
-        load: function() {
-        },
-        loadend: function() {
-        },
-        getAllResponseHeaders: function() {
-        },
-        getResponseHeader: function() {
-        },
-        get readyState() {
-          return 4;
-        },
-        get status() {
-          return 200;
-        },
-        get statusText() {
-          return '';
-        },
-        get response() {
-          return '';
-        },
-        get responseText() {
-          return '';
-        },
-        get responseURL() {
-          return '';
-        },
-        get responseXML() {
-          return '';
-        },
-      };
-    }
+    global.XMLHttpRequest = global.XMLHttpRequest || FakeXMLHttpRequest;
 
     return new XMLHttpRequestInterceptor(mocker);
   }

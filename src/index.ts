@@ -1,6 +1,7 @@
 
 
 import InterceptorFetch from './inteceptor/fetch';
+import NodeHttpAndHttpsRequestInterceptor from './inteceptor/node/http-and-https';
 import InterceptorWxRequest from './inteceptor/wx-request';
 import InterceptorXhr from './inteceptor/xml-http-request';
 import Mocker from './mocker';
@@ -22,6 +23,11 @@ export default class Index {
 
     if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
       InterceptorFetch.setup(mocker);
+    }
+
+    // for http.get, https.get, http.request, https.request in node enviroment
+    if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
+      NodeHttpAndHttpsRequestInterceptor.setup(mocker);
     }
 
     return mocker;
@@ -48,6 +54,16 @@ export default class Index {
   }
 
   /**
+   * Setup request mock for node http/https request.
+   * @param {string} type
+   */
+  static setupForNode() : Mocker {
+    const mocker = new Mocker();
+    NodeHttpAndHttpsRequestInterceptor.setup(mocker);
+    return mocker;
+  }
+
+  /**
    * Setup request mock for fetch.
    * @param {string} type
    */
@@ -61,7 +77,7 @@ export default class Index {
    * Setup request mock for unit test.
    * @param {string} type
    */
-  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'all' = 'all') : Mocker {
+  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node') : Mocker {
     const mocker = new Mocker();
 
     if (type === 'wx') {
@@ -76,10 +92,15 @@ export default class Index {
       InterceptorFetch.setupForUnitTest(mocker);
     }
 
-    if (type === 'all') {
-      InterceptorWxRequest.setupForUnitTest(mocker);
-      InterceptorXhr.setupForUnitTest(mocker);
-      InterceptorFetch.setupForUnitTest(mocker);
+    if (type === 'node') {
+      NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
+
+      // By default, 'jsdom' will set up a fake XMLHttpRequest which triggers "http.request".
+      // So we set up XMLHttpRequest mock too in jest envrioment.
+      // @ts-ignore
+      if (process.env.JEST_WORKER_ID || typeof jest !== 'undefined') {
+        InterceptorXhr.setupForUnitTest(mocker);
+      }
     }
 
     return mocker;

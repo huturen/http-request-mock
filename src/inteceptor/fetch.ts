@@ -59,7 +59,7 @@ export default class FetchInterceptor extends Base{
       return new Promise((resolve, reject) => {
         const match:MockItemInfo | null  = me.matchMockRequest(url, method);
         if (match) {
-          const requestInfo = <FetchRequestInfo>{ url, ...params };
+          const requestInfo = <FetchRequestInfo>{ url, method, ...params };
           requestInfo.query = me.getQuery(url);
 
           me.doMockRequest(match, requestInfo, resolve);

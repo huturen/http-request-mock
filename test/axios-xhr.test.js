@@ -15,7 +15,7 @@ const request = (url, method = 'get', opts = {}) => {
   });
 };
 
-describe('mock axios request which is based on XMLHttpRequest adaptor for browser enviroment', () => {
+describe('mock axios requests which are based on XMLHttpRequest adaptor for browser enviroment', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');

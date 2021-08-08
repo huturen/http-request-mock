@@ -23,7 +23,7 @@ const request = (url, method = 'get', opts = {}) => {
   });
 };
 
-describe('mock ky request for browser enviroment', () => {
+describe('mock ky requests for browser enviroment', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');

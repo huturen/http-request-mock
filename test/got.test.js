@@ -1,30 +1,27 @@
-import * as superagent from 'superagent/dist/superagent.js';
+import got from 'got';
 import HttpRequestMock from '../src/index';
 
-const mocker = HttpRequestMock.setupForUnitTest('xhr');
+const mocker = HttpRequestMock.setupForNode();
 
-const request = (url, method = 'get') => {
-  if (!/^(get|post|put|patch|delete)$/i.test(method)) {
-    throw new Error('Invalid request method.');
-  }
-  const requestFunction = superagent[method.toLowerCase()];
+const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve, reject) => {
-    // res.body, res.headers, res.status
-    // err.message, err.response
-    requestFunction(url).end((err, res) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({
-        data: res.body || res.text,
-        status: res.status,
-        headers: res.headers
-      });
-    });
+    got(url, { method, retry: 0,  ...opts }).then(res => {
+        let data;
+        try {
+          data = JSON.parse(res.body)
+        } catch(e) {
+          data = res.body;
+        }
+        resolve({
+          data,
+          status: res.statusCode,
+          headers: res.headers
+        });
+    }).catch(reject);
   });
 };
 
-describe('mock superagent requests', () => {
+describe('mock requests which are triggered by request library', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');
@@ -74,8 +71,7 @@ describe('mock superagent requests', () => {
     });
 
     request('http://www.api.com/status404').catch(err => {
-      expect(err.response.status).toBe(404);
-      expect(err.message).toMatch('Not Found');
+      expect(err.message).toContain(404);
       done();
     });
   });

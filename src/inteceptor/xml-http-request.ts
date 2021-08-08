@@ -199,7 +199,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (body: any) => {
           if (this.isMockRequest) {
-            return Object.entries({...this.mockRequestInfo.header, 'is-mock': 'yes'})
+            return Object.entries({...this.mockRequestInfo.header, 'x-powered-by': 'http-request-mock'})
               .map(([key, val]) => key.toLowerCase()+': '+val)
               .join('\r\n');
           }
@@ -220,8 +220,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (field: string) => {
           if (this.isMockRequest) {
-            if (/^is-mock$/i.test(field)) {
-              return 'yes';
+            if (/^x-powered-by$/i.test(field)) {
+              return 'http-request-mock';
             }
             const item = Object.entries(this.mockRequestInfo.header).find(([key]) => key.toLowerCase() === field);
             return item ? item[1] : null;

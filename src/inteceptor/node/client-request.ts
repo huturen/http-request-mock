@@ -188,7 +188,7 @@ class ClientRequest extends http.OutgoingMessage {
 
       this.response.statusCode = mockItem.status || 200;
       this.response.statusMessage = HTTPStatusCodes[mockItem.status!] || '',
-      this.response.headers = { ...mockItem.header!, 'is-mock': 'yes' };
+      this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
       this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
         return res.concat(item as any)
       }, []);

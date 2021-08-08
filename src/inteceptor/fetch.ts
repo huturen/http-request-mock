@@ -122,8 +122,8 @@ export default class FetchInterceptor extends Base{
     const statusText = HTTPStatusCodes[status] || '';
 
     const headers = typeof Headers === 'function'
-      ? new Headers({ ...match.header, 'is-mock': 'yes' })
-      : { ...match.header, 'is-mock': 'yes' };
+      ? new Headers({ ...match.header, 'x-powered-by': 'http-request-mock' })
+      : { ...match.header, 'x-powered-by': 'http-request-mock' };
 
     const body = typeof Blob === 'function'
       ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])

@@ -120,7 +120,7 @@ describe('mock fetch request', () => {
     expect(res.headers).toMatchObject({
       custom: 'a-customized-header',
       another: 'another-header',
-      'is-mock': 'yes',
+      'x-powered-by': 'http-request-mock',
     });
   });
 

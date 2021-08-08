@@ -108,7 +108,7 @@ export default class WxRequestInterceptor extends Base {
       statusCode: match.status || 200,
       header: {
         ...match.header,
-        'is-mock': 'yes'
+        'x-powered-by': 'http-request-mock'
       },
       cookies: [],
       profile: {},

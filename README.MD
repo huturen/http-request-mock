@@ -229,7 +229,7 @@ axios.get('https://www.api.com/tmp?abc=1234&efg=xxx').then(res => {
 // response header: {
 //   'content-type': 'application/text',
 //   'some-header': 'some-header-value',
-//   'is-mock': 'yes'
+//   'x-powered-by': 'http-request-mock'
 // }
 ```
 

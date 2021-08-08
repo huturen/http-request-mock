@@ -122,7 +122,7 @@ describe('mock axios request which is based on XMLHttpRequest adaptor for browse
     expect(res.headers).toMatchObject({
       custom: 'a-customized-header',
       another: 'another-header',
-      'is-mock': 'yes',
+      'x-powered-by': 'http-request-mock',
     });
   });
 

@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
@@ -83,6 +83,7 @@
     "babel-preset-es2015": "^6.24.1",
     "commitizen": "^4.2.1",
     "del-cli": "^3.0.1",
+    "got": "^11.8.2",
     "husky": "^4.3.0",
     "jest": "^27.0.6",
     "jquery": "^3.6.0",
@@ -90,6 +91,7 @@
     "mocha": "^9.0.3",
     "node-fetch": "^2.6.1",
     "node-loader": "^1.0.2",
+    "request": "^2.88.2",
     "standard-version": "^9.0.0",
     "superagent": "^6.1.0",
     "ts-jest": "^27.0.4",

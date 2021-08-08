@@ -1,4 +1,9 @@
 ### Changelog
+[2021-08-08]
+  1. support http.get, https.get, http.reuest, https.request request mock
+  2. support enable/disable mock function temporarily
+  3. add unit tests for node-fetch, ky, request, got libraries.
+
 [2021-07-30] fix command tool problem & release v1.1.4
 [2021-07-24] change custom to verbose for runtime config option
 [2021-07-18] add query for request info
@@ -14,6 +19,10 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-08]
+1. support http.get, https.get, http.reuest, https.request request mock
+2. support enable/disable mock function temporarily
+
 [2021-07-30]
 1. release v1.1.0
 

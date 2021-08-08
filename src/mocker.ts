@@ -3,6 +3,7 @@ import { Header, Method, MockConfigData, MockItemInfo } from './types';
 export default class Mocker {
   private static instance: Mocker;
   private mockConfigData: MockConfigData;
+  private disabled: boolean = false;
 
   constructor() {
     if (Mocker.instance) {
@@ -10,6 +11,10 @@ export default class Mocker {
     }
     Mocker.instance = this;
     this.mockConfigData = {};
+  }
+
+  static getInstance() {
+    return new Mocker();
   }
 
   /**
@@ -38,6 +43,22 @@ export default class Mocker {
    */
   public reset() {
     this.setMockData({});
+    return this;
+  }
+
+  /**
+   * Enable mock function temporarily.
+   */
+  public enable() {
+    this.disabled = false;
+    return this;
+  }
+
+  /**
+   * Disable mock function temporarily.
+   */
+  public disable() {
+    this.disabled = true;
     return this;
   }
 
@@ -149,6 +170,10 @@ export default class Mocker {
    * @param {string} reqMethod
    */
   public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
+    if (this.disabled) {
+      return null;
+    }
+
     const requestMethod = reqMethod || 'get';
 
     for(let key in this.mockConfigData) {

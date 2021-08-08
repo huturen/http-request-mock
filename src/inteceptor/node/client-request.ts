@@ -2,53 +2,35 @@ import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
 import { HTTPStatusCodes } from '../../config';
-import { MockItemInfo } from '../../types';
+import { ClientRequestType, MockItemInfo } from '../../types';
 
 
 /**
- * http.OutgoingMessage serves as the parent class of http.ClientRequest and http.ServerResponse.
- * It is an abstract of outgoing message from the perspective of the participants of HTTP transaction.
+ * ClientRequest constructor
+ * @param {string} url
+ * @param {object} options options of http.get, https.get, http.request or https.request method.
+ * @param {function} callback callback of http.get, https.get, http.request or https.request method.
  */
-class ClientRequest extends http.OutgoingMessage {
-  private response: http.IncomingMessage;
-  private requestBody: Buffer = Buffer.alloc(0);
-  private mockItemResolver: Promise<MockItemInfo>;
+function ClientRequest(
+  this: ClientRequestType,
+  url: string,
+  options: { [key: string]: any },
+  callback?: (...args: any[]) => any
+) {
 
-  private url: string = '';
-  private options: { [key: string]: any } = {};
-  private callback: ((...args: any[]) => any) | undefined;
+  // http.OutgoingMessage serves as the parent class of http.ClientRequest and http.ServerResponse.
+  // It is an abstract of outgoing message from the perspective of the participants of HTTP transaction.
+  http.OutgoingMessage.call(this as any);
 
-  // necessary properties in http.ClientRequest
-  private method: string;
-  private host: string;
-  private path: string;
-  private aborted: boolean;
-
-  /**
-   * constructor
-   * @param {string} url
-   * @param {object} options options of http.get, https.get, http.request or https.request method.
-   * @param {function} callback callback of http.get, https.get, http.request or https.request method.
-   */
-  constructor(
-    url: string,
-    options: { [key: string]: any },
-    callback?: (...args: any[]) => any
-  ) {
-    super();
-
-    this.url = url;
-    this.options = options;
-    this.callback = callback;
-
-
-    this.init();
-  }
+  this.requestBody = Buffer.alloc(0);
+  this.url = url;
+  this.options = options;
+  this.callback = callback;
 
   /**
    * Initialize socket & response object
    */
-  private init() {
+  this.init = () => {
     const [options, callback] = [this.options, this.callback];
     this.method = options.method || 'GET';
     this.path = options.path || '/';
@@ -90,12 +72,13 @@ class ClientRequest extends http.OutgoingMessage {
 
     this.response = new http.IncomingMessage(this.socket);
   }
+  this.init();
 
   /**
    * Set mock item resolver. 'mockItemResolver' will be used in end method.`
    * @param {Promise<MockItemInfo>} mockItemResolver
    */
-  public setMockItemResolver(mockItemResolver: Promise<MockItemInfo>) {
+  this.setMockItemResolver = (mockItemResolver: Promise<MockItemInfo>) => {
     this.mockItemResolver = mockItemResolver;
     return this;
   }
@@ -104,7 +87,7 @@ class ClientRequest extends http.OutgoingMessage {
    * Destroy the request. Optionally emit an 'error' event, and emit a 'close' event.
    * Calling this will cause remaining data in the response to be dropped and the socket to be destroyed.
    */
-  public destroy() {
+  this.destroy = () => {
     if (this.aborted || this.destroyed) return;
 
     this.aborted = true;
@@ -122,7 +105,7 @@ class ClientRequest extends http.OutgoingMessage {
    * We keep abort method for compatibility.
    * 'abort' has been Deprecated; Use request.destroy() instead.
    */
-  public abort() {
+  this.abort = () => {
     this.destroy();
   }
 
@@ -130,7 +113,7 @@ class ClientRequest extends http.OutgoingMessage {
    * Send error event to the request.
    * @param {string} msg
    */
-  private sendError(msg: string) {
+  this.sendError = (msg: string) => {
     process.nextTick(() => {
       this.emit('error', new Error(msg));
     });
@@ -142,7 +125,7 @@ class ClientRequest extends http.OutgoingMessage {
    * @param {string | Buffer} chunk
    * @param {any[]} args
    */
-  public write(chunk: string | Buffer, ...args: any[]) {
+  this.write = (chunk: string | Buffer, ...args: any[]) => {
     if (typeof chunk !== 'string' && !Buffer.isBuffer(chunk)) {
       this.sendError('The first argument must be of type string or an instance of Buffer.');
       return false;
@@ -167,13 +150,13 @@ class ClientRequest extends http.OutgoingMessage {
   }
 
   /**
-   * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
-   *
-   * Finishes sending the request. If any parts of the body are unsent, it will flush them to the stream.
-   * Simulation: request.end([data[, encoding]][, callback])
-   * @param {any[]} args
-   */
-  public async end(...args: any[]) {
+     * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
+     *
+     * Finishes sending the request. If any parts of the body are unsent, it will flush them to the stream.
+     * Simulation: request.end([data[, encoding]][, callback])
+     * @param {any[]} args
+     */
+  this.end =  async (...args: any[]) => {
     const [data, encoding, callback] = this.getEndArguments(args);
     // If data is specified, it is equivalent to calling
     // request.write(data, encoding) followed by request.end(callback).
@@ -238,7 +221,7 @@ class ClientRequest extends http.OutgoingMessage {
    * @param {any[]} args [data[, encoding]][, callback]
    * @returns
    */
-  private getEndArguments(args: any[]) {
+  this.getEndArguments = (args: any[]) => {
     let data;
     let encoding;
     let callback;
@@ -257,7 +240,7 @@ class ClientRequest extends http.OutgoingMessage {
    * Convert a buffer to a string.
    * @param {Buffer} buffer
    */
-  private bufferToString(buffer: Buffer) {
+  this.bufferToString = (buffer: Buffer) => {
     const str = buffer.toString('utf8');
     return Buffer.from(str).equals(buffer) ? str : buffer.toString('hex');
   }
@@ -265,7 +248,7 @@ class ClientRequest extends http.OutgoingMessage {
   /**
    * Get request headers.
    */
-  private getRequestHeaders() {
+  this.getRequestHeaders = () => {
     return Object.entries({
       ...this.getHeaders(),
       ...this.options.headers

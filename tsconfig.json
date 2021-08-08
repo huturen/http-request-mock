@@ -18,6 +18,7 @@
     "esModuleInterop": true,
     "strictPropertyInitialization": false,
     "allowSyntheticDefaultImports" : true,
+    "declaration": true,
     "typeRoots": ["./node_modules/@types"]
   },
   "include": [

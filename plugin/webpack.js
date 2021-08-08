@@ -16,9 +16,9 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
    * @param {string} runtime Optional, the style of mock configure entry file, one of [internal, external, verbose],
    *                         default to 'internal' which use the build-in mock configure entry file.
-   * @param {boolean} transpile Optional, whether or not to transpile files in the mock directory, default to true.
-   *                            If mock directory were in src/ or other directory that has configured to be transpiled,
-   *                            then set transpile to false. If this option would confuse you, let it be true.
+   * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory, default to true.
+   *                          If mock directory were in src/ that has configured to be monitored,
+   *                          then set monitor to false. If this option would confuse you, let it be true.
    */
   constructor({
     entry,
@@ -26,7 +26,7 @@ module.exports = class HttpRequestMockMockPlugin {
     watch,
     enable = true,
     runtime = 'internal', // internal external verbose
-    transpile = true,
+    monitor = true,
   }) {
     if (!(entry instanceof RegExp)) {
       throw new Error('The HttpRequestMockMockPlugin expects [entry] to be a valid RegExp Object.');
@@ -45,7 +45,7 @@ module.exports = class HttpRequestMockMockPlugin {
     this.watch = watch;
     this.enable = enable;
     this.runtime = runtime;
-    this.transpile = transpile;
+    this.monitor = monitor;
 
     this.useFileDependencies = false;
   }
@@ -177,7 +177,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {Webpack Compiler Object} compiler
    */
   addMockDependenciesToContext(compiler) {
-    if (!this.transpile) return;
+    if (!this.monitor) return;
 
     compiler.hooks.emit.tapPromise(PLUGIN_NAME, async (compilation) => {
       if (this.useFileDependencies) {

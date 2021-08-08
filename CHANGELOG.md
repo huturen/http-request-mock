@@ -1,7 +1,7 @@
 ### Changelog
 [2021-08-08]
   1. support http.get, https.get, http.reuest, https.request request mock
-  2. support enable/disable mock function temporarily
+  2. support to enable/disable mock function temporarily
   3. add unit tests for node-fetch, ky, request, got libraries.
 
 [2021-07-30] fix command tool problem & release v1.1.4

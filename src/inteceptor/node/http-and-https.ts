@@ -2,7 +2,7 @@ import http from 'http';
 import https from 'https';
 import urlUtil from 'url';
 import Mocker from '../../mocker';
-import { MockItemInfo } from '../../types';
+import { ClientRequestType, MockItemInfo } from '../../types';
 import Base from '../base';
 import ClientRequest from './client-request';
 
@@ -116,7 +116,8 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
 
     if (!mockItem) return false;
 
-    const clientRequest = new ClientRequest(url, options, callback);
+    // @ts-ignore
+    const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);
     this.doMockRequest(clientRequest, mockItem);
     return clientRequest;
   }
@@ -126,7 +127,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {ClientRequest} clientRequest
    * @param {MockItemInfo} mockItem
    */
-  private doMockRequest(clientRequest: ClientRequest, mockItem: MockItemInfo) {
+  private doMockRequest(clientRequest: ClientRequestType, mockItem: MockItemInfo) {
     if (mockItem.file && process.env.HRM_MOCK_DIR) {
       // const file = require.resolve(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`);
       // delete require.cache[file];
@@ -146,7 +147,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {ClientRequest} clientRequest
    * @param {MockItemInfo} mockItem
    */
-  private doMockResponse(clientRequest: ClientRequest, mockItem: MockItemInfo) {
+  private doMockResponse(clientRequest: ClientRequestType, mockItem: MockItemInfo) {
     const mockItemResolver: Promise<MockItemInfo> = new Promise(resolve => {
       if (mockItem.delay && mockItem.delay > 0) {
         setTimeout(() => resolve(mockItem), +mockItem.delay);

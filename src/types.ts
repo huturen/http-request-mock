@@ -1,3 +1,4 @@
+import http from 'http';
 
 export enum Method {
   get = 'get',
@@ -88,3 +89,20 @@ export interface FetchRequestInfo {
   referrerPolicy?: string;
   body?: any;
 };
+
+export interface ClientRequestType extends http.ClientRequest{
+  response: http.IncomingMessage;
+  requestBody: Buffer;
+  mockItemResolver: Promise<MockItemInfo>;
+
+  url: string;
+  options: { [key: string]: any };
+  callback: ((...args: any[]) => any) | undefined;
+
+  init: Function;
+  setMockItemResolver: Function;
+  sendError: Function;
+  getEndArguments: Function;
+  getRequestHeaders: Function;
+  bufferToString: Function;
+}

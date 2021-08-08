@@ -126,10 +126,14 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    */
   private doMockRequest(clientRequest: ClientRequest, mockItem: MockItemInfo) {
     if (mockItem.file && process.env.HRM_MOCK_DIR) {
-      const file = require.resolve(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`);
-      delete require.cache[file];
-      mockItem.response = require(file);
-      this.doMockResponse(clientRequest, mockItem);
+      // const file = require.resolve(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`);
+      // delete require.cache[file];
+      // mockItem.response = require(file);
+      // this.doMockResponse(clientRequest, mockItem);
+      import(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`).then((mock) => {
+        mockItem.response = mock.default;
+        this.doMockResponse(clientRequest, mockItem);
+      });
       return;
     }
     this.doMockResponse(clientRequest, mockItem);

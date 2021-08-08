@@ -1,30 +1,32 @@
-import * as superagent from 'superagent/dist/superagent.js';
+// Note: 'request' has been deprecated.
+import requestLib from 'request';
 import HttpRequestMock from '../src/index';
 
-const mocker = HttpRequestMock.setupForUnitTest('xhr');
+const mocker = HttpRequestMock.setupForNode();
 
 const request = (url, method = 'get') => {
-  if (!/^(get|post|put|patch|delete)$/i.test(method)) {
-    throw new Error('Invalid request method.');
-  }
-  const requestFunction = superagent[method.toLowerCase()];
+
   return new Promise((resolve, reject) => {
-    // res.body, res.headers, res.status
-    // err.message, err.response
-    requestFunction(url).end((err, res) => {
-      if (err) {
-        return reject(err);
+    requestLib(url, { method }, function (error, response, body) {
+      if (error) {
+        return reject(error);
+      }
+      let data;
+      try {
+        data = JSON.parse(body);
+      } catch(e) {
+        data = body;
       }
       resolve({
-        data: res.body || res.text,
-        status: res.status,
-        headers: res.headers
+        data,
+        status: response.statusCode,
+        headers: response.headers
       });
     });
   });
 };
 
-describe('mock superagent requests', () => {
+describe('mock requests which are triggered by request library', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');
@@ -73,9 +75,9 @@ describe('mock superagent requests', () => {
       response: 'not found'
     });
 
-    request('http://www.api.com/status404').catch(err => {
-      expect(err.response.status).toBe(404);
-      expect(err.message).toMatch('Not Found');
+    request('http://www.api.com/status404').then(res => {
+      expect(res.status).toBe(404);
+      expect(res.data).toMatch('not found');
       done();
     });
   });

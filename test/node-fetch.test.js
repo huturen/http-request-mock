@@ -1,30 +1,50 @@
-import * as superagent from 'superagent/dist/superagent.js';
+import fetch from 'node-fetch';
 import HttpRequestMock from '../src/index';
 
-const mocker = HttpRequestMock.setupForUnitTest('xhr');
+jest.mock('node-fetch', () => {
+  return jest.fn();
+});
+global.fetch = fetch;
+const mocker = HttpRequestMock.setupForFetch(); // no fetch object
 
-const request = (url, method = 'get') => {
-  if (!/^(get|post|put|patch|delete)$/i.test(method)) {
-    throw new Error('Invalid request method.');
-  }
-  const requestFunction = superagent[method.toLowerCase()];
+const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve, reject) => {
-    // res.body, res.headers, res.status
-    // err.message, err.response
-    requestFunction(url).end((err, res) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({
-        data: res.body || res.text,
-        status: res.status,
-        headers: res.headers
+    global.fetch(url, { method, ...opts }).then(res => {
+      res.text().then(text => {
+        let data;
+        try {
+          data = JSON.parse(text)
+        } catch(e) {
+          data = text;
+        }
+        resolve({
+          data,
+          status: res.status,
+          headers: [...res.headers].reduce((res, item) => {
+            const [key, val] = item;
+            res[key] = val;
+            return res;
+          }, {})
+        });
       });
-    });
+    }).catch(reject);
   });
 };
 
-describe('mock superagent requests', () => {
+describe('mock fetch requests for node envrioment', () => {
+  it('fetch function which is from node-fetch should be called when there is no mock request is matched', (done) => {
+    request('http://www.example', 'get')
+    .then(() => {
+      expect(fetch).toBeCalled();
+      done();
+    })
+    .catch(() => {
+      expect(fetch).toBeCalled();
+      done();
+    });
+  });
+
+
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');
@@ -41,11 +61,9 @@ describe('mock superagent requests', () => {
   });
 
   it('url config item should support RegExp matching', async () => {
-    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'}, 0, 200, {
-      'content-type': 'application/json' // response to json
-    });
+    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
-    const res = await request('http://www.api.com/regexp', 'get',);
+    const res = await request('http://www.api.com/regexp');
     expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
@@ -53,10 +71,7 @@ describe('mock superagent requests', () => {
     mocker.mock({
       url: 'http://www.api.com/delay',
       delay: 100,
-      response: { ret: 0, msg: 'delay'},
-      header: {
-        'content-type': 'application/json' // response to json
-      }
+      response: { ret: 0, msg: 'delay'}
     });
 
     const time = Date.now();
@@ -73,9 +88,9 @@ describe('mock superagent requests', () => {
       response: 'not found'
     });
 
-    request('http://www.api.com/status404').catch(err => {
-      expect(err.response.status).toBe(404);
-      expect(err.message).toMatch('Not Found');
+    request('http://www.api.com/status404').then(res => {
+      expect(res.status).toBe(404);
+      expect(res.data).toBe('not found');
       done();
     });
   });
@@ -133,18 +148,14 @@ describe('mock superagent requests', () => {
     });
   });
 
-  it('mock response should support to customize data types', async () => {
-    mocker.any('http://www.api.com/string', 'string', 0, 200, {
-      'content-type': 'application/text' // response to text
-    });
-    mocker.any('http://www.api.com/object', {obj: 'yes'}, 0, 200, {
-      'content-type': 'application/json' // response to json
-    });
+  it('mock response item should support to customize data types', async () => {
+    mocker.any('http://www.api.com/string', 'string');
+    mocker.any('http://www.api.com/object', {obj: 'yes'});
 
 
     const res = await Promise.all([
       request('http://www.api.com/string', 'get').then(res => res.data),
-      request('http://www.api.com/object', 'get').then(res => res.data),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
     ]);
     expect(res[0]).toBe('string');
     expect(res[1]).toMatchObject({obj: 'yes'});
@@ -183,4 +194,3 @@ describe('mock superagent requests', () => {
     expect(res2.data).toBe('data2');
   });
 });
-

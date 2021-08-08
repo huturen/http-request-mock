@@ -14,7 +14,7 @@ const request = (url, method = 'get', opts = {}) => {
   });
 };
 
-describe('mock wx.request request', () => {
+describe('mock wx.request requests', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');

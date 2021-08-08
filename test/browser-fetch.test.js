@@ -20,7 +20,7 @@ const request = (url, method = 'get', opts = {}) => {
   });
 };
 
-describe('mock fetch request', () => {
+describe('mock fetch requests for browser envrioment', () => {
   it('url config item should support partial matching', async () => {
     mocker.get('www.api.com/partial', 'get content');
     mocker.post('www.api.com/partial', 'post content');

@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/mocker.ts</title>
+    <title>Code coverage report for src/inteceptor/node/http-and-https.ts</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">src</a> mocker.ts</h1>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">src/inteceptor/node</a> http-and-https.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.98% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>39/47</span>
+                <span class='fraction'>57/76</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.04% </span>
+                <span class="strong">54.55% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>47/54</span>
+                <span class='fraction'>36/66</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">86.67% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>10/12</span>
+                <span class='fraction'>13/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.98% </span>
+                <span class="strong">74.32% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/47</span>
+                <span class='fraction'>55/74</span>
             </div>
         
             
@@ -55,7 +55,7 @@
             Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -240,27 +240,13 @@
 <a name='L181'></a><a href='#L181'>181</a>
 <a name='L182'></a><a href='#L182'>182</a>
 <a name='L183'></a><a href='#L183'>183</a>
-<a name='L184'></a><a href='#L184'>184</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -269,343 +255,375 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">151x</span>
-<span class="cline-any cline-yes">151x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">151x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">151x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">151x</span>
-<span class="cline-any cline-yes">151x</span>
-<span class="cline-any cline-yes">151x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">151x</span>
-<span class="cline-any cline-yes">151x</span>
-<span class="cline-any cline-yes">151x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">175x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">175x</span>
-<span class="cline-any cline-yes">1844x</span>
-<span class="cline-any cline-yes">1844x</span>
-<span class="cline-any cline-yes">1844x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1844x</span>
-<span class="cline-any cline-yes">1844x</span>
-<span class="cline-any cline-yes">888x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">956x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">956x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">949x</span>
-<span class="cline-any cline-yes">166x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Header, Method, MockConfigData, MockItemInfo } from './types';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import http from 'http';
+import https from 'https';
+import Mocker from '../../mocker';
+import { MockItemInfo } from '../../types';
+import Base from '../base';
+import ClientRequest from './client-request';
 &nbsp;
-export default class Mocker {
-  private static instance: Mocker;
-  private mockConfigData: MockConfigData;
+export default class NodeHttpAndHttpsRequestInterceptor extends Base{
+  private static instance: NodeHttpAndHttpsRequestInterceptor;
+  private httpRequest: Function;
+  private httpsRequest: Function;
+  private httpGet: Function;
+  private httpsGet: Function;
 &nbsp;
-  constructor() {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (Mocker.instance) {
-<span class="cstat-no" title="statement not covered" >      return Mocker.instance;</span>
+  constructor(mocker: Mocker) {
+    super(mocker);
+&nbsp;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (NodeHttpAndHttpsRequestInterceptor.instance) {
+<span class="cstat-no" title="statement not covered" >      return NodeHttpAndHttpsRequestInterceptor.instance;</span>
     }
-    Mocker.instance = this;
-    this.mockConfigData = {};
-  }
 &nbsp;
-  /**
-   * Set global mock data configuration.
-   * @param {object} mockConfigData
-   */
-<span class="fstat-no" title="function not covered" >  pu</span>blic setMockData(mockConfigData: MockConfigData) {
-<span class="cstat-no" title="statement not covered" >    this.mockConfigData = mockConfigData;</span>
-<span class="cstat-no" title="statement not covered" >    return this;</span>
-  }
+    NodeHttpAndHttpsRequestInterceptor.instance = this;
 &nbsp;
-  /**
-   * Add an mock item to global mock data configuration.
-   * @param {string} key
-   * @param {any} val
-   */
-  private addMockItem(key: string, val: MockItemInfo) {
-    this.mockConfigData[key] = val;
+    this.httpRequest = http.request.bind(http);
+    this.httpsRequest = https.request.bind(https);
+    this.httpGet = http.get.bind(http);
+    this.httpsGet = https.get.bind(https);
+    this.intercept();
+&nbsp;
     return this;
   }
 &nbsp;
   /**
-   * Reset global mock data configuration.
-   * @param {string} key
-   * @param {any} val
+   * Setup request mocker for unit test.
+   * @param {Mocker} mocker
    */
-<span class="fstat-no" title="function not covered" >  pu</span>blic reset() {
-<span class="cstat-no" title="statement not covered" >    this.setMockData({});</span>
-<span class="cstat-no" title="statement not covered" >    return this;</span>
+  static setupForUnitTest(mocker: Mocker) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof process === 'undefined' || Object.prototype.toString.call(process) !== '[object process]') {
+<span class="cstat-no" title="statement not covered" >      throw new Error('Not a node envrioment.');</span>
+    }
+    return new NodeHttpAndHttpsRequestInterceptor(mocker);
   }
 &nbsp;
   /**
-   * Check specified mock item &amp; add it to global mock data configuration.
+   * https://nodejs.org/api/http.html#http_request_end_data_encoding_callback
+   * https://nodejs.org/api/https.html#https_https_request_options_callback
+   *
+   * Intercept http.get, https.get, http.request, https.request.
+   */
+  private intercept() {
+    this.inteceptRequestMethod();
+    this.inteceptGetMethod();
+  }
+&nbsp;
+  /**
+   * Logic of intercepting http.request and https.request method.
+   */
+  private inteceptRequestMethod() {
+    const me = this;
+    http.request = function(...args: any[]) {
+      const clientRequest = me.getClientRequest(args);
+      if (clientRequest) {
+        return clientRequest;
+      }
+      return me.httpRequest(...args);
+    };
+    https.request = function(...args: any[]) {
+      const clientRequest = me.getClientRequest(args);
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (clientRequest) {
+        return clientRequest;
+      }
+<span class="cstat-no" title="statement not covered" >      return me.httpsRequest(...args);</span>
+    };
+  }
+&nbsp;
+  /**
+   * https://nodejs.org/api/http.html#http_http_get_url_options_callback
+   * Logic of intercepting http.get and https.get method.
+   *
+   * Since most requests are GET requests without bodies, Node.js provides this convenience method.
+   * The only difference between this method and http.request() is that it sets the method to GET
+   * and calls req.end() automatically. The callback must take care to consume the response data
+   * for reasons stated in http.ClientRequest section.
+   */
+  private inteceptGetMethod() {
+    const me = this;
+    http.get = <span class="fstat-no" title="function not covered" >fu</span>nction(...args: any[]) {
+      const clientRequest = <span class="cstat-no" title="statement not covered" >me.getClientRequest(args);</span>
+<span class="cstat-no" title="statement not covered" >      if (clientRequest) {</span>
+<span class="cstat-no" title="statement not covered" >        clientRequest.end();</span>
+<span class="cstat-no" title="statement not covered" >        return clientRequest;</span>
+      }
+<span class="cstat-no" title="statement not covered" >      return me.httpGet(...args);</span>
+    };
+&nbsp;
+    https.get = <span class="fstat-no" title="function not covered" >fu</span>nction(...args: any[]) {
+      const clientRequest = <span class="cstat-no" title="statement not covered" >me.getClientRequest(args);</span>
+<span class="cstat-no" title="statement not covered" >      if (clientRequest) {</span>
+<span class="cstat-no" title="statement not covered" >        clientRequest.end();</span>
+<span class="cstat-no" title="statement not covered" >        return clientRequest;</span>
+      }
+<span class="cstat-no" title="statement not covered" >      return me.httpsGet(...args);</span>
+    };
+  }
+&nbsp;
+  /**
+   * Get instance of ClientRequest.
+   * @param args Arguments of http.get, https.get, http.request or https.request
+   */
+  private getClientRequest(args: any[]) {
+    const [url, options, callback] = this.getRequestArguments(args);
+    const method = options.method || <span class="branch-1 cbranch-no" title="branch not covered" >'GET';</span>
+&nbsp;
+    const mockItem:MockItemInfo | null  = this.matchMockRequest(url, method);
+    if (!mockItem) return false;
+&nbsp;
+    const clientRequest = new ClientRequest(url, options, callback);
+    this.doMockRequest(clientRequest, mockItem);
+    return clientRequest;
+  }
+&nbsp;
+  /**
+   * Make mock request.
+   * @param {ClientRequest} clientRequest
    * @param {MockItemInfo} mockItem
-   * @returns false | MockItemInfo
    */
-  public mock(mockItem: MockItemInfo) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!mockItem.url || (typeof mockItem.url !== 'string' &amp;&amp; !(mockItem.url instanceof RegExp))) {
-<span class="cstat-no" title="statement not covered" >      return false;</span>
+  private doMockRequest(clientRequest: ClientRequest, mockItem: MockItemInfo) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (mockItem.file &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >process.env.HRM_MOCK_DIR)</span> {
+      const file = <span class="cstat-no" title="statement not covered" >require.resolve(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`);</span>
+<span class="cstat-no" title="statement not covered" >      delete require.cache[file];</span>
+<span class="cstat-no" title="statement not covered" >      mockItem.response = require(file);</span>
+<span class="cstat-no" title="statement not covered" >      this.doMockResponse(clientRequest, mockItem);</span>
+<span class="cstat-no" title="statement not covered" >      return;</span>
+    }
+    this.doMockResponse(clientRequest, mockItem);
+  }
+&nbsp;
+  /**
+   * Make mock request.
+   * @param {ClientRequest} clientRequest
+   * @param {MockItemInfo} mockItem
+   */
+  private doMockResponse(clientRequest: ClientRequest, mockItem: MockItemInfo) {
+    const mockItemResolver: Promise&lt;MockItemInfo&gt; = new Promise(resolve =&gt; {
+      if (mockItem.delay &amp;&amp; mockItem.delay &gt; 0) {
+        setTimeout(() =&gt; resolve(mockItem), +mockItem.delay);
+      } else {
+        resolve(mockItem);
+      }
+    });
+    clientRequest.setMockItemResolver(mockItemResolver);
+  }
+&nbsp;
+  /**
+   * Parse and get normalized arguments of http.get, https.get, http.request or https.request method.
+   * http.request(options[, callback])#
+   * http.request(url[, options][, callback])
+   * @param {any[]} args arguments of http.get, https.get, http.request or https.request
+   */
+  private getRequestArguments(args: any[]) {
+    let url, options, callback;
+&nbsp;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof args[0] === 'string' || (this.isObject(args[0]) &amp;&amp; ('href' in args[0]))) {
+<span class="cstat-no" title="statement not covered" >      url = typeof args[0] === 'string' ? args[0] : args[0].href;</span>
+    }
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (url === undefined || (<span class="branch-1 cbranch-no" title="branch not covered" >url </span>&amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >this.isObject(args[1]))</span>) {
+      options = url === undefined ? args[0] : <span class="branch-1 cbranch-no" title="branch not covered" >args[1];</span>
+    }
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof args[1] === 'function' || <span class="branch-1 cbranch-no" title="branch not covered" >typeof args[2] === 'function')</span> {
+      callback = typeof args[1] === 'function' ? args[1] : <span class="branch-1 cbranch-no" title="branch not covered" >args[2];</span>
     }
 &nbsp;
-    mockItem.method = /^(get|post|put|patch|delete|any)$/i.test(mockItem.method || '')
-      ? &lt;Method&gt; mockItem.method
-      : &lt;Method&gt; 'any';
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (!url) {
+      const port = /^\d+$/.test(options.port) ? <span class="branch-0 cbranch-no" title="branch not covered" >`:${options.port}` </span>: '';
+      const isHttps = (port === ':443') || options.cert || /^https:/i.test(options.path);
+      const protocol = options.protocol ? options.protocol : (<span class="branch-1 cbranch-no" title="branch not covered" >isHttps ? 'https:' : 'http:')</span>;
 &nbsp;
-    mockItem.delay = isNaN(mockItem.delay as any) ? 0 : Math.max(0, +&lt;number&gt;mockItem.delay);
-    mockItem.status = /^[1-5][0-9][0-9]$/.test(&lt;any&gt;mockItem.status) ? +&lt;number&gt;mockItem.status : 200;
-    mockItem.header = typeof mockItem.header === 'object' ? mockItem.header : {};
+      const host = options.hostname || <span class="branch-1 cbranch-no" title="branch not covered" >options.host </span>|| <span class="branch-2 cbranch-no" title="branch not covered" >'localhost';</span>
+      const path = options.path || <span class="branch-1 cbranch-no" title="branch not covered" >'/'</span>
+      const auth = options.auth ? <span class="branch-0 cbranch-no" title="branch not covered" >options.auth+'@' </span>: '';
 &nbsp;
-    const key = `${mockItem.url}-${mockItem.method}`;
-    this.addMockItem(key, mockItem);
-    return mockItem;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP GET request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public get(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'get', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP POST request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public post(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'post', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP PUT request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public put(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'put', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP PATCH request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public patch(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'patch', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP DELETE request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public delete(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'delete', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Make a mock item that matches an HTTP GET, POST, PUT, PATCH or DELETE request.
-   * @param {RegExp | String} url
-   * @param {any} response
-   * @param {number} delay
-   * @param {number} status
-   * @param {object} header
-   */
-  public any(url: RegExp | String, response: any, delay: number = 0, status: number = 200, header: Header = {}) {
-    this.mock(&lt;MockItemInfo&gt;{ url, method: 'any', response, delay, status, header });
-    return this;
-  }
-&nbsp;
-  /**
-   * Check whether the specified request url matchs a defined mock item.
-   * If a match were found, return mock meta information, otherwise a null is returned.
-   * @param {string} reqUrl
-   * @param {string} reqMethod
-   */
-  public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
-    const requestMethod = reqMethod || <span class="branch-1 cbranch-no" title="branch not covered" >'get';</span>
-&nbsp;
-    for(let key in this.mockConfigData) {
-      try {
-        const info = this.mockConfigData[key];
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (info.disable === 'yes') {
-<span class="cstat-no" title="statement not covered" >          continue;</span>
-        }
-&nbsp;
-        const method = `${info.method}`.toLowerCase();
-        if (method !== 'any' &amp;&amp; method !== `${requestMethod}`.toLowerCase()) {
-          continue;
-        }
-&nbsp;
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (Array.isArray(info.regexp) &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >info.regexp.length === 2</span>
-          &amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >new RegExp(info.regexp[0], info.regexp[1]).test(reqUrl)</span>
-        ) {
-<span class="cstat-no" title="statement not covered" >          return info;</span>
-        }
-&nbsp;
-        if ((info.url instanceof RegExp) &amp;&amp; info.url.test(reqUrl)) {
-          return info;
-        }
-&nbsp;
-        if (reqUrl.indexOf(info.url as string) !== -1) {
-          return info;
-        }
-      } catch(e) {}
+      const base = `${protocol}//${auth}${host}${port}`;
+      url = new URL(path, base).href;
     }
-    return null;
+&nbsp;
+    return [url, options || <span class="branch-1 cbranch-no" title="branch not covered" >{},</span> callback];
   }
 }
+&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -616,14 +634,14 @@ export default class Mocker {
                 at Sun Aug 08 2021 11:05:06 GMT+0800 (中国标准时间)
             </div>
         </div>
-        <script src="../prettify.js"></script>
+        <script src="../../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
     </body>
 </html>
     

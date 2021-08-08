@@ -1,5 +1,6 @@
 import http from 'http';
 import https from 'https';
+import urlUtil from 'url';
 import Mocker from '../../mocker';
 import { MockItemInfo } from '../../types';
 import Base from '../base';
@@ -112,6 +113,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const method = options.method || 'GET';
 
     const mockItem:MockItemInfo | null  = this.matchMockRequest(url, method);
+
     if (!mockItem) return false;
 
     const clientRequest = new ClientRequest(url, options, callback);
@@ -164,7 +166,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
   private getRequestArguments(args: any[]) {
     let url, options, callback;
 
-    if (typeof args[0] === 'string' || (this.isObject(args[0]) && ('href' in args[0]))) {
+    if (typeof args[0] === 'string' || this.isUrlObject(args[0])) {
       url = typeof args[0] === 'string' ? args[0] : args[0].href;
     }
     if (url === undefined || (url && this.isObject(args[1]))) {
@@ -184,10 +186,19 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       const auth = options.auth ? options.auth+'@' : '';
 
       const base = `${protocol}//${auth}${host}${port}`;
-      url = new URL(path, base).href;
+
+      // uri property will be populated by request library.
+      url = options.uri ? options.uri.href : new URL(path, base).href;
     }
 
     return [url, options || {}, callback];
+  }
+
+  private isUrlObject(url: any) {
+    return (Object.prototype.toString.call(url) === '[object URL]')
+      // @ts-ignore
+      || ((url instanceof URL) || (url instanceof urlUtil.Url))
+      || (this.isObject(url) && ('href' in url) && ('hostname' in url) && !('method' in url));
   }
 }
 

@@ -397,9 +397,21 @@ Set up request mock for XMLHttpRequest.
 
 Set up request mock for fetch.
 
+**setupForNode() : Mocker**:
+
+Set up request mock for http.get, https.get, http.request and https.request in node envrioment.
+
 **setupForUnitTest('wx' | 'xhr' | 'fetch' | 'all') : Mocker**:
 
 Set up request mock for unit test.
+
+**enable() : Mocker**:
+
+Enable mock function temporarily.
+
+**disable() : Mocker**:
+
+Disable mock function temporarily.
 
 ---
 ### For Mocker

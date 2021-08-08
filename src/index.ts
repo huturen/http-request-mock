@@ -74,10 +74,25 @@ export default class Index {
   }
 
   /**
+   * Enable mock function temporarily.
+   */
+  static enable() : Mocker {
+    return Mocker.getInstance().enable();
+  }
+
+  /**
+   * Disable mock function temporarily.
+   */
+  static disable() : Mocker {
+    return Mocker.getInstance().disable();
+  }
+
+
+  /**
    * Setup request mock for unit test.
    * @param {string} type
    */
-  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node') : Mocker {
+  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request') : Mocker {
     const mocker = new Mocker();
 
     if (type === 'wx') {
@@ -92,7 +107,7 @@ export default class Index {
       InterceptorFetch.setupForUnitTest(mocker);
     }
 
-    if (type === 'node') {
+    if (type === 'node' || type === 'node.http.request') {
       NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
 
       // By default, 'jsdom' will set up a fake XMLHttpRequest which triggers "http.request".

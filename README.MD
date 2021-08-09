@@ -350,7 +350,7 @@ module.exports = {
 | **enable** | 可选   | 是否启用该插件，默认 true                                  |
 | **runtime** | 可选   | mock配置文件入口类型，合法的值有 internal, external, verbose |
 | **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
-| **monitor** | 可选   | 是否监控mock目录下的文件，默认为true，如果你对这个选项感到困惑，请使用默认值 |
+| **monitor** | 可选   | 是否监控mock目录下的文件，默认为true                    |
 
 * runtime:
     - internal: (默认值) 使用插件自带的入口文件 *plugin/runtime.js*

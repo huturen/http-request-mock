@@ -1,4 +1,5 @@
 ### Changelog
+[2021-08-09] fix wx.request binding error
 [2021-08-08]
   1. support http.get, https.get, http.reuest, https.request request mock
   2. support to enable/disable mock function temporarily

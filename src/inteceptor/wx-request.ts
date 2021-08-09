@@ -14,7 +14,8 @@ export default class WxRequestInterceptor extends Base {
     }
 
     WxRequestInterceptor.instance = this;
-    this.wxRequest = this.global.wx.request.bind(wx);
+    // Note: this.global has no wx object
+    this.wxRequest = wx.request.bind(wx);
     this.intercept();
     return this;
   }

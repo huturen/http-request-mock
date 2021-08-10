@@ -71,7 +71,7 @@ describe('mock requests which are triggered by request library', () => {
     });
 
     request('http://www.api.com/status404').catch(err => {
-      expect(err.message).toContain(404);
+      expect(err.message).toContain('404');
       done();
     });
   });

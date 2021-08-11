@@ -1,4 +1,10 @@
 ### Changelog
+[2021-08-11]
+  1. add mock times options for a limited number of times mocking
+  2. remove 'verbose' value for runtime option
+  3. normalize request info for all inteceptors
+  4. windows compatibility
+
 [2021-08-09] fix wx.request binding error
 [2021-08-08]
   1. support http.get, https.get, http.reuest, https.request request mock
@@ -20,6 +26,9 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-11]
+  1. add mock times options for a limited number of times mocking
+
 [2021-08-08]
 1. support http.get, https.get, http.reuest, https.request request mock
 2. support enable/disable mock function temporarily

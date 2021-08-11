@@ -1,5 +1,6 @@
+import { getQuery, tryToParseObject } from '../common/utils';
 import Mocker from '../mocker';
-import { Method, MockItemInfo, Query } from '../types';
+import { Method, MockItemInfo, RequestInfo } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
@@ -42,33 +43,26 @@ export default class BaseInteceptor {
    * @param {string} reqMethod
    */
   protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
-    return this.mocker.matchMockItem(reqUrl, reqMethod);
+    const mockItem: MockItemInfo | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
+    if (mockItem && mockItem.times !== undefined) {
+      mockItem.times -= 1;
+    }
+    return mockItem;
   }
 
-  /**
-   * Get query parameters from the specified request url.
-   * @param {string} reqUrl
-   */
-  protected getQuery(reqUrl: string) : Query{
-    return /\?/.test(reqUrl)
-      ? reqUrl
-        .replace(/.*?\?/g, '') // no protocol, domain and path
-        .replace(/#.*$/g, '') // no hash tag
-        .split('&')
-        .reduce((res : Query, item: string) => {
-          const [k,v] = item.split('=');
-          res[k] = (v || '').trim();
-          return res;
-        }, {})
-      : {};
+  protected getRequestInfo(mixedRequestInfo: any) : RequestInfo {
+    const info: RequestInfo = {
+      url: mixedRequestInfo.url,
+      method: mixedRequestInfo.method,
+      query: getQuery(mixedRequestInfo.url),
+    };
+    if (mixedRequestInfo.headers || mixedRequestInfo.header) {
+      info.headers = mixedRequestInfo.headers || mixedRequestInfo.header;
+    }
+    if (mixedRequestInfo.body !== undefined) {
+      info.body = tryToParseObject(mixedRequestInfo.body);
+    }
+    return info;
   }
-
-  /**
-   * Check whether or not this specified obj is an object.
-   * @param {any} obj
-   */
-  protected isObject(obj: any) {
-    return Object.prototype.toString.call(obj) === '[object Object]';
-  };
 }
 

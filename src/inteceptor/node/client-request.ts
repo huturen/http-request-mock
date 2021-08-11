@@ -1,9 +1,9 @@
 import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
+import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
-import { ClientRequestType, MockItemInfo } from '../../types';
-
+import { ClientRequestType, MockItemInfo, RequestInfo } from '../../types';
 
 /**
  * ClientRequest constructor
@@ -170,16 +170,17 @@ function ClientRequest(
       const mockItem: MockItemInfo = await this.mockItemResolver;
 
       this.response.statusCode = mockItem.status || 200;
-      this.response.statusMessage = HTTPStatusCodes[mockItem.status!] || '',
+      this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
       this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
       this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
         return res.concat(item as any)
       }, []);
 
       const responseBody: any = typeof mockItem.response === 'function'
-        ? mockItem.response({
+        ? mockItem.response(<RequestInfo>{
           url: this.url,
           method: this.options.method || 'GET',
+          query: getQuery(this.url),
           headers: this.getRequestHeaders(),
           body: this.bufferToString(this.requestBody)
         })

@@ -1,6 +1,7 @@
 import http from 'http';
 import https from 'https';
 import urlUtil from 'url';
+import { isObject } from '../../common/utils';
 import Mocker from '../../mocker';
 import { ClientRequestType, MockItemInfo } from '../../types';
 import Base from '../base';
@@ -128,17 +129,6 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {MockItemInfo} mockItem
    */
   private doMockRequest(clientRequest: ClientRequestType, mockItem: MockItemInfo) {
-    if (mockItem.file && process.env.HRM_MOCK_DIR) {
-      // const file = require.resolve(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`);
-      // delete require.cache[file];
-      // mockItem.response = require(file);
-      // this.doMockResponse(clientRequest, mockItem);
-      import(`${process.env.HRM_MOCK_DIR}/${mockItem.file}`).then((mock) => {
-        mockItem.response = mock.default;
-        this.doMockResponse(clientRequest, mockItem);
-      });
-      return;
-    }
     this.doMockResponse(clientRequest, mockItem);
   }
 
@@ -170,7 +160,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     if (typeof args[0] === 'string' || this.isUrlObject(args[0])) {
       url = typeof args[0] === 'string' ? args[0] : args[0].href;
     }
-    if (url === undefined || (url && this.isObject(args[1]))) {
+    if (url === undefined || (url && isObject(args[1]))) {
       options = url === undefined ? args[0] : args[1];
     }
     if (typeof args[1] === 'function' || typeof args[2] === 'function') {
@@ -199,7 +189,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     return (Object.prototype.toString.call(url) === '[object URL]')
       // @ts-ignore
       || ((url instanceof URL) || (url instanceof urlUtil.Url))
-      || (this.isObject(url) && ('href' in url) && ('hostname' in url) && !('method' in url));
+      || (isObject(url) && ('href' in url) && ('hostname' in url) && !('method' in url));
   }
 }
 

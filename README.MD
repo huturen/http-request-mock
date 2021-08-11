@@ -14,6 +14,8 @@
     - [动态响应](#动态响应)
     - [延迟响应](#延迟响应)
     - [状态码及头信息模拟](#状态码及头信息模拟)
+    - [单独禁用mock](#单独禁用mock)
+    - [mock次数限制](#mock次数限制)
     - [完整示例](#完整示例)
 * [目录结构](#目录结构)
 * [webpack插件](#webpack插件)
@@ -66,10 +68,8 @@
 * **http响应头模拟**: http响应头模拟。
 * **可和真实网络请求混用**: 部分接口使用模拟请求，部分接口使用真实请求。
 * **随应用打包**: 支持mock数据可随应用打包，以快速交付产品原型。
-* **mock文件依赖自动查找&动态引入**: 自动匹配拦截请求，并匹配mock依赖文件，并动态引入。
 * **丰富的单元测试验证**: 具有较完整的单元测试。
 * **支持跨域请求**: 支持跨域请求模拟。
-
 
 
 ## 安装
@@ -134,7 +134,7 @@ import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 
 let times = 0;
-// requestInfo 请参考 src/types.ts 中的 < XhrRequestInfo | FetchRequestInfo | WxRequestInfo>
+// requestInfo 请参考 src/types.ts 中的 < RequestInfo >
 mocker.get('https://www.api.com/dynamic-response', (requestInfo) => {
   times = times + 1;
   return { times: 'times: ' + times, url: requestInfo.url };
@@ -189,6 +189,67 @@ axios.get('https://www.api.com/status404').catch(err => {
   console.log(err.response.headers['some-header']); // header-value
 });
 ```
+
+
+#### 单独禁用mock
+
+详细，请参考项目中 `experiment/disable.js` 例子。
+
+```javascript
+// 配置文件内容：
+const mocker = HttpRequestMock.setup();
+const mockItem = mocker.mock({
+  url: 'https://jsonplaceholder.typicode.com/todos/1',
+  method: 'any',
+  response: {mock: 'some response data'}
+});
+
+(async () => {
+  const res1 = await axios.get('https://jsonplaceholder.typicode.com/todos/1');
+  console.log('res1:', res1.data); // 返回mock内容
+
+  mockItem.disable = 'yes';
+
+  const res2 = await axios.get('https://jsonplaceholder.typicode.com/todos/1');
+  console.log('res2:', res2.data); // 返回真实网络返回
+})();
+
+// res1: { mock: 'some response data' }
+// res2: { userId: 1, id: 1, title: 'delectus aut autem', completed: false }
+```
+
+
+#### mock次数限制
+
+详细，请参考项目中 `experiment/times.js` 例子。
+
+```javascript
+const mocker = HttpRequestMock.setup();
+mocker.mock({
+  url: 'https://jsonplaceholder.typicode.com/todos/1',
+  method: 'any',
+  times: 2,
+  response: {mock: 'some response data'}
+});
+
+(async () => {
+  let i = 0;
+  await axios.get('https://jsonplaceholder.typicode.com/todos/1').then(res => {
+    console.log(++i, 'res:', res.data);
+  });
+  await axios.get('https://jsonplaceholder.typicode.com/todos/1').then(res => {
+    console.log(++i, 'res:', res.data);
+  });
+  await axios.get('https://jsonplaceholder.typicode.com/todos/1').then(res => {
+    console.log(++i, 'res:', res.data);
+  });
+})();
+
+// 1 res: { mock: 'some response data' }
+// 2 res: { mock: 'some response data' }
+// 3 res: { userId: 1, id: 1, title: 'delectus aut autem', completed: false }
+```
+
 
 #### 完整示例
 ```javascript
@@ -426,29 +487,58 @@ Reset global mock data configuration.
 
 Check specified mock item & add it to global mock data configuration.
 
-**get(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+```javascript
+interface MockItemInfo {
+  url: RegExp | string;
+  method?: Method; // GET, POST, PUT, PATCH, DELETE or HEAD
+  header?: Header, // response header
+  delay?: number;
+  disable?: Disable; // yes or no
+  times?: number;
+  response?: any; // response body
+  status?: number; // http status code
+};
+```
+
+**get(url: RegExp | String, response: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP GET request.
 
-**post(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+```javascript
+interface MockItemExt {
+  header?: Header, // response header
+  disable?: Disable; // yes or no
+  delay?: number;
+  times?: number;
+  status?: number; // http status code
+};
+```
+
+
+
+**post(url: RegExp | String, response: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP POST request.
 
-**put(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+**put(url: RegExp | String, response: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP PUT request.
 
-**patch(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+**patch(url: RegExp | String, response: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP PATCH request.
 
-**delete(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+**delete(url: RegExp | String, response: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP DELETE request.
 
-**any(url: RegExp | String, response: any, delay = 0, status = 200, header = {})**
+**head(url: RegExp | String, response: any = '', opts: MockItemExt)**
 
-Make a mock item that matches an HTTP GET, POST, PUT, PATCH or DELETE  request.
+Make a mock item that matches an HTTP HEAD request.
+
+**any(url: RegExp | String, response: any, opts: MockItemExt)**
+
+Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  request.
 
 
 ## 单元测试

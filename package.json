@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
@@ -52,7 +52,6 @@
     "experiment",
     "plugin/webpack.js",
     "plugin/runtime.js",
-    "src",
     "dist",
     "test",
     "README.MD"

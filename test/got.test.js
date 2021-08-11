@@ -38,8 +38,10 @@ describe('mock requests which are triggered by request library', () => {
   });
 
   it('url config item should support RegExp matching', async () => {
-    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'}, 0, 200, {
-      'content-type': 'application/json' // response to json
+    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'}, {
+      header: {
+        'content-type': 'application/json' // response to json
+      }
     });
 
     const res = await request('http://www.api.com/regexp', 'get',);
@@ -130,11 +132,15 @@ describe('mock requests which are triggered by request library', () => {
   });
 
   it('mock response should support to customize data types', async () => {
-    mocker.any('http://www.api.com/string', 'string', 0, 200, {
-      'content-type': 'application/text' // response to text
+    mocker.any('http://www.api.com/string', 'string', {
+      header: {
+        'content-type': 'application/text' // response to text
+      }
     });
-    mocker.any('http://www.api.com/object', {obj: 'yes'}, 0, 200, {
-      'content-type': 'application/json' // response to json
+    mocker.any('http://www.api.com/object', {obj: 'yes'}, {
+      header: {
+        'content-type': 'application/json' // response to json
+      }
     });
 
 

@@ -1,6 +1,6 @@
 import { HTTPStatusCodes } from '../config';
 import Mocker from '../mocker';
-import { FetchRequestInfo, MockItemInfo } from '../types';
+import { MockItemInfo, RequestInfo } from '../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
@@ -57,12 +57,10 @@ export default class FetchInterceptor extends Base{
       const method = params && params.method ? params.method : 'GET';
 
       return new Promise((resolve, reject) => {
-        const match:MockItemInfo | null  = me.matchMockRequest(url, method);
-        if (match) {
-          const requestInfo = <FetchRequestInfo>{ url, method, ...params };
-          requestInfo.query = me.getQuery(url);
-
-          me.doMockRequest(match, requestInfo, resolve);
+        const mockItem:MockItemInfo | null  = me.matchMockRequest(url, method);
+        if (mockItem) {
+          const requestInfo = me.getRequestInfo({ url, method, ...params });
+          me.doMockRequest(mockItem, requestInfo, resolve);
         } else {
           me.fetch(...args).then(resolve).catch(reject);
         }
@@ -73,35 +71,27 @@ export default class FetchInterceptor extends Base{
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} match
-   * @param {FetchRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockRequest(match: MockItemInfo, requestInfo: FetchRequestInfo, resolve: Function) {
-    if (match.file) {
-      import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        const mockResponse = this.getMockResponse(mock.default, match, requestInfo);
-        this.doMockResponse(mockResponse, match, resolve);
-      });
-      return;
-    }
-
-    const mockResponse = this.getMockResponse(match.response, match, requestInfo);
-    this.doMockResponse(mockResponse, match, resolve);
+  private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, resolve: Function) {
+    const mockResponse = this.getMockResponse(mockItem.response, mockItem, requestInfo);
+    this.doMockResponse(mockResponse, mockItem, resolve);
   }
 
   /**
    * Make mock request.
    * @param {any} response
-   * @param {FetchRequestInfo} requestInfo
+   * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockResponse(response: any, match: MockItemInfo, resolve: Function) {
-    if (match) {
-      if (match.delay && match.delay > 0) {
+  private doMockResponse(response: any, mockItem: MockItemInfo, resolve: Function) {
+    if (mockItem) {
+      if (mockItem.delay && mockItem.delay > 0) {
         setTimeout(() => {
           resolve(response);
-        }, +match.delay);
+        }, +mockItem.delay);
       } else {
         resolve(response);
       }
@@ -113,17 +103,17 @@ export default class FetchInterceptor extends Base{
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
    * @param {any} mockResponseConfig
-   * @param {MockItemInfo} match
-   * @param {FetchRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockResponseConfig: any, match: MockItemInfo, requestInfo: FetchRequestInfo) {
+  getMockResponse(mockResponseConfig: any, mockItem: MockItemInfo, requestInfo: RequestInfo) {
     const data = typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
-    const status = match.status || 200;
+    const status = mockItem.status || 200;
     const statusText = HTTPStatusCodes[status] || '';
 
     const headers = typeof Headers === 'function'
-      ? new Headers({ ...match.header, 'x-powered-by': 'http-request-mock' })
-      : { ...match.header, 'x-powered-by': 'http-request-mock' };
+      ? new Headers({ ...mockItem.header, 'x-powered-by': 'http-request-mock' })
+      : { ...mockItem.header, 'x-powered-by': 'http-request-mock' };
 
     const body = typeof Blob === 'function'
       ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])

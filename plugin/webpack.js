@@ -83,9 +83,7 @@ module.exports = class HttpRequestMockMockPlugin {
         }));
 
         injected = true;
-        const entry = process.platform === 'win32'
-          ? module.userRequest.replace(/\\/g, '/')
-          : module.userRequest;
+        const entry = this.formatPath(process.platform);
         console.log(`\nInjected mock dependency[${runtimeFile}] for ${entry}`);
       });
     });
@@ -98,9 +96,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {string} path
    */
   testPath(regexp, path) {
-    return regexp.test(path)
-      // treat '\' as '/' on windows.
-      || (process.platform === 'win32' && regexp.test((path+'').replace(/\\/g, '/')));
+    return regexp.test(path) || (process.platform === 'win32' && regexp.test(this.formatPath(path)));
   }
 
   /**
@@ -148,7 +144,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
 
-    return Object.keys(watcher.mtimes);
+    return Object.keys(watcher.mtimes).map(this.formatPath);
   }
 
   /**
@@ -331,8 +327,15 @@ module.exports = class HttpRequestMockMockPlugin {
    * @returns
    */
   resolve(...args) {
-    return process.platform === 'win32'
-      ? path.resolve(...args).replace(/\\/g, '/')
-      : path.resolve(...args);
+    return this.formatPath(path.resolve(...args));
+  }
+
+  /**
+   * Treat '\' as '/' on windows
+   * @param  {string} path
+   * @returns
+   */
+  formatPath(path) {
+    return process.platform === 'win32' ? (path+'').replace(/\\/g, '/') : path;
   }
 }

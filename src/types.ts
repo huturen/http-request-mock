@@ -6,6 +6,7 @@ export enum Method {
   put = 'put',
   patch = 'patch',
   delete = 'delete',
+  head = 'head',
   any = 'any'
 };
 
@@ -29,65 +30,47 @@ export interface MockItemInfo {
   header?: Header, // response header
   delay?: number;
   disable?: Disable;
+  times?: number;
   response?: any; // response body
   status?: number; // http status code
-  file?: string; // to be populated by webpack
+  file?: string; // may be populated by webpack
+};
+
+export interface MockItemExt {
+  header?: Header, // response header
+  disable?: Disable;
+  delay?: number;
+  times?: number;
+  status?: number; // http status code
 };
 
 export interface MockConfigData {
   [key: string]: MockItemInfo
 };
-
-// https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
-export interface WxRequestInfo {
+export interface RequestInfo {
   url: string;
-  data?: any;
-  method?: Method | undefined;
-  query?: object; // not wx.requests standard, just for response function
-  header?: object; // request header
-  success?: (info: any) => any;
-  fail?: (info: any) => any;
-  complete?: (info: any) => any;
-};
-
-// https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
-// https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/open
-export interface XhrRequestInfo {
-  url: string;
-  method?: Method | undefined;
-  async?: boolean;
-  user?: string;
-  password?: string;
-  query?: object; // not XHR standard, just for response function
-  header?: object; // request header
-  body?: any; // not XHR standard, for post request
-};
+  method: Method;
+  query: object; // url search query
+  headers?: object; // request header
+  body?: any; // post body
+}
 
 export interface XMLHttpRequestInstance extends XMLHttpRequest {
   isMockRequest: boolean;
   mockRequestInfo: MockItemInfo
-  xhrRequestInfo: XhrRequestInfo
+  xhrRequestInfo: RequestInfo
   mockResponse: any,
 }
 
-
-// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-// https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
-export interface FetchRequestInfo {
+// https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+export interface WxRequestOpts {
   url: string;
   method?: Method | undefined;
-  mode?: string;
-  cache?: string;
-  credentials?: string;
-  query?: object; // not fetch standard, just for response function
-  headers?: object; // request header
-  redirect?: string;
-  referrer?: string;
-  integrity?: string;
-  keepalive?: boolean;
-  signal?: any;
-  referrerPolicy?: string;
-  body?: any;
+  data?: any;
+  header?: object; // request header
+  success?: (info: any) => any;
+  fail?: (info: any) => any;
+  complete?: (info: any) => any;
 };
 
 export interface ClientRequestType extends http.ClientRequest{

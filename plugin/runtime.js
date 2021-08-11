@@ -1,4 +1,4 @@
 /* eslint-disable */
 import HttpRequestMock from 'http-request-mock';
-HttpRequestMock.setup().setMockData(process.env.HRM_MOCK_DATA || {});
+const mocker = HttpRequestMock.setup();
 /* eslint-enable */

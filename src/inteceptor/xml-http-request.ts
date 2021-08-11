@@ -1,7 +1,8 @@
+import { tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import FakeXMLHttpRequest from '../fake/xhr';
 import Mocker from '../mocker';
-import { Method, MockItemInfo, XhrRequestInfo, XMLHttpRequestInstance } from '../types';
+import { Method, MockItemInfo, XMLHttpRequestInstance } from '../types';
 import Base from './base';
 
 export default class XMLHttpRequestInterceptor extends Base {
@@ -71,13 +72,12 @@ export default class XMLHttpRequestInterceptor extends Base {
           user: string | null = null,
           password: string | null = null
         ) => {
-          const match: MockItemInfo | null = me.matchMockRequest(url, method);
-          if (match) {
+          const mockItem: MockItemInfo | null = me.matchMockRequest(url, method);
+          if (mockItem) {
             // 'this' points XMLHttpRequest instance.
             this.isMockRequest = true;
-            this.mockRequestInfo = match;
-            this.xhrRequestInfo = <XhrRequestInfo>{ url, method, async, user, password, header: {} };
-            this.xhrRequestInfo.query = me.getQuery(url);
+            this.mockRequestInfo = mockItem;
+            this.xhrRequestInfo = me.getRequestInfo({ url, method, });
             this.mockResponse = null;
             return;
           }
@@ -98,14 +98,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (body: any) => {
           if (this.isMockRequest) {
-            if (body && typeof body === 'string'  && body[0] === '{' && body[body.length-1] === '}') {
-              try {
-                this.xhrRequestInfo.body = JSON.parse(body);
-              } catch(e) {
-                this.xhrRequestInfo.body = body;
-              }
-            } else {
-              this.xhrRequestInfo.body = body;
+            if (body !== null && body !== undefined) {
+              this.xhrRequestInfo.body = tryToParseObject(body);
             }
             return me.doMockRequest(this, this.mockRequestInfo, this.xhrRequestInfo);
           }
@@ -119,32 +113,24 @@ export default class XMLHttpRequestInterceptor extends Base {
   /**
    * Make mock request.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockItemInfo} match
-   * @param {XhrRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
    */
-  private doMockRequest(xhr: XMLHttpRequestInstance, match: MockItemInfo, requestInfo: XhrRequestInfo) {
-    if (match.file) {
-      import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        xhr.mockResponse = this.getMockResponse(mock.default, requestInfo);
-        this.doMockResponse(xhr, match);
-      });
-      return;
-    }
-
-    xhr.mockResponse = this.getMockResponse(match.response, requestInfo);
-    this.doMockResponse(xhr, match);
+  private doMockRequest(xhr: XMLHttpRequestInstance, mockItem: MockItemInfo, requestInfo: RequestInfo) {
+    xhr.mockResponse = this.getMockResponse(mockItem.response, requestInfo);
+    this.doMockResponse(xhr, mockItem);
   }
 
   /**
    * Make mock response.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockItemInfo} match
+   * @param {MockItemInfo} mockItem
    */
-  private doMockResponse(xhr: XMLHttpRequestInstance, match: MockItemInfo,) {
-    if (match.delay && match.delay > 0) {
+  private doMockResponse(xhr: XMLHttpRequestInstance, mockItem: MockItemInfo,) {
+    if (mockItem.delay && mockItem.delay > 0) {
       setTimeout(() => {
         this.doCompleteCallbacks(xhr)
-      }, +match.delay);
+      }, +mockItem.delay);
     } else {
       this.doCompleteCallbacks(xhr)
     }
@@ -153,9 +139,9 @@ export default class XMLHttpRequestInterceptor extends Base {
   /**
    * Format mock data.
    * @param {any} mockResponseConfig
-   * @param {XhrRequestInfo} requestInfo
+   * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockResponseConfig: any, requestInfo: XhrRequestInfo) {
+  getMockResponse(mockResponseConfig: any, requestInfo: RequestInfo) {
     return typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
   }
 
@@ -242,7 +228,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       get: function() {
         return (header:any, value:any) => {
           if (this.isMockRequest) {
-            this.xhrRequestInfo.header[header] = value;
+            this.xhrRequestInfo.headers = this.xhrRequestInfo.headers || {};
+            this.xhrRequestInfo.headers[header] = value;
             return;
           }
           return original.call(this, header, value);

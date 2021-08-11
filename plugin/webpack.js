@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 const { createLoader } = require('simple-functional-loader');
 const { parse, tokenizers } = require('comment-parser');
 
@@ -14,7 +13,7 @@ module.exports = class HttpRequestMockMockPlugin {
    *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
    * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
-   * @param {string} runtime Optional, the style of mock configure entry file, one of [internal, external, verbose],
+   * @param {string} runtime Optional, the style of mock configure entry file, one of [internal, external],
    *                         default to 'internal' which use the build-in mock configure entry file.
    * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory, default to true.
    *                          If mock directory were in src/ that has configured to be monitored,
@@ -25,7 +24,7 @@ module.exports = class HttpRequestMockMockPlugin {
     dir,
     watch,
     enable = true,
-    runtime = 'internal', // internal external verbose
+    runtime = 'internal', // internal external
     monitor = true,
   }) {
     if (!(entry instanceof RegExp)) {
@@ -36,18 +35,16 @@ module.exports = class HttpRequestMockMockPlugin {
       throw new Error('The HttpRequestMockMockPlugin expects [dir] to be a valid absolute dir.');
     }
 
-    if (!['internal', 'external', 'verbose'].includes(runtime)) {
-      throw new Error('The HttpRequestMockMockPlugin expects [runtime] to be one of [internal, external, verbose].');
+    if (!['internal', 'external'].includes(runtime)) {
+      throw new Error('The HttpRequestMockMockPlugin expects [runtime] to be one of [internal, external].');
     }
 
     this.entry = entry;
-    this.dir = path.resolve(dir);
+    this.dir = this.resolve(dir);
     this.watch = watch;
     this.enable = enable;
     this.runtime = runtime;
     this.monitor = monitor;
-
-    this.useFileDependencies = false;
   }
 
   /**
@@ -58,10 +55,8 @@ module.exports = class HttpRequestMockMockPlugin {
   apply(compiler) {
     if (!this.enable) return;
 
-    // this.injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler);
     this.injectMockConfigFileIntoEntryByChangingSource(compiler);
     this.setWatchCallback(compiler);
-    this.setMockEnviroment(compiler);
     this.addMockDependenciesToContext(compiler);
   }
 
@@ -74,12 +69,13 @@ module.exports = class HttpRequestMockMockPlugin {
     compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
       compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (_, module) => {
         if (injected) return;
-        if (!this.entry.test(module.userRequest)) return;
+
+        if (!this.testPath(this.entry, module.userRequest)) return;
         if (!module.loaders || !module.loaders.length) return;
 
         // simple-functional-loader has been added.
         const last = module.loaders[module.loaders.length - 1];
-        if (/simple-functional-loader\/index\.js/.test(last.loader)) return;
+        if (this.testPath(/simple-functional-loader\/index\.js/, last.loader)) return;
 
         const runtimeFile = this.getRuntimeConfigFile();
         module.loaders.push(createLoader(function(source) { // function is required here
@@ -87,53 +83,24 @@ module.exports = class HttpRequestMockMockPlugin {
         }));
 
         injected = true;
-        console.log(`Injected mock dependency[${runtimeFile}] for ${module.userRequest}`);
+        const entry = process.platform === 'win32'
+          ? module.userRequest.replace(/\\/g, '/')
+          : module.userRequest;
+        console.log(`\nInjected mock dependency[${runtimeFile}] for ${entry}`);
       });
     });
   }
 
   /**
-   * Inject mock config file into entry by webpack config entry.
-   * @param {Webpack Compiler Object} compiler
+   * Use regexp to test against path which treats '\' as '/' on windows.
+   *
+   * @param {RegExp} regexp
+   * @param {string} path
    */
-  injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler) {
-    const runtimeFile = this.getRuntimeConfigFile();
-
-    const doInject = (entries) => {
-      // To be test it.
-      if (typeof entries === 'string' && this.entry.test(entries)) {
-        console.log('string entry: ', entries);
-        compiler.options.entry = [runtimeFile, entries];
-        console.log(`Injected mock dependency[${runtimeFile}] for ${entries}`);
-        return;
-      }
-      for(let key in entries) {
-        const entry = entries[key];
-        if (typeof entry === 'string' && this.entry.test(entry)) {
-          entries[key] = [runtimeFile, entry];
-          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
-          break;
-        }
-        if (Array.isArray(entry) && entry.find(e => this.entry.test(e))) {
-          entries[key] = [runtimeFile].concat(entry);
-          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
-          break;
-        }
-      }
-    };
-
-    compiler.hooks.entryOption.tap(PLUGIN_NAME, (_, entries) => {
-      if (typeof entries === 'function') {
-        const getEntries = entries();
-        if (typeof getEntries.then === 'function') {
-          entries().then(entries => doInject(entries));
-        } else {
-          doInject(getEntries)
-        }
-      } else {
-        doInject(entries);
-      }
-    });
+  testPath(regexp, path) {
+    return regexp.test(path)
+      // treat '\' as '/' on windows.
+      || (process.platform === 'win32' && regexp.test((path+'').replace(/\\/g, '/')));
   }
 
   /**
@@ -155,21 +122,9 @@ module.exports = class HttpRequestMockMockPlugin {
       });
       if (!files.length) return Promise.resolve();
 
+      this.getRuntimeConfigFile(); // update mock runtime config file
       return this.watch(files);
     });
-  }
-
-  /**
-   * Set mock enviroment.
-   * @param {Webpack Compiler Object} compiler
-   */
-  setMockEnviroment(compiler) {
-    new webpack.DefinePlugin({
-      'process.env.HRM_MOCK_DIR': JSON.stringify(this.dir),
-      'process.env.HRM_MOCK_DATA': webpack.DefinePlugin.runtimeValue(() => {
-        return JSON.stringify(this.generateMockData());
-      }, true),
-    }).apply(compiler);
   }
 
   /**
@@ -178,20 +133,9 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   addMockDependenciesToContext(compiler) {
     if (!this.monitor) return;
-
     compiler.hooks.emit.tapPromise(PLUGIN_NAME, async (compilation) => {
-      if (this.useFileDependencies) {
-        const files = await this.getAllMockFiles();
-        if (!files.length) {
-          return Promise.resolve();
-        }
-
-        files.map(f => compilation.fileDependencies.add(f));
-        return Promise.resolve();
-      } else {
-        compilation.contextDependencies.add(this.dir);
-        return Promise.resolve();
-      }
+      compilation.contextDependencies.add(this.dir);
+      return Promise.resolve();
     });
   }
 
@@ -214,39 +158,16 @@ module.exports = class HttpRequestMockMockPlugin {
   getAllMockFiles(level = []){
     if (level.length > 3) return [];
 
-    const dir = path.join(this.dir, ...level);
+    const dir = this.resolve(this.dir, ...level);
     const files = fs.readdirSync(dir, { withFileTypes: true });
     const res = [];
 
     for (const file of files) {
       if (file.isFile() && /^[\w][-\w]*\.js$/.test(file.name)) {
-        res.push(path.join(dir, file.name));
+        res.push(this.resolve(dir, file.name));
       } else if (file.isDirectory()) {
         res.push(...this.getAllMockFiles(level.concat(file.name)));
       }
-    }
-
-    return res;
-  }
-
-  /**
-   * Generate mock infomation.
-   * @param {Webpack Compiler Object} compiler
-   */
-  generateMockData() {
-    const res = {};
-    const files = this.getAllMockFiles();
-    for(let file of files) {
-      const tags = this.parseComment(file);
-      if (!tags.url || tags.disable === 'yes') {
-        continue;
-      }
-
-      try {
-        const resolvedFile = require.resolve(file).replace(this.dir + '/', '');
-
-        res[`${tags.url}-${tags.method}`] = { ...tags, file: resolvedFile };
-      } catch (e) { }
     }
     return res;
   }
@@ -255,32 +176,12 @@ module.exports = class HttpRequestMockMockPlugin {
    * Get mock config file entry.
    */
   getRuntimeConfigFile() {
-    let runtimeFile = undefined;
-    if (this.runtime === 'internal') {
-      runtimeFile = path.resolve(__dirname, './runtime.js');
-    }
-    else if (this.runtime === 'external') {
-      runtimeFile = this.generateExternalRuntimeDepsFile();
-    }
-    else if (this.runtime === 'verbose') {
-      runtimeFile = this.generateVerboseRuntimeDepsFile();
-    }
-    return runtimeFile;
-  }
+    const runtime = this.runtime === 'internal'
+      ? this.resolve(__dirname, './runtime.js')
+      : this.resolve(this.dir, '.runtime.js');
 
-  /**
-   * Generate external mock config file entry.
-   */
-  generateExternalRuntimeDepsFile() {
-    const runtime = path.resolve(this.dir, '.runtime.js');
     const isExisted = fs.existsSync(runtime);
-    const codes = [
-      `/* eslint-disable */`,
-      `import HttpRequestMock from 'http-request-mock';`,
-      `HttpRequestMock.setup().setMockData(process.env.HRM_MOCK_DATA || {});`,
-      `/* eslint-enable */`,
-    ].join('\n');
-
+    const codes = this.getRuntimeFileContent();
     if (isExisted && fs.readFileSync(runtime).toString() === codes) {
       return runtime;
     }
@@ -290,49 +191,89 @@ module.exports = class HttpRequestMockMockPlugin {
   }
 
   /**
-   * Generate verbose mock config file entry.
+   * Get mock config file entry content codes.
    */
-  generateVerboseRuntimeDepsFile() {
-    const runtime = path.resolve(this.dir, '.runtime.js');
-    const isExisted = fs.existsSync(runtime);
-
+  getRuntimeFileContent() {
     const files = this.getAllMockFiles();
-    const codes = [ '/* eslint-disable */' ];
+    const codes = [
+      '/* eslint-disable */',
+      `import HttpRequestMock from 'http-request-mock';`,
+      'const mocker = HttpRequestMock.setup();'
+    ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
-      const file = files[i];
-      const tags = this.parseComment(file);
-      const method = /get|post|put|patch|delete|any/i.test(tags.method) ? tags.method : 'get';
-      const delay = tags.delay || 0;
-      const status = tags.status || 200;
-      const header = tags.header;
+      const tags = this.parseComment(files[i]);
+      if (!tags.url) continue;
+      if (/yes|true|1/i.test(tags.disable)) continue;
+      if (tags.times !== undefined && tags.times <= 0) continue;
 
-      if (!tags.url || /yes|true|1/i.test(tags.disable)) {
+      codes.push(`import data${i} from '${files[i]}';`);
+      items.push({ ...tags, index: i });
+    }
+    for (const item of items) {
+      const method = `mocker.${item.method}`;
+      const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
+      const response = `data${item.index}`;
+
+      const { delay, status, times, header } = item;
+      if (delay || status || times || header) {
+        const opts = JSON.stringify({ delay, status, times, header }, null, 2);
+        codes.push(`${method}(${url}, ${response}, ${opts});`);
+      } else {
+        codes.push(`${method}(${url}, ${response});`);
+      }
+    }
+    codes.push('/* eslint-enable */');
+    return codes.join('\n');
+  }
+
+  /**
+   * Extract meta information from comments in the specified file.
+   * Meta information includes: @url, @method, @disable, @delay, @status.
+   * @param {string} file
+   */
+  parseComment(file) {
+    const js = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+    const parsed = parse(js, {
+      fence: '\n',
+      spacing: 'preserve',
+      tokenizers: [tokenizers.tag(), tokenizers.description('preserve')],
+    });
+
+    const res = {};
+    const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times'];
+    const tags = this.simpleGet(parsed, '0.tags', []);
+    const header = {};
+
+    for(let {tag,description}  of tags) {
+      if (!keys.includes(tag)) {
         continue;
       }
 
-      tags.url = this.isRegExp(tags.url) ? this.str2RegExp(tags.url) : tags.url;
-      codes.push(`import data${i} from '${file}';`);
-      items.push({ url: tags.url, method, index: i, delay, status, header, });
-    }
-    codes.push(`import HttpRequestMock from 'http-request-mock';`);
-    codes.push('const mocker = HttpRequestMock.setup();');
-    for (const item of items) {
-      const response = `data${item.index}`;
-      const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
-      const header = (JSON.stringify(item.header, null, 2) || '').replace(/\n/g, '\n  ');
-      const args = [response, item.delay, item.status, header].join(', ');
-      codes.push(`mocker.${item.method}(\n  ${url},\n  ${args}\n);`);
-    }
-    codes.push('/* eslint-enable */');
-    const codeSource = codes.join('\n');
-
-    if (isExisted && fs.readFileSync(runtime).toString() === codeSource) {
-      return runtime;
+      const key = tag.trim();
+      const val = description.replace(/\n+.*/g, '').trim();
+      if (key === 'header') {
+        if (/^[\w.-]+\s*:\s*.+$/.test(val)) {
+          header[val.slice(0, val.indexOf(':')).trim().toLowerCase()] = val.slice(val.indexOf(':')+1).trim();
+        }
+        continue;
+      }
+      res[key] = val;
     }
 
-    fs.writeFileSync(runtime, codeSource);
-    return runtime;
+    // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+    res.header = Object.keys(header).length > 0 ? header : undefined;
+    res.method = /^(get|post|put|patch|delete|head)$/i.test(res.method) ? res.method.toLowerCase() : 'any';
+    res.disable = /^(yes|true|1|no|false|0)$/i.test(res.disable) ? res.disable.toLowerCase() : undefined;
+    res.delay = /^[1-9]\d{0,14}$/.test(res.delay) ? +res.delay : undefined;
+    res.times = /^-?[1-9]\d{0,14}$/.test(res.times) ? +res.times : undefined;
+    res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
+
+    if (this.isRegExp(res.url)) {
+      res.url = this.str2RegExp(res.url);
+      res.regexp = this.str2RegExp(res.url, true);
+    }
+    return res;
   }
 
   /**
@@ -368,54 +309,6 @@ module.exports = class HttpRequestMockMockPlugin {
   }
 
   /**
-   * Extract meta information from comments in the specified file.
-   * Meta information includes: @url, @method, @disable, @delay, @status.
-   * @param {string} file
-   */
-  parseComment(file) {
-    const js = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
-    const parsed = parse(js, {
-      fence: '\n',
-      spacing: 'preserve',
-      tokenizers: [tokenizers.tag(), tokenizers.description('preserve')],
-    });
-
-    const res = {};
-    const keys = ['url', 'method', 'disable', 'delay', 'status', 'header'];
-    const tags = this.simpleGet(parsed, '0.tags', []);
-    const header = {};
-
-    for(let {tag,description}  of tags) {
-      if (!keys.includes(tag)) {
-        continue;
-      }
-
-      const key = tag.trim();
-      const val = description.replace(/\n+.*/g, '').trim();
-      if (key === 'header') {
-        if (/^[\w.-]+\s*:\s*.+$/.test(val)) {
-          header[val.slice(0, val.indexOf(':')).trim().toLowerCase()] = val.slice(val.indexOf(':')+1).trim();
-        }
-        continue;
-      }
-      res[key] = val;
-    }
-
-    res.header = header;
-    res.method = /get|post|put|patch|delete/i.test(res.method) ? res.method.toLowerCase() : 'any';
-    res.delay = Math.max(0, /^\d+$/.test(res.delay) ? +res.delay : 0);
-    res.disable = /yes|true|1/i.test(res.disable) ? 'yes' : 'no';
-
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-    res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : 200;
-
-    if (this.isRegExp(res.url)) {
-      res.regexp = this.str2RegExp(res.url, true);
-    }
-    return res;
-  }
-
-  /**
    * Just like _.get in lodash
    * @param {object} object
    * @param {string} path
@@ -430,5 +323,16 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const result = keys.reduce((obj, key) => obj && obj[key], object);
     return  result === undefined ? defaultValue : result
+  }
+
+  /**
+   * Resolve path but treat '\' as '/' on windows
+   * @param  {...any} args
+   * @returns
+   */
+  resolve(...args) {
+    return process.platform === 'win32'
+      ? path.resolve(...args).replace(/\\/g, '/')
+      : path.resolve(...args);
   }
 }

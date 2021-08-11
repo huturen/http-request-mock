@@ -1,5 +1,6 @@
+import { isObject } from '../common/utils';
 import Mocker from '../mocker';
-import { MockItemInfo, WxRequestInfo } from '../types';
+import { MockItemInfo, RequestInfo, WxRequestOpts } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -42,17 +43,23 @@ export default class WxRequestInterceptor extends Base {
         configurable: true,
         enumerable: true,
         writable: true,
-        value: (requestInfo: WxRequestInfo) => {
-          if (!requestInfo || !requestInfo.url) {
+        value: (wxRequestOpts: WxRequestOpts) => {
+          if (!wxRequestOpts || !wxRequestOpts.url) {
             return;
           }
 
-          const match: MockItemInfo | null = this.matchMockRequest(requestInfo.url, requestInfo.method);
-          if (match) {
-            requestInfo.query = this.getQuery(requestInfo.url);
-            this.doMockRequest(match, requestInfo);
+          const mockItem: MockItemInfo | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
+          const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
+            if (/^get$/i.test(wxRequestOpts.method!) && isObject(wxRequestOpts.data)) {
+              requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
+            } else {
+              requestInfo.body = wxRequestOpts.data;
+            }
+
+          if (mockItem) {
+            this.doMockRequest(mockItem, requestInfo, wxRequestOpts);
           } else {
-            this.wxRequest(requestInfo); // fallback to original wx.request
+            this.wxRequest(wxRequestOpts); // fallback to original wx.request
           }
         }
     });
@@ -61,73 +68,63 @@ export default class WxRequestInterceptor extends Base {
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} match
-   * @param {WxRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
+   * @param {WxRequestOpts} wxRequestOpts
    */
-  private doMockRequest(match: MockItemInfo, requestInfo: WxRequestInfo) {
-    if (match.file) {
-      // To avoid "Critical dependency: the request of a dependency is an expression" error
-      import(`${process.env.HRM_MOCK_DIR}/${match.file}`).then((mock) => {
-        const mockResponse = this.getMockResponse(mock.default, match, requestInfo);
-        this.doMockResponse(mockResponse, match, requestInfo);
-      });
-      return;
-    }
-
-    const mockResponse = this.getMockResponse(match.response, match, requestInfo);
-    this.doMockResponse(mockResponse, match, requestInfo);
+  private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+    const mockResponse = this.getMockResponse(mockItem, requestInfo);
+    this.doMockResponse(mockResponse, mockItem, wxRequestOpts);
   }
 
   /**
    * Make mock response.
    * @param {any} response
-   * @param {MockItemInfo} match
-   * @param {WxRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {WxRequestOpts} wxRequestOpts
    */
-  private doMockResponse(response: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
-    if (match.delay && match.delay > 0) {
+  private doMockResponse(response: any, mockItem: MockItemInfo, wxRequestOpts: WxRequestOpts) {
+    if (mockItem.delay && mockItem.delay > 0) {
       setTimeout(() => {
-        this.doCompleteCallbacks(requestInfo, response)
-      }, +match.delay);
+        this.doCompleteCallbacks(wxRequestOpts, response)
+      }, +mockItem.delay);
     } else {
-      this.doCompleteCallbacks(requestInfo, response)
+      this.doCompleteCallbacks(wxRequestOpts, response)
     }
   }
 
   /**
    * Format mock data to fit wx.request callbacks.
-   * @param {any} mockResponseConfig
-   * @param {MockItemInfo} match
-   * @param {WxRequestInfo} requestInfo
+   * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockResponseConfig: any, match: MockItemInfo, requestInfo: WxRequestInfo) {
-    const data = typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
+  getMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo) {
+    const data = typeof mockItem.response === 'function' ? mockItem.response(requestInfo) : mockItem.response;
 
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
     return {
       data,
-      statusCode: match.status || 200,
+      statusCode: mockItem.status || 200,
       header: {
-        ...match.header,
+        ...mockItem.header,
         'x-powered-by': 'http-request-mock'
       },
-      cookies: [],
       profile: {},
     };
   }
 
   /**
    * Call some necessary callbacks if specified.
-   * @param {WxRequestInfo} requestInfo
-   * @param {any} response
+   * @param {WxRequestOpts} wxRequestOpts
+   * @param {WxRequestOpts} response
    */
-  private doCompleteCallbacks(requestInfo: WxRequestInfo, response: any) {
-    if (typeof requestInfo.success === 'function') {
-      requestInfo.success(response);
+  private doCompleteCallbacks(wxRequestOpts: WxRequestOpts, response: any) {
+    if (typeof wxRequestOpts.success === 'function') {
+      wxRequestOpts.success(response);
     }
 
-    if (typeof requestInfo.complete === 'function') {
-      requestInfo.complete(response);
+    if (typeof wxRequestOpts.complete === 'function') {
+      wxRequestOpts.complete(response);
     }
   }
 }

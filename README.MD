@@ -1,7 +1,23 @@
 # http-request-mock
 
-无侵入mock，模拟http, https网络请求，再也不需要修改你的源代码来模拟网络请求返回了。
-支持 XMLHttpRequest， fetch， wx.request(小程序)，Axios, jQuery, SuperAgent。
+本库通过拦截以下请求对象，来实现网络请求mock处理。
+1. XMLHttpRequest
+2. fetch
+3. wx.request (小程序)
+4. https.request, https.get (node原生请求对象)
+5. https.get, http.get (node原生请求对象)
+
+由于基于底层拦截，因此基于以上请求的第3方请求库，也能得到支持，如：
+
+`axios`, `jquery`, `superagent`, `ky`, `node-fetch`, `got`, `request` ...
+
+以上这些库，具有对应的单元测试，可放心使用。 设计图如下：
+
+
+
+![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
+
+不同于其他mock库，本库是真正基于拦截实现，具有较好的稳定性。
 
 ## 目录
 

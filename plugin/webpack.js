@@ -83,7 +83,7 @@ module.exports = class HttpRequestMockMockPlugin {
         }));
 
         injected = true;
-        const entry = this.formatPath(process.platform);
+        const entry = this.formatPath(module.userRequest);
         console.log(`\nInjected mock dependency[${runtimeFile}] for ${entry}`);
       });
     });
@@ -266,8 +266,8 @@ module.exports = class HttpRequestMockMockPlugin {
     res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
 
     if (this.isRegExp(res.url)) {
-      res.url = this.str2RegExp(res.url);
       res.regexp = this.str2RegExp(res.url, true);
+      res.url = this.str2RegExp(res.url);
     }
     return res;
   }

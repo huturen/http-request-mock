@@ -8,12 +8,11 @@ module.exports = class HttpRequestMockMockPlugin {
    * http-request-mock parameters
    *
    * @param {RegExp} entry Required, entry file which mock dependencies will be injected into.
-   * @param {string} dir Required, mock directory which contains all mock files & the runtime mock configure file.
+   * @param {string} dir Required, mock directory which contains all mock files & the runtime mock config entry file.
    *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
+   * @param {string} enviroment Enable mock function by specified enviroment variable for .runtime.js.
    * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
-   * @param {string} runtime Optional, the style of mock configure entry file, one of [internal, external],
-   *                         default to 'internal' which use the build-in mock configure entry file.
    * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory, default to true.
    *                          If mock directory were in src/ that has configured to be monitored,
    *                          then set monitor to false. If this option would confuse you, let it be true.
@@ -22,8 +21,8 @@ module.exports = class HttpRequestMockMockPlugin {
     entry,
     dir,
     watch,
+    enviroment,
     enable = true,
-    runtime = 'internal', // internal external
     monitor = true,
   }) {
     if (!(entry instanceof RegExp)) {
@@ -34,16 +33,12 @@ module.exports = class HttpRequestMockMockPlugin {
       throw new Error('The HttpRequestMockMockPlugin expects [dir] to be a valid absolute dir.');
     }
 
-    if (!['internal', 'external'].includes(runtime)) {
-      throw new Error('The HttpRequestMockMockPlugin expects [runtime] to be one of [internal, external].');
-    }
-
     this.entry = entry;
     this.dir = this.resolve(dir);
     this.watch = watch;
     this.enable = enable;
-    this.runtime = runtime;
     this.monitor = monitor;
+    this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
   }
 
   /**
@@ -171,9 +166,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * Get mock config file entry.
    */
   getRuntimeConfigFile() {
-    const runtime = this.runtime === 'internal'
-      ? this.resolve(__dirname, './runtime.js')
-      : this.resolve(this.dir, '.runtime.js');
+    const runtime = this.resolve(this.dir, '.runtime.js');
 
     const isExisted = fs.existsSync(runtime);
     const codes = this.getRuntimeFileContent();
@@ -190,10 +183,10 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   getRuntimeFileContent() {
     const files = this.getAllMockFiles();
+
     const codes = [
       '/* eslint-disable */',
       `import HttpRequestMock from 'http-request-mock';`,
-      'const mocker = HttpRequestMock.setup();'
     ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
@@ -205,6 +198,14 @@ module.exports = class HttpRequestMockMockPlugin {
       codes.push(`import data${i} from '${files[i]}';`);
       items.push({ ...tags, index: i });
     }
+
+    let gap = '';
+    if (this.enviroment) {
+      gap = '  ';
+      codes.push(`if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {`);
+    }
+
+    codes.push(`${gap}const mocker = HttpRequestMock.setup();`);
     for (const item of items) {
       const method = `mocker.${item.method}`;
       const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
@@ -212,11 +213,17 @@ module.exports = class HttpRequestMockMockPlugin {
 
       const { delay, status, times, header } = item;
       if (delay || status || times || header) {
-        const opts = JSON.stringify({ delay, status, times, header }, null, 2);
-        codes.push(`${method}(${url}, ${response}, ${opts});`);
+        const opts = gap
+          ? JSON.stringify({ delay, status, times, header }, null, 2).replace(/\n/g, '\n  ')
+          : JSON.stringify({ delay, status, times, header }, null, 2);
+        codes.push(`${gap}${method}(${url}, ${response}, ${opts});`);
       } else {
-        codes.push(`${method}(${url}, ${response});`);
+        codes.push(`${gap}${method}(${url}, ${response});`);
       }
+    }
+
+    if (this.enviroment) {
+      codes.push(`}`);
     }
     codes.push('/* eslint-enable */');
     return codes.join('\n');
@@ -271,7 +278,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const str = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
     // We only parse the first comment block, so no 'g' modifier here
-    const match = str.match(/\/\*\*\n.*?\n ?\*\//su);
+    const match = str.match(/\/\*\*\r?\n.*?\r?\n ?\*\//su);
     if (!match) return [];
     const comment = match[0];
 

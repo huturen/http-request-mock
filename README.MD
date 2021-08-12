@@ -309,16 +309,17 @@ axios.get('https://www.api.com/tmp?abc=1234&efg=xxx').then(res => {
 
 ## 目录结构
 本项目没有统一的目录结构，但推荐按以下目录结构来安排代码：
+注意： mock/ 目录下文件名符合 `/[\w][-\w]*\.js/` 正则的才被视为mock数据配置文件。
 ```
 App
 ├─── mock/
-|   ├─── .runtime.js (mock配置入口文件，可加入到.gitignore文件)
-|   ├─── config.js
-|   ├─── detail.js
-|   ├─── (...其他mock文件)
+|   ├─── .runtime.js   (mock入口配置文件，可加入到.gitignore文件)
+|   ├─── config.js      (mock数据配置文件)
+|   ├─── detail.js     (mock数据配置文件)
+|   ├─── ...           (其他mock数据配置文件)
 ├─── src/
-|   ├─── index.js (业务入口文件)
-|   ├─── (...其他业务代码)
+|   ├─── index.js      (业务入口文件)
+|   ├─── ...           (其他业务代码)
 ```
 
 mock配置入口文件 mock/.runtime.js：
@@ -421,24 +422,48 @@ module.exports = {
 | **entry** | 必填   | 正则对象，用于匹配入口文件                                  |
 | **dir**   | 必填   | 绝对路径，mock文件夹用于存放mock配置文件                     |
 | **enable** | 可选   | 是否启用该插件，默认 true                                  |
-| **runtime** | 可选   | mock配置文件入口类型，合法的值有 internal, external        |
 | **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
 | **monitor** | 可选   | 是否监控mock目录下的文件，默认为true                    |
 
-* runtime:
-    - internal: (默认值) 使用插件自带的入口文件 *plugin/runtime.js*
-    - external: 在用户定义的mock目录中， 动态生成mock入口文件 *.runtime.js*
-
 
 ## 命令行工具
+```
+Usage: npx http-request-mock-cli [options]
 
+Description: http-request-mock command line tool at version 1.1.20.
+Glossary: [.runtime.js] A runtime mock entry configuration file.
+Current working directory: /Users/hu/web/examples/hello-vue/
+Example:
+    npx http-request-mock-cli -i
+    npx http-request-mock-cli -i -e NODE_ENV=development
+    npx http-request-mock-cli -i -e MOCK=yes
 
+Options:
+  -d, --directory [directory]       The mock directory relatives to the working directory. (default: mock)
+  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
+                                    (default: NODE_ENV=development)
+  -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
+  -w, --watch                       Watch mock directory & update .runtime.js.
+  -j, --inject <app-entry-file>      Inject .runtime.js into app entry file
+                                    which must be relative to the working directory.
+                                    NOTE: this is an experimental option.
+  -h, --help                        output usage information
+```
 
 如果你不使用webpack，可以使用自带的命令，生成mock配置入口文件。
 
-在项目目录下运行 `npx http-request-mock-cli` 然后跟着提示走。
+1. `npx http-request-mock-cli -i`:
 
-这个命令，会在mock目录下面，根据你的mock目录下面的文件，自动生成mock入口配置文件。
+初始化mock入口文件 `.runtime.js` 只有环境变量为 `NODE_ENV=development` 才开启mock功能。
+
+2. `npx http-request-mock-cli -j src/main.js`:
+
+初始化mock入口文件 `.runtime.js`，并将之注入到业务入口文件 `src/main.js` 中。
+
+3. `npx http-request-mock-cli -w`:
+
+监控mock目录改动，并自动更新 `.runtime.js`.
+
 
 
 

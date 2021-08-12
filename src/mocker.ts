@@ -208,7 +208,6 @@ export default class Mocker {
    *
    * Make a mock item that matches an HTTP HEAD request.
    * @param {RegExp | String} url
-   * @param {any} response
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -216,14 +215,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public head(url: RegExp | String, response: any = '', opts: MockItemExt = {
+  public head(url: RegExp | String, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'delete', response: '', delay, status, header, times });
+    this.mock(<MockItemInfo>{ url, method: 'head', response: '', delay, status, header, times });
     return this;
   }
 

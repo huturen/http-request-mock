@@ -540,7 +540,7 @@ Make a mock item that matches an HTTP PATCH request.
 
 Make a mock item that matches an HTTP DELETE request.
 
-**head(url: RegExp | String, response: any = '', opts: MockItemExt)**
+**head(url: RegExp | String, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP HEAD request.
 

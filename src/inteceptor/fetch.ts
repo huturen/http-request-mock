@@ -76,38 +76,38 @@ export default class FetchInterceptor extends Base{
    * @param {Function} resolve
    */
   private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, resolve: Function) {
-    const mockResponse = this.getMockResponse(mockItem.response, mockItem, requestInfo);
-    this.doMockResponse(mockResponse, mockItem, resolve);
+    if (mockItem.delay && mockItem.delay > 0) {
+      setTimeout(() => {
+        this.doMockResponse(mockItem, requestInfo, resolve);
+      }, +mockItem.delay);
+    } else {
+      this.doMockResponse(mockItem, requestInfo, resolve);
+    }
   }
 
   /**
    * Make mock request.
-   * @param {any} response
+   * @param {MockItemInfo} mockItem
    * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockResponse(response: any, mockItem: MockItemInfo, resolve: Function) {
-    if (mockItem) {
-      if (mockItem.delay && mockItem.delay > 0) {
-        setTimeout(() => {
-          resolve(response);
-        }, +mockItem.delay);
-      } else {
-        resolve(response);
-      }
-      return;
-    }
+  private async doMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo, resolve: Function) {
+    const body = typeof mockItem.response === 'function'
+      ? await mockItem.response(requestInfo)
+      : mockItem.response;
+
+      resolve(this.getFetchResponse(body, mockItem, requestInfo));
   }
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
-   * @param {any} mockResponseConfig
+   * @param {any} responseBody
    * @param {MockItemInfo} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockResponseConfig: any, mockItem: MockItemInfo, requestInfo: RequestInfo) {
-    const data = typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
+  getFetchResponse(responseBody: any, mockItem: MockItemInfo, requestInfo: RequestInfo) {
+    const data = responseBody;
     const status = mockItem.status || 200;
     const statusText = HTTPStatusCodes[status] || '';
 

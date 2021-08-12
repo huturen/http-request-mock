@@ -117,32 +117,28 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {RequestInfo} requestInfo
    */
   private doMockRequest(xhr: XMLHttpRequestInstance, mockItem: MockItemInfo, requestInfo: RequestInfo) {
-    xhr.mockResponse = this.getMockResponse(mockItem.response, requestInfo);
-    this.doMockResponse(xhr, mockItem);
+    if (mockItem.delay && mockItem.delay > 0) {
+      setTimeout(() => {
+        this.doMockResponse(xhr, mockItem, requestInfo);
+      }, +mockItem.delay);
+    } else {
+      this.doMockResponse(xhr, mockItem, requestInfo);
+    }
   }
 
   /**
    * Make mock response.
    * @param {XMLHttpRequestInstance} xhr
    * @param {MockItemInfo} mockItem
-   */
-  private doMockResponse(xhr: XMLHttpRequestInstance, mockItem: MockItemInfo,) {
-    if (mockItem.delay && mockItem.delay > 0) {
-      setTimeout(() => {
-        this.doCompleteCallbacks(xhr)
-      }, +mockItem.delay);
-    } else {
-      this.doCompleteCallbacks(xhr)
-    }
-  }
-
-  /**
-   * Format mock data.
-   * @param {any} mockResponseConfig
    * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockResponseConfig: any, requestInfo: RequestInfo) {
-    return typeof mockResponseConfig === 'function' ? mockResponseConfig(requestInfo) : mockResponseConfig;
+  private async doMockResponse(xhr: XMLHttpRequestInstance, mockItem: MockItemInfo, requestInfo: RequestInfo) {
+    const body = typeof mockItem.response === 'function'
+      ? await mockItem.response(requestInfo)
+      : mockItem.response;
+
+    xhr.mockResponse = body;
+    this.doCompleteCallbacks(xhr)
   }
 
   /**

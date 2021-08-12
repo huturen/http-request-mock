@@ -73,24 +73,28 @@ export default class WxRequestInterceptor extends Base {
    * @param {WxRequestOpts} wxRequestOpts
    */
   private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
-    const mockResponse = this.getMockResponse(mockItem, requestInfo);
-    this.doMockResponse(mockResponse, mockItem, wxRequestOpts);
+    if (mockItem.delay && mockItem.delay > 0) {
+      setTimeout(() => {
+        this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
+      }, +mockItem.delay);
+    } else {
+      this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
+    }
   }
 
   /**
    * Make mock response.
-   * @param {any} response
    * @param {MockItemInfo} mockItem
+   * @param {RequestInfo} requestInfo
    * @param {WxRequestOpts} wxRequestOpts
    */
-  private doMockResponse(response: any, mockItem: MockItemInfo, wxRequestOpts: WxRequestOpts) {
-    if (mockItem.delay && mockItem.delay > 0) {
-      setTimeout(() => {
-        this.doCompleteCallbacks(wxRequestOpts, response)
-      }, +mockItem.delay);
-    } else {
-      this.doCompleteCallbacks(wxRequestOpts, response)
-    }
+  private async doMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+    const body = typeof mockItem.response === 'function'
+      ? await mockItem.response(requestInfo)
+      : mockItem.response;
+
+    const wxResponse = this.getWxResponse(body, mockItem);
+    this.doCompleteCallbacks(wxRequestOpts, wxResponse);
   }
 
   /**
@@ -98,17 +102,17 @@ export default class WxRequestInterceptor extends Base {
    * @param {MockItemInfo} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo) {
-    const data = typeof mockItem.response === 'function' ? mockItem.response(requestInfo) : mockItem.response;
-
+  getWxResponse(responseBody: any, mockItem: MockItemInfo) {
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+    const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as any);
     return {
-      data,
+      data: responseBody,
       statusCode: mockItem.status || 200,
       header: {
         ...mockItem.header,
         'x-powered-by': 'http-request-mock'
       },
+      cookies: setCookieHeader,
       profile: {},
     };
   }
@@ -118,13 +122,13 @@ export default class WxRequestInterceptor extends Base {
    * @param {WxRequestOpts} wxRequestOpts
    * @param {WxRequestOpts} response
    */
-  private doCompleteCallbacks(wxRequestOpts: WxRequestOpts, response: any) {
+  private doCompleteCallbacks(wxRequestOpts: WxRequestOpts, wxResponse: any) {
     if (typeof wxRequestOpts.success === 'function') {
-      wxRequestOpts.success(response);
+      wxRequestOpts.success(wxResponse);
     }
 
     if (typeof wxRequestOpts.complete === 'function') {
-      wxRequestOpts.complete(response);
+      wxRequestOpts.complete(wxResponse);
     }
   }
 }

@@ -84,6 +84,7 @@ export interface ClientRequestType extends http.ClientRequest{
 
   init: Function;
   setMockItemResolver: Function;
+  setResponseResult: Function;
   sendError: Function;
   getEndArguments: Function;
   getRequestHeaders: Function;

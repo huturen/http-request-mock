@@ -1,16 +1,21 @@
 ### Changelog
+[2021-08-13]
+1. add init and watch option for command tool
+2. remove 'runtime' option for webpack plugin
+
 [2021-08-12] mock response option supports asynchronous function
+
 [2021-08-11]
-  1. add mock times options for a limited number of times mocking
-  2. remove 'verbose' value for runtime option
-  3. normalize request info for all inteceptors
-  4. windows compatibility
+1. add mock times options for a limited number of times mocking
+2. remove 'verbose' value for runtime option
+3. normalize request info for all inteceptors
+4. windows compatibility
 
 [2021-08-09] fix wx.request binding error
 [2021-08-08]
-  1. support http.get, https.get, http.reuest, https.request request mock
-  2. support to enable/disable mock function temporarily
-  3. add unit tests for node-fetch, ky, request, got libraries.
+1. support http.get, https.get, http.reuest, https.request request mock
+2. support to enable/disable mock function temporarily
+3. add unit tests for node-fetch, ky, request, got libraries.
 
 [2021-07-30] fix command tool problem & release v1.1.4
 [2021-07-24] change custom to verbose for runtime config option
@@ -27,11 +32,15 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-13]
+1. add init and watch option for command tool
+2. no 'runtime' option for webpack plugin
+
 [2021-08-12]
-  1. mock response option supports asynchronous function
+1. mock response option supports asynchronous function
 
 [2021-08-11]
-  1. add mock times options for a limited number of times mocking
+1. add mock times options for a limited number of times mocking
 
 [2021-08-08]
 1. support http.get, https.get, http.reuest, https.request request mock

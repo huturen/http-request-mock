@@ -167,36 +167,7 @@ function ClientRequest(
     }
 
     if (!this.response.complete) {
-      const mockItem: MockItemInfo = await this.mockItemResolver;
-
-      this.response.statusCode = mockItem.status || 200;
-      this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
-      this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
-      this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
-        return res.concat(item as any)
-      }, []);
-
-      const responseBody: any = typeof mockItem.response === 'function'
-        ? mockItem.response(<RequestInfo>{
-          url: this.url,
-          method: this.options.method || 'GET',
-          query: getQuery(this.url),
-          headers: this.getRequestHeaders(),
-          body: this.bufferToString(this.requestBody)
-        })
-        : mockItem.response;
-
-      // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
-      if (typeof mockItem.response === 'string'
-        || (mockItem.response instanceof Buffer)
-        || (mockItem.response instanceof ArrayBuffer)
-        || (mockItem.response instanceof SharedArrayBuffer)
-        || (mockItem.response instanceof Uint8Array)
-      ) {
-        this.response.push(Buffer.from(responseBody));
-      } else {
-        this.response.push(JSON.stringify(responseBody));
-      }
+      await this.setResponseResult();
     }
 
     if (typeof callback === 'function') {
@@ -213,6 +184,42 @@ function ClientRequest(
     this.response.complete = true
 
     return this;
+  }
+
+  /**
+   * It awaits mock item resolver & set response result.
+   */
+  this.setResponseResult = async () => {
+    const mockItem: MockItemInfo = await this.mockItemResolver;
+
+    this.response.statusCode = mockItem.status || 200;
+    this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
+    this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
+    this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
+      return res.concat(item as any)
+    }, []);
+
+    const responseBody: any = typeof mockItem.response === 'function'
+      ? await mockItem.response(<RequestInfo>{
+        url: this.url,
+        method: this.options.method || 'GET',
+        query: getQuery(this.url),
+        headers: this.getRequestHeaders(),
+        body: this.bufferToString(this.requestBody)
+      })
+      : mockItem.response;
+
+    // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
+    if (typeof mockItem.response === 'string'
+      || (mockItem.response instanceof Buffer)
+      || (mockItem.response instanceof ArrayBuffer)
+      || (mockItem.response instanceof SharedArrayBuffer)
+      || (mockItem.response instanceof Uint8Array)
+    ) {
+      this.response.push(Buffer.from(responseBody));
+    } else {
+      this.response.push(JSON.stringify(responseBody));
+    }
   }
 
   /**

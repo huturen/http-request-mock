@@ -168,7 +168,7 @@ describe('mock requests which are triggered by request library', () => {
     expect(/^get$/i.test(requestInfo.method)).toBe(true);
   });
 
-  it('mock response should support dynamic content', async () => {
+  it('mock response should support synchronized function', async () => {
     let index = 0;
     mocker.mock({
       url: 'http://www.api.com/function',
@@ -181,6 +181,30 @@ describe('mock requests which are triggered by request library', () => {
 
     const res1 = await request('http://www.api.com/function');
     const res2 = await request('http://www.api.com/function');
+    expect(res1.data).toBe('data1');
+    expect(res2.data).toBe('data2');
+  });
+
+  it('mock response should support asynchronous function', async () => {
+    let index = 0;
+    mocker.mock({
+      url: 'http://www.api.com/async-function',
+      response: async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        index = index + 1;
+        return 'data'+index;
+      }
+    });
+
+    const now = Date.now();
+    const res1 = await request('http://www.api.com/async-function');
+    expect(Date.now() - now).toBeGreaterThan(100);
+    expect(Date.now() - now).toBeLessThan(200);
+
+    const res2 = await request('http://www.api.com/async-function');
+    expect(Date.now() - now).toBeGreaterThan(200);
+    expect(Date.now() - now).toBeLessThan(300);
+
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');
   });

@@ -3,17 +3,13 @@
 本库通过拦截以下请求对象，来实现网络请求mock处理。
 1. XMLHttpRequest
 2. fetch
-3. wx.request (小程序)
+3. wx.request (微信小程序)
 4. https.request, https.get (node原生请求对象)
 5. https.get, http.get (node原生请求对象)
 
 由于基于底层拦截，因此基于以上请求的第3方请求库，也能得到支持，如：
 
 `axios`, `jquery`, `superagent`, `ky`, `node-fetch`, `got`, `request` ...
-
-以上这些库，具有对应的单元测试，可放心使用。 设计图如下：
-
-
 
 ![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
 
@@ -425,17 +421,13 @@ module.exports = {
 | **entry** | 必填   | 正则对象，用于匹配入口文件                                  |
 | **dir**   | 必填   | 绝对路径，mock文件夹用于存放mock配置文件                     |
 | **enable** | 可选   | 是否启用该插件，默认 true                                  |
-| **runtime** | 可选   | mock配置文件入口类型，合法的值有 internal, external, verbose |
+| **runtime** | 可选   | mock配置文件入口类型，合法的值有 internal, external        |
 | **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
 | **monitor** | 可选   | 是否监控mock目录下的文件，默认为true                    |
 
 * runtime:
     - internal: (默认值) 使用插件自带的入口文件 *plugin/runtime.js*
     - external: 在用户定义的mock目录中， 动态生成mock入口文件 *.runtime.js*
-    - verbose: 和 external 类似，只是生成的 *.runtime.js* 文件内容，具有每个mock项的详细内容
-
-
-
 
 
 ## 命令行工具

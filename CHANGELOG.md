@@ -1,4 +1,5 @@
 ### Changelog
+[2021-08-12] mock response option supports asynchronous function
 [2021-08-11]
   1. add mock times options for a limited number of times mocking
   2. remove 'verbose' value for runtime option
@@ -26,6 +27,9 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-12]
+  1. mock response option supports asynchronous function
+
 [2021-08-11]
   1. add mock times options for a limited number of times mocking
 

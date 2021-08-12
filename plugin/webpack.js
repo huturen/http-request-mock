@@ -251,10 +251,10 @@ module.exports = class HttpRequestMockMockPlugin {
       if (key === 'header') {
         if (!/^[\w.-]+\s*:\s*.+$/.test(val)) continue;
 
-        const key = val.slice(0, val.indexOf(':')).trim().toLowerCase();
-        const val = val.slice(val.indexOf(':')+1).trim();
-        if (!key || !val) continue;
-        header[key] = header[key] ? [].concat(header[key], val) : val;
+        const headerKey = val.slice(0, val.indexOf(':')).trim().toLowerCase();
+        const headerVal = val.slice(val.indexOf(':')+1).trim();
+        if (!headerKey || !headerVal) continue;
+        header[headerKey] = header[headerKey] ? [].concat(header[headerKey], headerVal) : headerVal;
       }
       res[key] = val;
     }

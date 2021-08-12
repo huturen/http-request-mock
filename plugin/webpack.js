@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { createLoader } = require('simple-functional-loader');
-const { parse, tokenizers } = require('comment-parser');
 
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
 module.exports = class HttpRequestMockMockPlugin {
@@ -198,7 +197,7 @@ module.exports = class HttpRequestMockMockPlugin {
     ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
-      const tags = this.parseComment(files[i]);
+      const tags = this.parseCommentTags(files[i]);
       if (!tags.url) continue;
       if (/yes|true|1/i.test(tags.disable)) continue;
       if (tags.times !== undefined && tags.times <= 0) continue;
@@ -225,38 +224,27 @@ module.exports = class HttpRequestMockMockPlugin {
 
   /**
    * Extract meta information from comments in the specified file.
-   * Meta information includes: @url, @method, @disable, @delay, @status.
+   * Meta information includes: @url, @method, @disable, @delay, @status and so on.
    * @param {string} file
    */
-  parseComment(file) {
-    const js = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
-    const parsed = parse(js, {
-      fence: '\n',
-      spacing: 'preserve',
-      tokenizers: [tokenizers.tag(), tokenizers.description('preserve')],
-    });
-
-    const res = {};
+  parseCommentTags(file) {
+    const tags = this.getFileCommentTags(file);
     const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times'];
-    const tags = this.simpleGet(parsed, '0.tags', []);
+    const res = {};
     const header = {};
 
-    for(let {tag,description}  of tags) {
-      if (!keys.includes(tag)) {
-        continue;
-      }
+    for(let {tag, info}  of tags) {
+      if (!keys.includes(tag)) continue;
 
-      const key = tag.trim();
-      const val = description.replace(/\n+.*/g, '').trim();
-      if (key === 'header') {
-        if (!/^[\w.-]+\s*:\s*.+$/.test(val)) continue;
+      if (tag === 'header') {
+        if (!/^[\w.-]+\s*:\s*.+$/.test(info)) continue;
 
-        const headerKey = val.slice(0, val.indexOf(':')).trim().toLowerCase();
-        const headerVal = val.slice(val.indexOf(':')+1).trim();
-        if (!headerKey || !headerVal) continue;
-        header[headerKey] = header[headerKey] ? [].concat(header[headerKey], headerVal) : headerVal;
+        const key = info.slice(0, info.indexOf(':')).trim().toLowerCase();
+        const val = info.slice(info.indexOf(':')+1).trim();
+        if (!key || !val) continue;
+        header[key] = header[key] ? [].concat(header[key], val) : val;
       }
-      res[key] = val;
+      res[tag] = info;
     }
 
     // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
@@ -273,6 +261,30 @@ module.exports = class HttpRequestMockMockPlugin {
     }
     return res;
   }
+
+  /**
+   * Parse the first comment block of specified file and return meta tags.
+   * @param {string} file
+   */
+  getFileCommentTags(file) {
+    if (!fs.existsSync(file)) return [];
+
+    const str = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+    // We only parse the first comment block, so no 'g' modifier here
+    const match = str.match(/\/\*\*\n.*?\n ?\*\//su);
+    if (!match) return [];
+    const comment = match[0];
+
+    const tags = [];
+    const reg = /^[ \t]*\*[ \t]*@(\w+)(?:[ \t]+(.*))?$/mg;
+    let tag = reg.exec(comment);
+    while(tag) {
+        tags.push({ tag: tag[1], info: (tag[2] || '').trim() });
+        tag = reg.exec(comment);
+    }
+    return tags;
+  }
+
 
   /**
    * Whether or not 'str' is a RegExp object like string.

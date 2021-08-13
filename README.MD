@@ -454,11 +454,11 @@ Options:
 
 1. `npx http-request-mock-cli -i`:
 
-初始化mock入口文件 `.runtime.js` 只有环境变量为 `NODE_ENV=development` 才开启mock功能。
+初始化mock入口文件 `.runtime.js` 根据环境变量 `NODE_ENV=development` 开启mock。
 
 2. `npx http-request-mock-cli -j src/main.js`:
 
-初始化mock入口文件 `.runtime.js`，并将之注入到业务入口文件 `src/main.js` 中。
+初始化mock入口文件 `.runtime.js`，并将之注入 `src/main.js` 业务文件中。
 
 3. `npx http-request-mock-cli -w`:
 

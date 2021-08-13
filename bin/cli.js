@@ -23,12 +23,11 @@ program
   .usage('[options]')
   .description([
     `Description: http-request-mock command line tool at version ${pkg.version}.`,
-    `  Glossary: [.runtime.js] A runtime mock entry configuration file.`,
-    `  Current working directory: \x1b[32m${appRoot}\x1b[0m`,
-    '  Example: ',
-    '      npx http-request-mock-cli -i',
-    '      npx http-request-mock-cli -i -e NODE_ENV=development',
-    '      npx http-request-mock-cli -i -e MOCK=yes',
+    `Glossary: [.runtime.js] A runtime mock entry configuration file.`,
+    `Current working directory: \x1b[32m${appRoot}\x1b[0m`,
+    'Example: ',
+    '    npx http-request-mock-cli -i',
+    '    npx http-request-mock-cli -i -e MOCK=yes',
   ].join('\n'))
   .option('-d, --directory [directory]', 'The mock directory relatives to the working directory.', 'mock')
   .option(
@@ -83,14 +82,14 @@ async function init() {
   log(runtime);
 }
 
-function inject() {
+async function inject() {
   const appEntryFile = path.resolve(appRoot, program.inject);
   if (!fs.existsSync(appEntryFile)) {
     log(`The specified app entry file [\x1b[31m${appEntryFile}\x1b[0m] does not exist.`);
     return;
   }
 
-  init();
+  await init();
   const dir = path.resolve(appRoot, program.directory);
   const runtime = path.resolve(dir, '.runtime.js');
 

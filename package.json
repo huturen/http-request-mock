@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.25",
+  "version": "1.1.26",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
@@ -40,6 +40,8 @@
     "mocks",
     "mocker",
     "inteceptor",
+    "http inteceptor",
+    "http-inteceptor",
     "node-http-mock",
     "node-http-request-mock",
     "request mock",

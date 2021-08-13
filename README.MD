@@ -450,19 +450,29 @@ Options:
   -h, --help                        output usage information
 ```
 
-如果你不使用webpack，可以使用自带的命令，生成mock配置入口文件。
+如果你不使用webpack，可以命令工具，步骤如下:
 
-1. `npx http-request-mock-cli -i`:
+1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js
+2. 运行 `npx http-request-mock-cli -j src/xx.js` 把依赖注入到src/xx.js(业务入口)
+3. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
 
-初始化mock入口文件 `.runtime.js` 根据环境变量 `NODE_ENV=development` 开启mock。
+`npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
+```json
+...
+"scripts": {
+  "mock": "http-request-mock-cli -w",
+},
+...
+```
+然后使用 `npm run mock` 就可以了。
 
-2. `npx http-request-mock-cli -j src/main.js`:
+***注意：***
 
-初始化mock入口文件 `.runtime.js`，并将之注入 `src/main.js` 业务文件中。
+如果不指定 `-e --enviroment` 默认的会根据 `NODE_ENV=development` 来开启mock。
 
-3. `npx http-request-mock-cli -w`:
+如果需要改成其他环境变量判断，可指定其他变量，如: `MOCK=yes`.
 
-监控mock目录改动，并自动更新 `.runtime.js`.
+如果想去掉环境变量判断，直接指定 `-e none` 就可以了。
 
 
 

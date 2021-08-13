@@ -91,7 +91,9 @@ async function inject() {
 
   await init();
   const dir = path.resolve(appRoot, program.directory);
-  const runtime = path.resolve(dir, '.runtime.js');
+  const runtime = process.platform === 'win32'
+    ? path.resolve(dir, '.runtime.js').replace(/\\/g, '/')
+    : path.resolve(dir, '.runtime.js');
 
   const codes = [
     '/* eslint-disable */',
@@ -102,10 +104,12 @@ async function inject() {
   const entryContent = fs.readFileSync(appEntryFile, 'utf8');
   if (/(\/|\\)\.runtime\.js('|")/.test(entryContent)) {
     log(`The specified app entry file [\x1b[32m${appEntryFile}\x1b[0m] already contains '.runtime.js'.`);
+    log(`Please check out your app entry file.`);
     return;
   }
   fs.writeFileSync(appEntryFile, codes+'\n'+entryContent);
-  log(`The specified app entry file [\x1b[32m${appEntryFile}\x1b[0m] has been injected.`);
+  log(`[.runtime.js] dependency has been injected into [\x1b[32m${appEntryFile}\x1b[0m].`);
+  log(`Please check out your app entry file.`);
 }
 
 function watch() {

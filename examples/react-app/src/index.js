@@ -1,5 +1,5 @@
 /* eslint-disable */
-import '/Users/hu/web/react-app/src/mock/.runtime.js';
+import './mock/.runtime.js';
 /* eslint-enable */
 import React from 'react';
 import ReactDOM from 'react-dom';

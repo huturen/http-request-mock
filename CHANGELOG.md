@@ -1,5 +1,7 @@
 ### Changelog
-[2021-08-14] add react and vue examples
+[2021-08-14]
+1. add react and vue examples
+2. `http-request-mock-cli -w` supports a customized command to start a mock development
 
 [2021-08-13]
 1. add init and watch option for command tool
@@ -34,6 +36,9 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-14]
+1. `http-request-mock-cli -w` supports a customized command to start a mock development
+
 [2021-08-13]
 1. add init and watch option for command tool
 2. no 'runtime' option for webpack plugin

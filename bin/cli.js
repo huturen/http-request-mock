@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const program = require('commander');
 const pkg = require('../package.json');
 const readline = require('readline');
@@ -36,7 +37,11 @@ program
     'NODE_ENV=development'
   )
   .option('-i, --init', 'Initialize .runtime.js & samples(if necessary) in the mock directory.')
-  .option('-w, --watch', 'Watch mock directory & update .runtime.js.')
+  .option(
+    '-w, --watch [command]',
+    'Watch mock directory & update .runtime.js. If a command was specified,\n'+spaces+
+    ' ths specified command will be executed together with watching.'
+  )
   .option(
     '-j, --inject <app-entry-file>',
     'Inject .runtime.js into app entry file\n'+spaces+
@@ -74,7 +79,7 @@ async function init() {
 
   const webpack = new WebpackPlugin({ entry: /1/, dir, enviroment: program.enviroment });
   if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
-    copySampleFiles(dir);
+    await copySampleFiles(dir);
   }
 
   const runtime = webpack.getRuntimeConfigFile();
@@ -91,9 +96,11 @@ async function inject() {
 
   await init();
   const dir = path.resolve(appRoot, program.directory);
-  const runtime = process.platform === 'win32'
-    ? path.resolve(dir, '.runtime.js').replace(/\\/g, '/')
-    : path.resolve(dir, '.runtime.js');
+
+  let runtime = path.resolve(dir, '.runtime.js');
+  runtime = path.relative(path.resolve(appEntryFile, '../'), runtime);
+  runtime = process.platform === 'win32' ? runtime.replace(/\\/g, '/') : runtime;
+  runtime = /^\./.test(runtime) ? runtime : ('./'+runtime);
 
   const codes = [
     '/* eslint-disable */',
@@ -146,6 +153,15 @@ function watch() {
       set.clear();
     }, 300);
   });
+  if (typeof program.watch === 'string') {
+    spawn(program.watch, {
+      cwd: appRoot, // process.cwd()
+      env: process.env,
+      stdio: 'inherit',
+      detached: false,
+      shell: true
+    });
+  }
 }
 
 function askInput(question) {
@@ -162,12 +178,19 @@ function askInput(question) {
 function copySampleFiles(mockDirectory) {
   const sample = file => path.resolve(__dirname, 'samples', file);
   const mock = file => path.resolve(mockDirectory, file);
-  const callback = (err) => {
-    if (err) throw err;
-  };
-  fs.copyFile(sample('sample-dynamic.js'), mock('sample-dynamic.js'), callback);
-  fs.copyFile(sample('sample-static.js'), mock('sample-static.js'), callback);
-  fs.copyFile(sample('sample-times.js'), mock('sample-times.js'), callback);
+
+  return new Promise(resolve => {
+    let count = 0;
+    const callback = (err) => {
+      if (err) throw err;
+      if (++count >= 3) {
+        resolve(true);
+      }
+    };
+    fs.copyFile(sample('sample-dynamic.js'), mock('sample-dynamic.js'), callback);
+    fs.copyFile(sample('sample-static.js'), mock('sample-static.js'), callback);
+    fs.copyFile(sample('sample-times.js'), mock('sample-times.js'), callback);
+  });
 }
 
 function log(...args) {

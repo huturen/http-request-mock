@@ -183,7 +183,6 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   getRuntimeFileContent() {
     const files = this.getAllMockFiles();
-
     const codes = [
       '/* eslint-disable */',
       `import HttpRequestMock from 'http-request-mock';`,
@@ -195,7 +194,10 @@ module.exports = class HttpRequestMockMockPlugin {
       if (/yes|true|1/i.test(tags.disable)) continue;
       if (tags.times !== undefined && tags.times <= 0) continue;
 
-      codes.push(`import data${i} from '${files[i]}';`);
+      let file = path.relative(this.dir, files[i]);
+      file = process.platform === 'win32' ? file.replace(/\\/g, '/') : file;
+      file = /^\./.test(file) ? file : ('./'+file);
+      codes.push(`import data${i} from '${file}';`);
       items.push({ ...tags, index: i });
     }
 

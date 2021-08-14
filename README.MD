@@ -469,11 +469,11 @@ Options:
 ...
 "scripts": {
   "serve": "vue-cli-service serve",
-  "mock": "http-request-mock-cli -w",
-  "mockdev": "http-request-mock-cli -w & vue-cli-service serve",
+  "mockdev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
 ...
 ```
+注意：传入到 `http-request-mock-cli -w` 中的命令，如果存在空格请用双引号引起来（不能用单引号）。
 
 然后使用 `npm run mock` 就可以了。
 

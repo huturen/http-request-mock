@@ -9,5 +9,5 @@
 export default {
   ret: 0,
   msg: 'ok',
-  data: 'The request will be resolved after 1000 milliseconds.',
+  data: 'Your mock data',
 };

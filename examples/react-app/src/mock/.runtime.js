@@ -1,8 +1,8 @@
 /* eslint-disable */
 import HttpRequestMock from 'http-request-mock';
-import data0 from '/Users/hu/web/react-app/src/mock/sample-dynamic.js';
-import data1 from '/Users/hu/web/react-app/src/mock/sample-static.js';
-import data2 from '/Users/hu/web/react-app/src/mock/sample-times.js';
+import data0 from './sample-dynamic.js';
+import data1 from './sample-static.js';
+import data2 from './sample-times.js';
 if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup();
   mocker.post('https://some.api.com/dynamic', data0, {

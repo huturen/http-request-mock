@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "mock": "http-request-mock-cli -w",
-    "mockdev": "http-request-mock-cli -w & vue-cli-service serve",
+    "mockdev": "http-request-mock-cli -w \"vue-cli-service serve\"",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
@@ -22,7 +22,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0",
-    "http-request-mock": "^1.1.27"
+    "http-request-mock": "^1.1.29"
   },
   "eslintConfig": {
     "root": true,

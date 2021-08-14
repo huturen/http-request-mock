@@ -5,6 +5,7 @@
  * @delay 1000
  * @method get
  */
+/* eslint-disable */
 export default {
   ret: 0,
   msg: 'ok',

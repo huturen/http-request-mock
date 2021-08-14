@@ -430,20 +430,20 @@ module.exports = {
 ```
 Usage: npx http-request-mock-cli [options]
 
-Description: http-request-mock command line tool at version 1.1.20.
+Description: http-request-mock command line tool at version 1.1.30.
 Glossary: [.runtime.js] A runtime mock entry configuration file.
-Current working directory: /Users/hu/web/examples/hello-vue/
+Current working directory: /Users/hu/web/http-request-mock-github
 Example:
     npx http-request-mock-cli -i
-    npx http-request-mock-cli -i -e NODE_ENV=development
     npx http-request-mock-cli -i -e MOCK=yes
 
 Options:
-  -d, --directory [directory]       The mock directory relatives to the working directory. (default: mock)
+  -d, --directory [directory]       The mock directory relatives to the working directory. (default: "mock")
   -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
-                                    (default: NODE_ENV=development)
+                                    (default: "NODE_ENV=development")
   -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
-  -w, --watch                       Watch mock directory & update .runtime.js.
+  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command was specified,
+                                    ths specified command will be executed together with watching.
   -j, --inject <app-entry-file>      Inject .runtime.js into app entry file
                                     which must be relative to the working directory.
                                     NOTE: this is an experimental option.

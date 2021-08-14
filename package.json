@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "description": "http-request-mock",
   "main": "dist/index.js",
   "bin": {
@@ -42,6 +42,10 @@
     "inteceptor",
     "http inteceptor",
     "http-inteceptor",
+    "fetch inteceptor",
+    "fetch-inteceptor",
+    "xhr inteceptor",
+    "xhr-inteceptor",
     "node-http-mock",
     "node-http-request-mock",
     "request mock",
@@ -58,7 +62,7 @@
     "README.MD"
   ],
   "author": "shuilonghu",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.14.8",
     "@babel/plugin-proposal-class-properties": "^7.10.4",

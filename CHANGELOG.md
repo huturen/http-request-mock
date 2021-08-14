@@ -1,4 +1,6 @@
 ### Changelog
+[2021-08-14] add react and vue examples
+
 [2021-08-13]
 1. add init and watch option for command tool
 2. remove 'runtime' option for webpack plugin

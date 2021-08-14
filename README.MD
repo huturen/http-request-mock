@@ -464,6 +464,17 @@ Options:
 },
 ...
 ```
+当然也可以与现在开发命令一起整合, 详细请参考 `examples/vue-with-cli`:
+```json
+...
+"scripts": {
+  "serve": "vue-cli-service serve",
+  "mock": "http-request-mock-cli -w",
+  "mockdev": "http-request-mock-cli -w & vue-cli-service serve",
+},
+...
+```
+
 然后使用 `npm run mock` 就可以了。
 
 ***注意：***

@@ -4,6 +4,7 @@
  * @header content-type: application/json
  * @method post
  */
+/* eslint-disable */
 export default (request) => {
   return  {
     ret: 0,

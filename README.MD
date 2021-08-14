@@ -453,7 +453,7 @@ Options:
 如果你不使用webpack，可以命令工具，步骤如下:
 
 1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js
-2. 运行 `npx http-request-mock-cli -j src/xx.js` 把依赖注入到src/xx.js(业务入口)
+2. 运行 `npx http-request-mock-cli -j src/xx.js` 初始化.runtime.js，把依赖注入到指定的业务入口
 3. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
 
 `npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
@@ -473,7 +473,8 @@ Options:
 },
 ...
 ```
-注意：传入到 `http-request-mock-cli -w` 中的命令，如果存在空格请用双引号引起来（不能用单引号）。
+注意：传入到 `http-request-mock-cli -w` 中的命令需要双引号转译（不能使用单引号）。
+
 
 然后使用 `npm run mock` 就可以了。
 

@@ -271,7 +271,8 @@ function ClientRequest(
   }
 }
 
-// Note: extends is not work here.
+// Note: 'class extends' is not work here.
+// It'll trigger a default socket connection that we don't expect.
 inherits(ClientRequest, http.ClientRequest);
 
 export default ClientRequest;

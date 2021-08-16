@@ -1,7 +1,7 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.32",
-  "description": "http-request-mock",
+  "version": "1.1.33",
+  "description": "It mocks XMLHttpRequest, fetch and node.js native HTTP/HTTPS module requests with the specified response object.",
   "main": "dist/index.js",
   "bin": {
     "http-request-mock-cli": "bin/cli.js"
@@ -46,6 +46,7 @@
     "fetch-inteceptor",
     "xhr inteceptor",
     "xhr-inteceptor",
+    "low level inteceptor",
     "node-http-mock",
     "node-http-request-mock",
     "request mock",

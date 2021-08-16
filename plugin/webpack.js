@@ -12,8 +12,10 @@ module.exports = class HttpRequestMockMockPlugin {
    *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
    * @param {string} enviroment Enable mock function by specified enviroment variable for .runtime.js.
-   * @param {boolean} enable Optional, whether or not to enable this plugin, default to true.
-   * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory, default to true.
+   * @param {boolean} enable Optional, whether or not to enable this plugin. Default value depends: NODE_ENV.
+   *                         The default value will depend on your enviroment variable NODE_ENV if not specified:
+   *                         i.e.: It'll be true on a development enviroment(NODE_ENV=development) by default.
+   * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory. Defaults to true.
    *                          If mock directory were in src/ that has configured to be monitored,
    *                          then set monitor to false. If this option would confuse you, let it be true.
    */
@@ -22,7 +24,7 @@ module.exports = class HttpRequestMockMockPlugin {
     dir,
     watch,
     enviroment,
-    enable = true,
+    enable,
     monitor = true,
   }) {
     if (!(entry instanceof RegExp)) {
@@ -36,7 +38,7 @@ module.exports = class HttpRequestMockMockPlugin {
     this.entry = entry;
     this.dir = this.resolve(dir);
     this.watch = watch;
-    this.enable = enable;
+    this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
     this.monitor = monitor;
     this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
   }

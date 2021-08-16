@@ -1,6 +1,7 @@
 # http-request-mock
 
-本库通过拦截以下请求对象，来实现网络请求mock处理。
+本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。
+
 1. XMLHttpRequest
 2. fetch
 3. wx.request (微信小程序)
@@ -58,10 +59,7 @@
 
 2. 配置复杂，需要使用这样或者那样的本地服务，或者代理
 
-3. 不能随着应用打包
-
-4. 模拟请求 与 真实网络请求不能混合使用
-
+3. 模拟请求 与 真实网络请求不能混合使用
 
 
 ## 特性
@@ -373,9 +371,10 @@ import App from './App.vue';
 
 为避免修改你的业务源码入口文件（如，src/index.js）。
 
-我们额外提供了一个内置webpack插件，引入方式如下：
+我们额外提供了一个内置webpack插件，使用方式如下：
 
-在你的 `webpack` 配置文件中：
+1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js（mock配置入口）
+2. 在你的 `webpack` 配置文件中：
 ```javascript
 
 const path = require('path');
@@ -385,7 +384,7 @@ module.exports = {
   plugins: [
     // ...
     new HttpRequestMockWebpackPlugin(
-      enable: process.env.DO_MOCK === 'yes', // 这里环境变量DO_MOCK为yes时，才启用插件
+      enable: process.env.NODE_ENV === 'development', // 根据环境变量启用插件
       entry: /src\/index\.js$/,
       dir: path.resolve(__dirname, 'mock/'),
     ),
@@ -409,7 +408,7 @@ module.exports = {
 ...
   "scripts": {
     "dev": "npm run serve",
-    "mock-dev": "DO_MOCK=yes npm run serve"
+    "mock-dev": "NODE_ENV=development npm run serve"
   },
 }
 ...
@@ -427,12 +426,14 @@ module.exports = {
 
 
 ## 命令行工具
+`npx http-request-mock-cli -h`:
+
 ```
 Usage: npx http-request-mock-cli [options]
 
 Description: http-request-mock command line tool at version 1.1.30.
 Glossary: [.runtime.js] A runtime mock entry configuration file.
-Current working directory: /Users/hu/web/http-request-mock-github
+Current working directory: /web/your_project_root_directory
 Example:
     npx http-request-mock-cli -i
     npx http-request-mock-cli -i -e MOCK=yes
@@ -450,33 +451,39 @@ Options:
   -h, --help                        output usage information
 ```
 
-如果你不使用webpack，可以命令工具，步骤如下:
+如果你的项目不使用webpack，可以使用以下命令行工具代替，步骤如下:
 
-1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js
-2. 运行 `npx http-request-mock-cli -j src/xx.js` 初始化.runtime.js，把依赖注入到指定的业务入口
-3. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
+1. 运行 `npx http-request-mock-cli -j src/xx.js` 初始化.runtime.js，把依赖注入到指定的业务入口
+2. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
 
 `npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
-```json
-...
-"scripts": {
-  "mock": "http-request-mock-cli -w",
-},
-...
-```
-当然也可以与现在开发命令一起整合, 详细请参考 `examples/vue-with-cli`:
+
 ```json
 ...
 "scripts": {
   "serve": "vue-cli-service serve",
-  "mockdev": "http-request-mock-cli -w \"vue-cli-service serve\"",
+  "mock": "http-request-mock-cli -w",
 },
 ...
 ```
-注意：传入到 `http-request-mock-cli -w` 中的命令需要双引号转译（不能使用单引号）。
+如果希望只使用一个命令启动开发，我们也也提供了启动整合方案：
+
+`npx http-request-mock-cli -w "vue-cli-service serve"`
+
+可以添加到scripts里面，详细请参考 `examples/vue-with-cli`:
+
+```json
+...
+"scripts": {
+  "serve": "vue-cli-service serve",
+  "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
+},
+...
+```
+注意：传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
 
 
-然后使用 `npm run mock` 就可以了。
+
 
 ***注意：***
 

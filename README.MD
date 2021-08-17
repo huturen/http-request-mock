@@ -35,6 +35,7 @@
 * [命令行工具](#命令行工具)
 * [API文档](#API文档)
 * [单元测试](#单元测试)
+* [mock数据文件配置说明](#mock数据文件配置说明)
 * [License](#License)
 
 
@@ -633,6 +634,38 @@ describe('mock axios request', () => {
 
 3. 其他node测试环境，请参考： `experiment/node.js`
 
+## mock数据文件配置说明
+```javascript
+/**
+ * 注意： 只会解析第一个注释块中的标签信息
+ * 请求的url，支持正则，如果是正则，支持使用 / 或者 # 做为正则的起始分割字符，
+ * 如： #.*\/getUserInfo.*#
+ * @url https://jsonplaceholder.typicode.com/todos/1
+ *
+ * http请求方法，支持 get, post, put, patch, delete, head, any 默认，any
+ * @method any
+ *
+ * http响应状态码，默认200
+ * @status 200
+ *
+ * http响应头信息，支持重复配置
+ * @header content-type: application/json
+ *
+ * http响应延迟，模拟网络延时，单位毫秒，默认0
+ * @delay 100
+ *
+ * 执行指定次数mock后，回退到真实网络请求，默认 Infinity
+ * @times 5
+ *
+ * 是否禁用这个mock配置项，如果是yes，则走真实网络请求，默认no
+ * @disable no
+ */
+// http响应内容，支持静态对象，函数，或者 异步函数,
+// 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。
+export default (requestInfo) => {
+  return 'Your response data';
+};
+```
 
 ## License
 

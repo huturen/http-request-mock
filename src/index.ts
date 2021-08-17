@@ -92,7 +92,7 @@ export default class Index {
    * Setup request mock for unit test.
    * @param {string} type
    */
-  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request') : Mocker {
+  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request' | 'all') : Mocker {
     const mocker = new Mocker();
 
     if (type === 'wx') {
@@ -116,6 +116,13 @@ export default class Index {
       if (process.env.JEST_WORKER_ID || typeof jest !== 'undefined') {
         InterceptorXhr.setupForUnitTest(mocker);
       }
+    }
+
+    if (type === 'all') {
+      InterceptorWxRequest.setupForUnitTest(mocker);
+      InterceptorXhr.setupForUnitTest(mocker);
+      InterceptorFetch.setupForUnitTest(mocker);
+      NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
     }
 
     return mocker;

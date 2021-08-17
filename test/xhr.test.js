@@ -1,5 +1,8 @@
+import { expect } from '@jest/globals';
+import FakeXMLHttpRequest from '../src/fake/xhr';
 import HttpRequestMock from '../src/index';
 
+global.XMLHttpRequest = undefined; // do not use XMLHttpRequest in jsdom
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
 const request = (url, method = 'get', opts = {}) => {
@@ -196,14 +199,71 @@ describe('mock xhr requests', () => {
 
     const now = Date.now();
     const res1 = await request('http://www.api.com/async-function');
-    expect(Date.now() - now).toBeGreaterThan(100);
-    expect(Date.now() - now).toBeLessThan(200);
+    expect(Date.now() - now).toBeGreaterThanOrEqual(100);
 
     const res2 = await request('http://www.api.com/async-function');
-    expect(Date.now() - now).toBeGreaterThan(200);
-    expect(Date.now() - now).toBeLessThan(300);
+    expect(Date.now() - now).toBeGreaterThanOrEqual(200);
 
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');
+  });
+
+  it('xhr object should have a xhrRequestInfo property', async () => {
+    mocker.mock({
+      url: 'http://www.api.com/xhr-requestInfo',
+      response: 'xhr-requestInfo'
+    });
+
+    await new Promise(resolve => {
+      const xhr = new XMLHttpRequest();
+      expect(xhr).toBeInstanceOf(FakeXMLHttpRequest);
+      xhr.open('post', 'http://www.api.com/xhr-requestInfo');
+      xhr.onreadystatechange = function () {
+        expect(xhr.xhrRequestInfo).toBeTruthy();
+        expect(xhr.xhrRequestInfo.body).toMatchObject({test: 1});
+        resolve();
+      };
+      xhr.send('{"test": 1}');
+    });
+    await new Promise(resolve => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('post', 'http://www.api.com/xhr-requestInfo');
+      xhr.onreadystatechange = function () {
+        expect(xhr.xhrRequestInfo).toBeTruthy();
+        expect(xhr.xhrRequestInfo.body).toBe('{test: 1}');
+        resolve();
+      };
+      xhr.send('{test: 1}'); // faled to parse
+    });
+    await new Promise(resolve => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('post', 'http://www.api.com/xhr-requestInfo');
+      xhr.onreadystatechange = function () {
+        expect(xhr.xhrRequestInfo).toBeTruthy();
+        expect(xhr.xhrRequestInfo.body).toBe('test: 1');
+        resolve();
+      };
+      xhr.send('test: 1'); // faled to parse
+    });
+  });
+
+  it('instance of FakeXMLHttpRequest should have some necessary properties.', async () => {
+    const fake = new FakeXMLHttpRequest();
+    expect(fake.open()).toBe(undefined);
+    expect(fake.send()).toBe(undefined);
+    expect(fake.setRequestHeader()).toBe(undefined);
+    expect(fake.onreadystatechange()).toBe(undefined);
+    expect(fake.load()).toBe(undefined);
+    expect(fake.loadend()).toBe(undefined);
+    expect(fake.getAllResponseHeaders()).toBe(undefined);
+    expect(fake.getResponseHeader()).toBe(undefined);
+
+    expect(fake.readyState).toBe(4);
+    expect(fake.status).toBe(200);
+    expect(fake.statusText).toBe('');
+    expect(fake.response).toBe('');
+    expect(fake.responseText).toBe('');
+    expect(fake.responseURL).toBe('');
+    expect(fake.responseXML).toBe('');
   });
 });

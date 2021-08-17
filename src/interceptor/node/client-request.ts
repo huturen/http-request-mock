@@ -131,7 +131,7 @@ function ClientRequest(
       return false;
     }
     const callback = typeof args[1] === 'function' ? args[1] : args[2];
-    if (this.aborted) {
+    if (this.aborted || this.destroyed) {
       this.sendError('The request has been aborted.');
     } else {
       if (chunk.length) {

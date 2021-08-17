@@ -190,12 +190,10 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
 
     const now = Date.now();
     const res1 = await request('http://www.api.com/async-function');
-    expect(Date.now() - now).toBeGreaterThan(100);
-    expect(Date.now() - now).toBeLessThan(200);
+    expect(Date.now() - now).toBeGreaterThanOrEqual(100);
 
     const res2 = await request('http://www.api.com/async-function');
-    expect(Date.now() - now).toBeGreaterThan(200);
-    expect(Date.now() - now).toBeLessThan(300);
+    expect(Date.now() - now).toBeGreaterThanOrEqual(200);
 
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');

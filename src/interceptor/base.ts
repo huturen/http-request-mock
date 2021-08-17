@@ -30,8 +30,6 @@ export default class BaseInterceptor {
       return window;
     } else if (typeof global !== 'undefined')  {
       return global;
-    } else if (typeof self !== 'undefined') {
-      return self;
     }
     throw new Error('Detect global variable error');
   }

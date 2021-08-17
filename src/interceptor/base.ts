@@ -5,13 +5,13 @@ import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
-export default class BaseInteceptor {
+export default class BaseInterceptor {
   protected mocker: Mocker;
   protected global: any;
 
   constructor(mocker: Mocker) {
     this.mocker = mocker;
-    this.global = BaseInteceptor.getGlobal();
+    this.global = BaseInterceptor.getGlobal();
   }
 
   /**

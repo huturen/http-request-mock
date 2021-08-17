@@ -1,4 +1,7 @@
 ### Changelog
+[2021-08-15]
+1. fix a typo: inteceptor -> interceptor
+
 [2021-08-14]
 1. add react and vue examples
 2. `http-request-mock-cli -w` supports a customized command to start a mock development
@@ -12,7 +15,7 @@
 [2021-08-11]
 1. add mock times options for a limited number of times mocking
 2. remove 'verbose' value for runtime option
-3. normalize request info for all inteceptors
+3. normalize request info for all interceptors
 4. windows compatibility
 
 [2021-08-09] fix wx.request binding error

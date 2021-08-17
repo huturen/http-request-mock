@@ -1,9 +1,9 @@
 
 
-import InterceptorFetch from './inteceptor/fetch';
-import NodeHttpAndHttpsRequestInterceptor from './inteceptor/node/http-and-https';
-import InterceptorWxRequest from './inteceptor/wx-request';
-import InterceptorXhr from './inteceptor/xml-http-request';
+import InterceptorFetch from './interceptor/fetch';
+import NodeHttpAndHttpsRequestInterceptor from './interceptor/node/http-and-https';
+import InterceptorWxRequest from './interceptor/wx-request';
+import InterceptorXhr from './interceptor/xml-http-request';
 import Mocker from './mocker';
 export default class Index {
   /**

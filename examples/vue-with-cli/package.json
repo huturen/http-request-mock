@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "mock": "http-request-mock-cli -w",
-    "mockdev": "http-request-mock-cli -w \"vue-cli-service serve\"",
+    "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },

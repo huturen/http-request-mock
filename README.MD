@@ -14,7 +14,7 @@
 
 ![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
 
-本库提供了mock文件注释块内容解析，并提供webpack及cli命令行整合工具，可真正做无侵入mock，只配置一次，后续无效修改任务业务代码。
+本库提供了mock文件注释块内容解析，并提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
 
 ## 目录
 
@@ -43,18 +43,17 @@
 ## 简介
 
 在后台接口未开发好或接口挂掉，甚至无网络环境的情况下，这个库可以让你不受干扰的继续开发，以快速构建产品原型。
-此外，我们还提供了一个额外webpack插件，进行简单配置后，可以不侵入源代码，来完成网络请求的模拟处理。
+此外，我们还提供了一个额外webpack插件及命令行工具，进行简单配置后，可以不侵入源代码，来完成网络请求的模拟处理。
 
 
 
-本库基于拦截 `XHR(XMLHttpRequest)`,  `fetch` ,  `wx.request`, node自带https/http请求对象 实现。
+本库基于拦截 `XHR(XMLHttpRequest)`, `fetch` , `wx.request`, node自带https/http请求对象 实现。
 
 如果请求有匹配到mock配置，则返回mock配置数据，否则走真实的网络请求。
 
 因为是通过拦截实现，匹配不到mock请求，则返回并使用原生的请求对象。
 
 较之其他mock库，提供了更可靠的稳定性。
-
 
 
 目前现存的mock库，存在以下这些问题：
@@ -74,7 +73,7 @@
 * **配置简单**: 免去了格式样的本地服务，代理或其他复杂的配置。
 * **无侵入**: 支持不侵入源代码来实现mock处理。
 * **自动拆卸**: 自动拆卸，启动跟关闭mock功能均不需要修改源码。
-* **丰富的请求库支持**: Axios, jQuery, SuperAgent, fetch, XHR, wx.request。
+* **丰富的第3方请求库支持**: Axios, jQuery, SuperAgent, Got...。
 * **支持测试库及Node环境**: 支持jest，mocha测试库运行环境，甚至裸node运行环境。
 * **动态内容响应**: 基于请求信息，如url，查询参数，post请求包体，来动态模拟返回内容。
 * **URL局部匹配及正则匹配**: 支持URL局部匹配及RegExp正则匹配。
@@ -83,7 +82,7 @@
 * **http响应头模拟**: http响应头模拟。
 * **可和真实网络请求混用**: 部分接口使用模拟请求，部分接口使用真实请求。
 * **丰富的单元测试验证**: 具有较完整的单元测试。
-* **支持跨域请求**: 支持跨域请求模拟。
+* **支持跨域请求**: 支持跨域请求模拟，跨域请求无额外配置。
 
 
 ## 安装
@@ -389,8 +388,8 @@ module.exports = {
     // ...
     new HttpRequestMockWebpackPlugin(
       enable: process.env.NODE_ENV === 'development', // 根据环境变量启用插件
-      entry: /src\/index\.js$/,
-      dir: path.resolve(__dirname, 'mock/'),
+      entry: /src\/index\.js$/, // 入口页面
+      dir: path.resolve(__dirname, 'mock/'), // mock文件目录
     ),
     // ...
   ]
@@ -449,7 +448,7 @@ Options:
   -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
   -w, --watch [command]             Watch mock directory & update .runtime.js. If a command was specified,
                                     ths specified command will be executed together with watching.
-  -j, --inject <app-entry-file>      Inject .runtime.js into app entry file
+  -j, --inject <app-entry-file>     Inject .runtime.js into app entry file
                                     which must be relative to the working directory.
                                     NOTE: this is an experimental option.
   -h, --help                        output usage information
@@ -475,25 +474,22 @@ Options:
 `npx http-request-mock-cli -w "vue-cli-service serve"`
 
 可以添加到scripts里面，详细请参考 `examples/vue-with-cli`:
-
 ```json
 ...
+// 传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
 ...
 ```
-注意：传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
-
-
 
 
 ***注意：***
 
 如果不指定 `-e --enviroment` 默认的会根据 `NODE_ENV=development` 来开启mock。
 
-如果需要改成其他环境变量判断，可指定其他变量，如: `MOCK=yes`.
+如果需要其他环境变量来开启mock，可指定其他变量，如: `-e MOCK=yes`.
 
 如果想去掉环境变量判断，直接指定 `-e none` 就可以了。
 
@@ -616,6 +612,7 @@ Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  req
 jest测试环境：
 ```javascript
 import HttpRequestMock from 'http-request-mock';
+import axios from 'axios';
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
 describe('mock axios request', () => {
@@ -638,7 +635,7 @@ describe('mock axios request', () => {
 ```javascript
 /**
  * 注意： 只会解析第一个注释块中的标签信息
- * 请求的url，支持正则，如果是正则，支持使用 / 或者 # 做为正则的起始分割字符，
+ * 请求的url，支持正则，如果是正则，请使用 / 或者 # 做为正则的起始分割字符，
  * 如： #.*\/getUserInfo.*#
  * @url https://jsonplaceholder.typicode.com/todos/1
  *

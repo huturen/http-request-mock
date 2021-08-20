@@ -297,6 +297,7 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 
 ## Directory structure
 Run `npx http-request-mock-cli -i` to initialize a mock directory which looks like below.
+
 **Note**： Any file names matched with `/^[\w][-\w]*\.js$/` will be recognized as a mock data file.
 ```
 App
@@ -352,7 +353,7 @@ if (process.env.NODE_ENV === 'development') { // depends on webpack or cli confi
 ---
 
 ## Webpack plugin
-In a bare-bones example, you just import `http-request-mock` into your app entry file(such as; src/index.js) and
+In a bare-bones example, you just import `http-request-mock` into your app entry file(such as: src/index.js) and
 configure your mock datas there. Take a Vue project as an example:
 ```javascript
 import { createApp } from 'vue'
@@ -370,10 +371,10 @@ createApp(App).mount('#app')
 Depends on your needs, that it's ok in a small project.
 However, for a larger web application, it may have lots of APIs to be mocked.
 You may need frequently change the entry file when adding/deleting/updating a mock.
-There will be a day the you'll get a mess as the project grows.
+There will be a day that you'll get a mess as the project grows.
 
 
-To avoid having to change your code to use mocks. This library comes with a built-in webpack plugin.
+To avoid having to change your code frequently to use mocks. This library comes with a built-in webpack plugin.
 We assume you have a source directory likes [above](#Directory-structure), you can simply use mocks like below:
 
 1. Run `npx http-request-mock-cli -i`. It'll initialize a .runtime.js file in your mock directory.
@@ -602,7 +603,7 @@ Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  req
 This library comes built-in with unit test capability and can be used in jest and mocha envrioment.
 The unit tests of this library are also based on itself.
 
-An example in jest：
+An example of jest：
 ```javascript
 import HttpRequestMock from 'http-request-mock';
 import axios from 'axios';
@@ -614,12 +615,13 @@ describe('mock axios request', () => {
 
     axios.get('https://www.api.com/some-path', 'get').then(res => {
       expect(res.data).toBe('your fake response content');
+      done();
     }),
   });
 });
 ```
 
-2. For mocha, please refer to `experiment/mocha.js`.
+2. For a mocha example, please refer to `experiment/mocha.js`.
 
 
 ## Mock data file confiuration

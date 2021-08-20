@@ -1,4 +1,7 @@
 ### Changelog
+[2021-08-20]
+1. add continuous integration
+
 [2021-08-19]
 1. add English version of the README.md
 

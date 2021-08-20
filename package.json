@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.40",
+  "version": "1.1.41",
   "description": "It mocks XMLHttpRequest, fetch and nodejs native HTTP/HTTPS module requests with the specified response object.",
   "main": "dist/index.js",
   "bin": {
@@ -56,10 +56,8 @@
   ],
   "files": [
     "bin",
-    "experiment",
     "plugin",
     "dist",
-    "test",
     "README.MD"
   ],
   "author": "shuilonghu",
@@ -121,5 +119,8 @@
   "dependencies": {
     "commander": "^2.20.3",
     "simple-functional-loader": "^1.2.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

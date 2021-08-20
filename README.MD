@@ -626,6 +626,7 @@ describe('mock axios request', () => {
 
     axios.get('https://www.api.com/some-path', 'get').then(res => {
       expect(res.data).toBe('your fake response content');
+      done();
     }),
   });
 });

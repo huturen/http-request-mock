@@ -79,7 +79,7 @@ export default class Mocker {
       : <Method> 'any';
 
     mockItem.header = typeof mockItem.header === 'object' ? mockItem.header : {};
-    mockItem.delay = mockItem.delay && /^[1-9]\d{0,14}$/.test(mockItem.delay+'') ? +mockItem.delay : 0;;
+    mockItem.delay = mockItem.delay && /^[1-9]\d{0,14}$/.test(mockItem.delay+'') ? (+mockItem.delay + 1) : 0;
     mockItem.times = mockItem.times && /^-?[1-9]\d{0,14}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;
     mockItem.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
     mockItem.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'yes' : 'no') as Disable;

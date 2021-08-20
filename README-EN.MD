@@ -1,3 +1,8 @@
+[![Latest version](https://img.shields.io/npm/v/http-request-mock.svg?style=flat)](https://www.npmjs.com/package/http-request-mock)
+[![build status](https://travis-ci.org/huturen/http-request-mock.svg?branch=main)](https://app.travis-ci.com/github/huturen/http-request-mock)
+[![install size](https://packagephobia.com/badge?p=http-request-mock@1.1.40)](https://packagephobia.com/result?p=http-request-mock@1.1.40)
+
+
 [中文](https://github.com/huturen/http-request-mock/blob/main/README.MD) | **English**
 
 

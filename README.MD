@@ -1,4 +1,5 @@
 [![Latest version](https://img.shields.io/npm/v/http-request-mock.svg?style=flat)](https://www.npmjs.com/package/http-request-mock)
+[![Coverage Status](https://coveralls.io/repos/github/huturen/http-request-mock/badge.svg)](https://coveralls.io/github/huturen/http-request-mock)
 [![build status](https://travis-ci.org/huturen/http-request-mock.svg?branch=main)](https://app.travis-ci.com/github/huturen/http-request-mock)
 [![install size](https://packagephobia.com/badge?p=http-request-mock@latest)](https://packagephobia.com/result?p=http-request-mock@latest)
 

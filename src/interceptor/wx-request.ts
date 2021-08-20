@@ -94,7 +94,7 @@ export default class WxRequestInterceptor extends Base {
       : mockItem.response;
 
     const wxResponse = this.getWxResponse(body, mockItem);
-    this.doCompleteCallbacks(wxRequestOpts, wxResponse);
+    this.sendResult(wxRequestOpts, wxResponse);
   }
 
   /**
@@ -122,7 +122,7 @@ export default class WxRequestInterceptor extends Base {
    * @param {WxRequestOpts} wxRequestOpts
    * @param {WxRequestOpts} response
    */
-  private doCompleteCallbacks(wxRequestOpts: WxRequestOpts, wxResponse: any) {
+  private sendResult(wxRequestOpts: WxRequestOpts, wxResponse: any) {
     if (typeof wxRequestOpts.success === 'function') {
       wxRequestOpts.success(wxResponse);
     }

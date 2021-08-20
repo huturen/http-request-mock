@@ -138,7 +138,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       : mockItem.response;
 
     xhr.mockResponse = body;
-    this.doCompleteCallbacks(xhr)
+    this.sendResult(xhr)
   }
 
   /**
@@ -151,22 +151,24 @@ export default class XMLHttpRequestInterceptor extends Base {
    * in addition to setting on* properties to a handler function.
    * @param {XMLHttpRequest} xhr
    */
-  private doCompleteCallbacks(xhr: XMLHttpRequest) {
+  private sendResult(xhr: XMLHttpRequest) {
+    const isEventReady = typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function';
+
     if (typeof xhr.onreadystatechange === 'function') {
       xhr.onreadystatechange(undefined as any)
+    } else if (isEventReady) {
+      xhr.dispatchEvent(new Event('readystatechange'));
     }
 
     if (typeof xhr.onload === 'function') {
       xhr.onload(undefined as any)
+    } else if (isEventReady) {
+      xhr.dispatchEvent(new Event('load'));
     }
 
     if (typeof xhr.onloadend === 'function') {
       xhr.onloadend(undefined as any)
-    }
-
-    if (typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function') {
-      xhr.dispatchEvent(new Event('readystatechange'));
-      xhr.dispatchEvent(new Event('load'));
+    } else if (isEventReady) {
       xhr.dispatchEvent(new Event('loadend'));
     }
   }

@@ -1,0 +1,156 @@
+Arguments: 
+  /Users/hu/.nvm/versions/node/v14.15.1/bin/node /Users/hu/.nvm/versions/node/v14.15.1/bin/yarn config set proxy http://127.0.0.1:12639
+
+PATH: 
+  /usr/local/mongodb/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Wireshark.app/Contents/MacOS:/usr/local/mongodb/bin:/Users/hu/.nvm/versions/node/v14.15.1/bin:/Users/hu/bin:/Users/hu/bin
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  14.15.1
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/hu/web/http-request-mock-github/package.json: Unexpected token } in JSON at position 3113
+      at JSON.parse (<anonymous>)
+      at /Users/hu/.nvm/versions/node/v14.15.1/lib/node_modules/yarn/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/Users/hu/.nvm/versions/node/v14.15.1/lib/node_modules/yarn/lib/cli.js:310:30)
+      at /Users/hu/.nvm/versions/node/v14.15.1/lib/node_modules/yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "http-request-mock",
+    "version": "1.1.41",
+    "description": "It mocks XMLHttpRequest, fetch and nodejs native HTTP/HTTPS module requests with the specified response object.",
+    "main": "dist/index.js",
+    "bin": {
+      "http-request-mock-cli": "bin/cli.js"
+    },
+    "scripts": {
+      "test": "jest --verbose",
+      "coverage": "jest --verbose --coverage test",
+      "clean": "del-cli dist",
+      "build": "npm run clean && tsc",
+      "dev": "tsc -w"
+    },
+    "keywords": [
+      "XHR",
+      "xhr",
+      "XMLHttpRequest",
+      "xhr-mock",
+      "fetch",
+      "fetch-mock",
+      "wx.request",
+      "response",
+      "test",
+      "unit",
+      "ajax",
+      "AJAX",
+      "ajax mock",
+      "ajax-mock",
+      "intercept",
+      "interceptor",
+      "http",
+      "https",
+      "request",
+      "mock",
+      "network",
+      "network-mock",
+      "mocking",
+      "mocks",
+      "mocker",
+      "interceptor",
+      "http interceptor",
+      "http-interceptor",
+      "fetch interceptor",
+      "fetch-interceptor",
+      "xhr interceptor",
+      "xhr-interceptor",
+      "low level interceptor",
+      "node-http-mock",
+      "node-http-request-mock",
+      "request mock",
+      "request mocks",
+      "request-mock",
+      "request-mocks"
+    ],
+    "files": [
+      "bin",
+      "plugin",
+      "dist",
+      "README.MD"
+    ],
+    "author": "shuilonghu",
+    "license": "MIT",
+    "devDependencies": {
+      "@babel/core": "^7.14.8",
+      "@babel/plugin-proposal-class-properties": "^7.10.4",
+      "@babel/plugin-proposal-object-rest-spread": "^7.11.0",
+      "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+      "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+      "@babel/plugin-transform-arrow-functions": "^7.10.4",
+      "@babel/plugin-transform-async-to-generator": "^7.10.4",
+      "@babel/plugin-transform-classes": "^7.10.4",
+      "@babel/plugin-transform-runtime": "^7.11.5",
+      "@babel/preset-env": "^7.11.5",
+      "@babel/preset-typescript": "^7.10.4",
+      "@babel/runtime": "^7.11.2",
+      "@commitlint/cli": "^9.1.2",
+      "@commitlint/config-conventional": "^13.1.0",
+      "@tencent/eslint-config-tencent": "^0.12.2",
+      "@types/node": "^14.14.37",
+      "@types/webpack": "^5.28.0",
+      "axios": "^0.21.1",
+      "babel-loader": "^8.1.0",
+      "babel-polyfill": "^6.26.0",
+      "babel-preset-es2015": "^6.24.1",
+      "commitizen": "^4.2.1",
+      "del-cli": "^3.0.1",
+      "got": "^11.8.2",
+      "husky": "^4.3.0",
+      "jest": "^27.0.6",
+      "jquery": "^3.6.0",
+      "ky": "^0.28.5",
+      "mocha": "^9.0.3",
+      "node-fetch": "^2.6.1",
+      "node-loader": "^1.0.2",
+      "request": "^2.88.2",
+      "standard-version": "^9.0.0",
+      "superagent": "^6.1.0",
+      "ts-jest": "^27.0.4",
+      "ts-loader": "^8.1.0",
+      "ts-node": "^9.1.1",
+      "typescript": "^4.2.3",
+      "webpack": "^5.50.0",
+      "webpack-cli": "^3.3.12"
+    },
+    "husky": {
+      "hooks": {
+        "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      }
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/huturen/http-request-mock.git"
+    },
+    "engines": {
+      "node": ">=14.13.1"
+    },
+    "dependencies": {
+      "commander": "^2.20.3",
+      "simple-functional-loader": "^1.2.1"
+    },
+    "publishConfig": {
+      "access": "public"
+    },
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

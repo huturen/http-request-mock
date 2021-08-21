@@ -303,6 +303,7 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 
 ## 目录结构
 运行`npx http-request-mock-cli -i` 它将会生成类似如下的目录结构:
+
 **注意**： mock/ 目录下的文件名符合 `/[\w][-\w]*\.js/` 正则的才被视为mock数据配置文件。
 ```
 App

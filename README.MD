@@ -1,13 +1,14 @@
 [![Latest version](https://img.shields.io/npm/v/http-request-mock.svg?style=flat)](https://www.npmjs.com/package/http-request-mock)
 [![Coverage Status](https://coveralls.io/repos/github/huturen/http-request-mock/badge.svg)](https://coveralls.io/github/huturen/http-request-mock)
-[![build status](https://travis-ci.org/huturen/http-request-mock.svg?branch=main)](https://app.travis-ci.com/github/huturen/http-request-mock)
-[![install size](https://packagephobia.com/badge?p=http-request-mock@latest)](https://packagephobia.com/result?p=http-request-mock@latest)
-
+[![Build status](https://travis-ci.org/huturen/http-request-mock.svg?branch=main)](https://app.travis-ci.com/github/huturen/http-request-mock)
+[![Install size](https://packagephobia.com/badge?p=http-request-mock@latest)](https://packagephobia.com/result?p=http-request-mock@latest)
+![License](https://img.shields.io/npm/l/http-request-mock)
 
 **中文** | [English](https://github.com/huturen/http-request-mock/blob/main/README-EN.MD)
 
 
-# http-request-mock
+
+# ![License](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png) http-request-mock
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。

@@ -8,7 +8,7 @@
 
 
 
-# ![License](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png) http-request-mock
+# ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png) http-request-mock
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。

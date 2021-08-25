@@ -48,7 +48,7 @@ export default class BaseInterceptor {
     return mockItem;
   }
 
-  protected getRequestInfo(mixedRequestInfo: any) : RequestInfo {
+  public getRequestInfo(mixedRequestInfo: any) : RequestInfo {
     const info: RequestInfo = {
       url: mixedRequestInfo.url,
       method: mixedRequestInfo.method,

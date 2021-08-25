@@ -4,7 +4,7 @@ const mocker = HttpRequestMock.setupForUnitTest('wx');
 
 const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve) => {
-    wx.request({ url, method, ...opts, success: res => {
+    wx.request({ url, method, ...opts, complete: () => {}, success: res => {
       resolve({
         data: res.data,
         status: res.statusCode,
@@ -175,7 +175,7 @@ describe('mock wx.request requests', () => {
     mocker.mock({
       url: 'http://www.api.com/async-function',
       response: async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(() => resolve(), 100));
         index = index + 1;
         return 'data'+index;
       }

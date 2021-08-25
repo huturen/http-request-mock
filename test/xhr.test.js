@@ -14,6 +14,7 @@ const request = (url, method = 'get', opts = {}) => {
     }
     xhr.onreadystatechange = function () {
       resolve({
+        xhr,
         data: xhr.response,
         status: xhr.status,
         headers: xhr.getAllResponseHeaders().split(/\r\n/).reduce((res, item) => {
@@ -26,6 +27,7 @@ const request = (url, method = 'get', opts = {}) => {
         }, {})
       })
     };
+    xhr.onloadend = function(){};
     xhr.send(opts.body || null);
   });
 };
@@ -47,10 +49,13 @@ describe('mock xhr requests', () => {
   });
 
   it('url config item should support RegExp matching', async () => {
-    mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
+    mocker.any(/^.*\/regexp\b/, '<xml>regexp</xml>');
 
-    const res = await request('http://www.api.com/regexp', 'get', { responseType: 'json' });
-    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
+    const res = await request('http://www.api.com/regexp?a=1', 'get', { responseType: 'text' });
+    expect(res.xhr.responseURL).toBe('http://www.api.com/regexp?a=1');
+
+    expect(res.xhr.responseXML).toBe(null);
+    expect(res.data).toBe('<xml>regexp</xml>');
   });
 
   it('delay config item should support a delayed response', (done) => {
@@ -87,12 +92,14 @@ describe('mock xhr requests', () => {
     mocker.put('http://www.api.com/put', 'put');
     mocker.patch('http://www.api.com/patch', 'patch');
     mocker.delete('http://www.api.com/delete', 'delete');
+    mocker.head('http://www.api.com/head');
 
     mocker.mock({method: 'get', url: 'http://www.api.com/method-get', response: 'method-get'});
     mocker.mock({method: 'post', url: 'http://www.api.com/method-post', response: 'method-post'});
     mocker.mock({method: 'put', url: 'http://www.api.com/method-put', response: 'method-put'});
     mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', response: 'method-patch'});
     mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', response: 'method-delete'});
+    mocker.mock({method: 'head', url: 'http://www.api.com/method-head', response: ''});
 
     const res = await Promise.all([
       request('http://www.api.com/get', 'get').then(res => res.data),
@@ -100,17 +107,19 @@ describe('mock xhr requests', () => {
       request('http://www.api.com/put', 'put').then(res => res.data),
       request('http://www.api.com/patch', 'patch').then(res => res.data),
       request('http://www.api.com/delete', 'delete').then(res => res.data),
+      request('http://www.api.com/head', 'head').then(res => res.data),
 
       request('http://www.api.com/method-get', 'get').then(res => res.data),
       request('http://www.api.com/method-post', 'post').then(res => res.data),
       request('http://www.api.com/method-put', 'put').then(res => res.data),
       request('http://www.api.com/method-patch', 'patch').then(res => res.data),
       request('http://www.api.com/method-delete', 'delete').then(res => res.data),
+      request('http://www.api.com/method-head', 'head').then(res => res.data),
     ]);
 
     expect(res).toMatchObject([
-      'get', 'post', 'put', 'patch', 'delete',
-      'method-get', 'method-post', 'method-put', 'method-patch', 'method-delete',
+      'get', 'post', 'put', 'patch', 'delete', '',
+      'method-get', 'method-post', 'method-put', 'method-patch', 'method-delete', ''
     ]);
   });
 
@@ -126,6 +135,7 @@ describe('mock xhr requests', () => {
     });
 
     const res = await request('http://www.api.com/headers');
+    expect(res.xhr.getResponseHeader('x-powered-by')).toBe('http-request-mock');
     expect(res.status).toBe(200);
     expect(res.headers).toMatchObject({
       custom: 'a-customized-header',
@@ -137,20 +147,34 @@ describe('mock xhr requests', () => {
   it('mock response should support to customize data types', async () => {
     mocker.any('http://www.api.com/string', 'string');
     mocker.any('http://www.api.com/object', {obj: 'yes'});
+    mocker.any('http://www.api.com/strobj', '{"obj": "yes"}');
+    mocker.any('http://www.api.com/bad-strobj', '{"obj": "yes"');
     mocker.any('http://www.api.com/blob', new Blob(['test-blob']));
     mocker.any('http://www.api.com/arraybuffer', new ArrayBuffer(8));
-
 
     const res = await Promise.all([
       request('http://www.api.com/string', 'get').then(res => res.data),
       request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
+      request('http://www.api.com/strobj', 'post', {responseType: 'json' }).then(res => res.data),
+      request('http://www.api.com/bad-strobj', 'post', {responseType: 'json' }).then(res => res.data),
       request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
       request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
     ]);
     expect(res[0]).toBe('string');
     expect(res[1]).toMatchObject({obj: 'yes'});
-    expect(res[2]).toBeInstanceOf(Blob);
-    expect(res[3]).toBeInstanceOf(ArrayBuffer);
+    expect(res[2]).toMatchObject({obj: 'yes'});
+    expect(res[3]).toBe(null);
+    expect(res[4]).toBeInstanceOf(Blob);
+    expect(res[5]).toBeInstanceOf(ArrayBuffer);
+
+    // for document
+    global.Document = function(){};
+    mocker.any(/^.*\/document-regexp$/, new Document());
+    const res2 = await request('http://www.api.com/document-regexp', 'get', { responseType: 'document' });
+    expect(res2.xhr.responseURL).toBe('http://www.api.com/document-regexp');
+
+    expect(res2.xhr.responseXML).toBeInstanceOf(global.Document);
+    expect(res2.data).toBeInstanceOf(global.Document);
   });
 
   it('mock response function should support to get request info', async () => {

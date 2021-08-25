@@ -28,7 +28,12 @@ describe('mock axios requests which are based on node http adaptor for node envi
 
     const res = await Promise.all([
       request('http://www.api.com/partial', 'get').then(res => res.data),
-      request('https://www.api.com/partial', 'post').then(res => res.data),
+      request('https://www.api.com/partial', 'post', {
+        data: '{"abc":123}',
+        headers: {
+          abc: 'efg',
+        }
+      }).then(res => res.data),
       request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.data),
       request('https://www.api.com/partial-other', 'post').then(res => res.data),
     ]);

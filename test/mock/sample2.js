@@ -3,7 +3,7 @@
  * @method any
  */
 let times = 0;
-export default () => {
+module.exports = () => {
   times = times + 1;
 
   return  {

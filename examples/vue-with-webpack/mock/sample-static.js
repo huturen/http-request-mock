@@ -6,7 +6,7 @@
  * @method get
  */
 /* eslint-disable */
-export default {
+module.exports = {
   ret: 0,
   msg: 'ok',
   data: 'Your mock data',

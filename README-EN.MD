@@ -304,7 +304,7 @@ Run `npx http-request-mock-cli -i` to initialize a mock directory which looks li
 ```
 App
 ├─── mock/
-|   ├─── .runtime.js   (runtime mock configuration entry file，it should be added into .gitignore file)
+|   ├─── .runtime.js   (runtime mock configuration entry file)
 |   ├─── config.js      (a mock data file)
 |   ├─── detail.js     (a mock data file)
 |   ├─── ...           (other mock data files)

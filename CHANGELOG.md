@@ -1,6 +1,7 @@
 ### Changelog
 [2021-08-20]
 1. add runtime plugin
+2. add `--type` option to cli
 
 [2021-08-20]
 1. add continuous integration

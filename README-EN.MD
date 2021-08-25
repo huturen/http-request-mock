@@ -8,7 +8,7 @@
 [中文](https://github.com/huturen/http-request-mock/blob/main/README.MD) | **English**
 
 
-# ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png) http-request-mock
+# http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)
 
 
 It mocks http requests by intercepting XMLHttpRequest,

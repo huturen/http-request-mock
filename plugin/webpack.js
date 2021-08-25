@@ -262,8 +262,8 @@ module.exports = class HttpRequestMockMockPlugin {
     res.header = Object.keys(header).length > 0 ? header : undefined;
     res.method = /^(get|post|put|patch|delete|head)$/i.test(res.method) ? res.method.toLowerCase() : 'any';
     res.disable = /^(yes|true|1|no|false|0)$/i.test(res.disable) ? res.disable.toLowerCase() : undefined;
-    res.delay = /^[1-9]\d{0,14}$/.test(res.delay) ? +res.delay : undefined;
-    res.times = /^-?[1-9]\d{0,14}$/.test(res.times) ? +res.times : undefined;
+    res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
+    res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;
     res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
 
     if (this.isRegExp(res.url)) {

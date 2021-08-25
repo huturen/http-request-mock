@@ -1,3 +1,4 @@
+
 import { Query } from '../types';
 /**
  * Get query parameters from the specified request url.

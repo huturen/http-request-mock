@@ -358,7 +358,7 @@ export default class XMLHttpRequestInterceptor extends Base {
               try {
                 return JSON.parse(this.mockResponse);
               } catch(err) { // eslint-disable-line
-                console.warn('The mock response is not compatible with the responseType json: ' + err.message);
+                // console.warn('The mock response is not compatible with the responseType json: ' + err.message);
                 return null;
               }
             }

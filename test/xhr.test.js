@@ -215,7 +215,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/async-function',
       response: async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 101));
         index = index + 1;
         return 'data'+index;
       }

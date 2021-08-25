@@ -48,6 +48,12 @@ program
     ' which must be relative to the working directory.\n'+spaces+
     ' NOTE: this is an experimental option.'
   )
+  .option(
+    '-t, --type [module-type]',
+    'The module type of .runtime.js.\n'+spaces+
+    ' Valid values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
+    'es6'
+  )
   .parse(process.argv);
 
 program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
@@ -79,7 +85,12 @@ async function init() {
     }
   }
 
-  const webpack = new WebpackPlugin({ entry: /1/, dir, enviroment: program.enviroment });
+  const webpack = new WebpackPlugin({
+    dir,
+    entry: /1/,
+    enviroment: program.enviroment,
+    type: program.type,
+  });
   if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
     await copySampleFiles(dir);
   }
@@ -106,7 +117,9 @@ async function inject() {
 
   const codes = [
     '/* eslint-disable */',
-    `import '${runtime}';`,
+    (program.type === 'commonjs' || program.type === 'cjs'
+      ? `require('${runtime}');`
+      : `import '${runtime}';`),
     '/* eslint-enable */',
   ].join('\n');
 
@@ -130,7 +143,12 @@ function watch() {
   }
 
   log(`Watching: ${dir}`);
-  const webpack = new WebpackPlugin({ entry: /1/, dir, enviroment: program.enviroment });
+  const webpack = new WebpackPlugin({
+    dir,
+    entry: /1/,
+    enviroment: program.enviroment,
+    type: program.type,
+  });
   const set = new Set();
   let timer = null;
 

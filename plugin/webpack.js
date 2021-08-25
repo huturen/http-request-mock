@@ -18,6 +18,8 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory. Defaults to true.
    *                          If mock directory were in src/ that has configured to be monitored,
    *                          then set monitor to false. If this option would confuse you, let it be true.
+   * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'es6'.
+   *                          Valid values are: es6(alias of module), commonjs.
    */
   constructor({
     entry,
@@ -26,6 +28,7 @@ module.exports = class HttpRequestMockMockPlugin {
     enviroment,
     enable,
     monitor = true,
+    type,
   }) {
     if (!(entry instanceof RegExp)) {
       throw new Error('The HttpRequestMockMockPlugin expects [entry] to be a valid RegExp Object.');
@@ -41,6 +44,7 @@ module.exports = class HttpRequestMockMockPlugin {
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
     this.monitor = monitor;
     this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
+    this.type = ['es6', 'commonjs'].includes(type) ? type : 'es6';
   }
 
   /**
@@ -171,7 +175,9 @@ module.exports = class HttpRequestMockMockPlugin {
     const runtime = this.resolve(this.dir, '.runtime.js');
 
     const isExisted = fs.existsSync(runtime);
-    const codes = this.getRuntimeFileContent();
+    const codes = this.type === 'commonjs' || this.type === 'cjs'
+      ? this.getCommonjsRuntimeFileContent()
+      : this.getES6RuntimeFileContent();
     if (isExisted && fs.readFileSync(runtime).toString() === codes) {
       return runtime;
     }
@@ -183,7 +189,7 @@ module.exports = class HttpRequestMockMockPlugin {
   /**
    * Get mock config file entry content codes.
    */
-  getRuntimeFileContent() {
+  getES6RuntimeFileContent() {
     const files = this.getAllMockFiles();
     const codes = [
       '/* eslint-disable */',
@@ -200,6 +206,59 @@ module.exports = class HttpRequestMockMockPlugin {
       file = process.platform === 'win32' ? file.replace(/\\/g, '/') : file;
       file = /^\./.test(file) ? file : ('./'+file);
       codes.push(`import data${i} from '${file}';`);
+      items.push({ ...tags, index: i });
+    }
+
+    let gap = '';
+    if (this.enviroment) {
+      gap = '  ';
+      codes.push(`if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {`);
+    }
+
+    codes.push(`${gap}const mocker = HttpRequestMock.setup();`);
+    for (const item of items) {
+      const method = `mocker.${item.method}`;
+      const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
+      const response = `data${item.index}`;
+
+      const { delay, status, times, header } = item;
+      if (delay || status || times || header) {
+        const opts = gap
+          ? JSON.stringify({ delay, status, times, header }, null, 2).replace(/\n/g, '\n  ')
+          : JSON.stringify({ delay, status, times, header }, null, 2);
+        codes.push(`${gap}${method}(${url}, ${response}, ${opts});`);
+      } else {
+        codes.push(`${gap}${method}(${url}, ${response});`);
+      }
+    }
+
+    if (this.enviroment) {
+      codes.push(`}`);
+    }
+    codes.push('/* eslint-enable */');
+    return codes.join('\n');
+  }
+
+  /**
+   * Get mock config file entry content codes.
+   */
+  getCommonjsRuntimeFileContent() {
+    const files = this.getAllMockFiles();
+    const codes = [
+      '/* eslint-disable */',
+      `const HttpRequestMock = require('http-request-mock').default;`,
+    ];
+    const items = [];
+    for (let i = 0; i < files.length; i += 1) {
+      const tags = this.parseCommentTags(files[i]);
+      if (!tags.url) continue;
+      if (/yes|true|1/i.test(tags.disable)) continue;
+      if (tags.times !== undefined && tags.times <= 0) continue;
+
+      let file = path.relative(this.dir, files[i]);
+      file = process.platform === 'win32' ? file.replace(/\\/g, '/') : file;
+      file = /^\./.test(file) ? file : ('./'+file);
+      codes.push(`const data${i} = require('${file}');`);
       items.push({ ...tags, index: i });
     }
 

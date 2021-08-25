@@ -309,7 +309,7 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 App
 ├─── mock/
-|   ├─── .runtime.js   (mock入口配置文件，此文件建议加入到.gitignore文件)
+|   ├─── .runtime.js   (mock入口配置文件)
 |   ├─── config.js      (mock数据配置文件)
 |   ├─── detail.js     (mock数据配置文件)
 |   ├─── ...           (其他mock数据配置文件)

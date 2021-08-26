@@ -11,8 +11,9 @@
 # http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)
 
 
-It mocks http requests by intercepting XMLHttpRequest,
-fetch and nodejs native HTTP/HTTPS module requests in low level.
+It mocks http requests issued by axios, jquery, superagent, ky, node-fetch, got, request
+or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native
+HTTP/HTTPS module requests in low level.
 
 1. XMLHttpRequest
 2. fetch

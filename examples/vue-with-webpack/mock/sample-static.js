@@ -3,10 +3,9 @@
  *
  * @url https://some.api.com/static
  * @delay 1000
- * @method get
  */
 /* eslint-disable */
-module.exports = {
+export default {
   ret: 0,
   msg: 'ok',
   data: 'Your mock data',

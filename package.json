@@ -1,7 +1,7 @@
 {
   "name": "http-request-mock",
-  "version": "1.1.49",
-  "description": "It mocks XMLHttpRequest, fetch and nodejs native HTTP/HTTPS module requests with the specified response object.",
+  "version": "1.1.50",
+  "description": "It mocks http requests issued by axios, jquery, superagent, ky, node-fetch, got, request or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native HTTP/HTTPS module requests in low level.",
   "main": "dist/index.js",
   "bin": {
     "http-request-mock-cli": "bin/cli.js"
@@ -43,6 +43,8 @@
     "interceptor",
     "http interceptor",
     "http-interceptor",
+    "http request",
+    "https request",
     "fetch interceptor",
     "fetch-interceptor",
     "xhr interceptor",

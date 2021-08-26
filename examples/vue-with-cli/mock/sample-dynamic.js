@@ -1,7 +1,7 @@
 
 /**
  * @url https://some.api.com/dynamic
- * @header content-type: application/json
+ * @header content-type: application/jsonx
  * @method post
  */
 /* eslint-disable */

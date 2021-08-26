@@ -7,7 +7,7 @@
  */
 /* eslint-disable */
 let times = 100;
-module.exports = () => ({
+export default () => ({
   current: times,
   left: --times,
   msg: 'This mock item will be disabled after 100 requests.',

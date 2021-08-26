@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "http-request-mock": "latest",
+    "http-request-mock": "^1.1.49",
     "nodemon": "^2.0.12"
   },
   "dependencies": {

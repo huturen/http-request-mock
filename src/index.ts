@@ -5,6 +5,7 @@ import NodeHttpAndHttpsRequestInterceptor from './interceptor/node/http-and-http
 import InterceptorWxRequest from './interceptor/wx-request';
 import InterceptorXhr from './interceptor/xml-http-request';
 import Mocker from './mocker';
+
 export default class Index {
   /**
    * Auto detect request enviroment and setup request mock.

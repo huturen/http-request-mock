@@ -2,10 +2,9 @@
 /**
  * @url https://some.api.com/dynamic
  * @header content-type: application/json
- * @method post
  */
 /* eslint-disable */
-module.exports = (request) => {
+export default (request) => {
   return  {
     ret: 0,
     msg: 'ok',

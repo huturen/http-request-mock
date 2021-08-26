@@ -1,23 +1,29 @@
 /* eslint-disable */
 import HttpRequestMock from 'http-request-mock';
-import data0 from './sample-dynamic.js';
-import data1 from './sample-static.js';
-import data2 from './sample-times.js';
 if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup();
-  mocker.post('https://some.api.com/dynamic', data0, {
+  import('./sample-dynamic.js').then(data => mocker.mock({
+    "url": "https://some.api.com/dynamic",
+    "method": "post",
+    "response": data.default,
     "header": {
       "content-type": "application/json"
     }
-  });
-  mocker.get('https://some.api.com/static', data1, {
+  }));
+  import('./sample-static.js').then(data => mocker.mock({
+    "url": "https://some.api.com/static",
+    "method": "get",
+    "response": data.default,
     "delay": 1000
-  });
-  mocker.any('https://jsonplaceholder.typicode.com/todos/1', data2, {
+  }));
+  import('./sample-times.js').then(data => mocker.mock({
+    "url": "https://jsonplaceholder.typicode.com/todos/1",
+    "method": "get",
+    "response": data.default,
     "times": 100,
     "header": {
       "content-type": "application/json"
     }
-  });
+  }));
 }
 /* eslint-enable */

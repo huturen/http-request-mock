@@ -1,7 +1,8 @@
 /* eslint-disable */
-import '../mock/.runtime.js';
 /* eslint-enable */
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue';
+import '../mock/.runtime.js';
+import App from './App.vue';
+
 
 createApp(App).mount('#app')

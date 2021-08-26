@@ -1,19 +1,25 @@
 /* eslint-disable */
 const HttpRequestMock = require('http-request-mock').default;
-const data0 = require('./sample-dynamic.js');
-const data1 = require('./sample-static.js');
-const data2 = require('./sample-times.js');
 if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup();
-  mocker.post('https://some.api.com/dynamic', data0, {
+  mocker.mock({
+    "url": "https://some.api.com/dynamic",
+    "method": "post",
+    "response": require('./sample-dynamic.js'),
     "header": {
       "content-type": "application/json"
     }
   });
-  mocker.get('https://some.api.com/static', data1, {
+  mocker.mock({
+    "url": "https://some.api.com/static",
+    "method": "get",
+    "response": require('./sample-static.js'),
     "delay": 1000
   });
-  mocker.any('https://jsonplaceholder.typicode.com/todos/1', data2, {
+  mocker.mock({
+    "url": "https://jsonplaceholder.typicode.com/todos/1",
+    "method": "any",
+    "response": require('./sample-times.js'),
     "times": 100,
     "header": {
       "content-type": "application/json"

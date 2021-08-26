@@ -191,13 +191,20 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   getES6RuntimeFileContent() {
     const files = this.getAllMockFiles();
+    const gap = this.enviroment ? '  ' : '';
+
     const codes = [
       '/* eslint-disable */',
       `import HttpRequestMock from 'http-request-mock';`,
+      (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
+      `${gap}const mocker = HttpRequestMock.setup();`,
+      'mock-items-place-holder',
+      (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
     ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
       const tags = this.parseCommentTags(files[i]);
+
       if (!tags.url) continue;
       if (/yes|true|1/i.test(tags.disable)) continue;
       if (tags.times !== undefined && tags.times <= 0) continue;
@@ -205,37 +212,16 @@ module.exports = class HttpRequestMockMockPlugin {
       let file = path.relative(this.dir, files[i]);
       file = process.platform === 'win32' ? file.replace(/\\/g, '/') : file;
       file = /^\./.test(file) ? file : ('./'+file);
-      codes.push(`import data${i} from '${file}';`);
-      items.push({ ...tags, index: i });
-    }
 
-    let gap = '';
-    if (this.enviroment) {
-      gap = '  ';
-      codes.push(`if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {`);
-    }
+      const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
+      const { method, delay, status, header, times } = tags;
 
-    codes.push(`${gap}const mocker = HttpRequestMock.setup();`);
-    for (const item of items) {
-      const method = `mocker.${item.method}`;
-      const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
-      const response = `data${item.index}`;
-
-      const { delay, status, times, header } = item;
-      if (delay || status || times || header) {
-        const opts = gap
-          ? JSON.stringify({ delay, status, times, header }, null, 2).replace(/\n/g, '\n  ')
-          : JSON.stringify({ delay, status, times, header }, null, 2);
-        codes.push(`${gap}${method}(${url}, ${response}, ${opts});`);
-      } else {
-        codes.push(`${gap}${method}(${url}, ${response});`);
-      }
+      const info = JSON.stringify({ url: '', method, response: '', delay, status, times, header }, null, 2)
+        .replace(`"url": "",`, `"url": ${url},`)
+        .replace(`"response": "",`, '"response": data.default,');
+      items.push(`${gap}import('${file}').then(data => mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info}));`);
     }
-
-    if (this.enviroment) {
-      codes.push(`}`);
-    }
-    codes.push('/* eslint-enable */');
+    codes[4] = items.join('\n'); // mock-items-place-holder
     return codes.join('\n');
   }
 
@@ -244,13 +230,21 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   getCommonjsRuntimeFileContent() {
     const files = this.getAllMockFiles();
+    const gap = this.enviroment ? '  ' : '';
+
     const codes = [
       '/* eslint-disable */',
       `const HttpRequestMock = require('http-request-mock').default;`,
+      (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
+      `${gap}const mocker = HttpRequestMock.setup();`,
+      'mock-items-place-holder',
+      (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
     ];
+
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
       const tags = this.parseCommentTags(files[i]);
+
       if (!tags.url) continue;
       if (/yes|true|1/i.test(tags.disable)) continue;
       if (tags.times !== undefined && tags.times <= 0) continue;
@@ -258,37 +252,16 @@ module.exports = class HttpRequestMockMockPlugin {
       let file = path.relative(this.dir, files[i]);
       file = process.platform === 'win32' ? file.replace(/\\/g, '/') : file;
       file = /^\./.test(file) ? file : ('./'+file);
-      codes.push(`const data${i} = require('${file}');`);
-      items.push({ ...tags, index: i });
-    }
 
-    let gap = '';
-    if (this.enviroment) {
-      gap = '  ';
-      codes.push(`if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {`);
-    }
+      const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
+      const { method, delay, status, header, times } = tags;
 
-    codes.push(`${gap}const mocker = HttpRequestMock.setup();`);
-    for (const item of items) {
-      const method = `mocker.${item.method}`;
-      const url = typeof item.url === 'object' ? item.url : `'${item.url}'`;
-      const response = `data${item.index}`;
-
-      const { delay, status, times, header } = item;
-      if (delay || status || times || header) {
-        const opts = gap
-          ? JSON.stringify({ delay, status, times, header }, null, 2).replace(/\n/g, '\n  ')
-          : JSON.stringify({ delay, status, times, header }, null, 2);
-        codes.push(`${gap}${method}(${url}, ${response}, ${opts});`);
-      } else {
-        codes.push(`${gap}${method}(${url}, ${response});`);
-      }
+      const info = JSON.stringify({ url: '', method, response: '', delay, status, times, header }, null, 2)
+        .replace(`"url": "",`, `"url": ${url},`)
+        .replace(`"response": "",`, `"response": require('${file}'),`);
+      items.push(`${gap}mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info});`);
     }
-
-    if (this.enviroment) {
-      codes.push(`}`);
-    }
-    codes.push('/* eslint-enable */');
+    codes[4] = items.join('\n'); // mock-items-place-holder
     return codes.join('\n');
   }
 
@@ -319,7 +292,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
     res.header = Object.keys(header).length > 0 ? header : undefined;
-    res.method = /^(get|post|put|patch|delete|head)$/i.test(res.method) ? res.method.toLowerCase() : 'any';
+    res.method = /^(get|post|put|patch|delete|head|any)$/i.test(res.method) ? res.method.toLowerCase() : undefined;
     res.disable = /^(yes|true|1|no|false|0)$/i.test(res.disable) ? res.disable.toLowerCase() : undefined;
     res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
     res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;

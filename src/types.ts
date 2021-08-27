@@ -1,4 +1,5 @@
 import http from 'http';
+import MockItem from './mocker/mock-item';
 
 export enum Method {
   get = 'get',
@@ -23,18 +24,19 @@ export interface Header {
   [key: string]: string
 };
 
-export interface MockItemInfo {
-  url: RegExp | string;
-  regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
-  method?: Method;
-  header?: Header, // response header
-  delay?: number;
-  disable?: Disable;
-  times?: number;
-  response?: any; // response body
-  status?: number; // http status code
-  file?: string; // may be populated by webpack
-};
+// export interface MockItem {
+//   url: RegExp | string;
+//   regexp?: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
+//   method?: Method;
+//   header?: Header, // response header
+//   delay?: number;
+//   disable?: Disable;
+//   times?: number;
+//   response?: any; // response body
+//   status?: number; // http status code
+//   file?: string; // may be populated by webpack
+//   bypass?: Function;
+// };
 
 export interface MockItemExt {
   header?: Header, // response header
@@ -45,7 +47,7 @@ export interface MockItemExt {
 };
 
 export interface MockConfigData {
-  [key: string]: MockItemInfo
+  [key: string]: MockItem
 };
 export interface RequestInfo {
   url: string;
@@ -56,10 +58,12 @@ export interface RequestInfo {
 }
 
 export interface XMLHttpRequestInstance extends XMLHttpRequest {
-  isMockRequest: boolean;
-  mockRequestInfo: MockItemInfo
-  xhrRequestInfo: RequestInfo
-  mockResponse: any,
+  bypassMock: boolean;
+  isMockRequest: string;
+  mockItem: MockItem;
+  mockResponse: any;
+  requestInfo: RequestInfo;
+  requestArgs: any[];
 }
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
@@ -74,19 +78,27 @@ export interface WxRequestOpts {
 };
 
 export interface ClientRequestType extends http.ClientRequest{
+  originalInstance: null | http.ClientRequest;
+  originalReqestMethod: Function;
+  originalRequestArgs: any[];
+
   response: http.IncomingMessage;
   requestBody: Buffer;
-  mockItemResolver: Promise<MockItemInfo>;
+  mockItemResolver: Promise<MockItem>;
+
 
   url: string;
   options: { [key: string]: any };
   callback: ((...args: any[]) => any) | undefined;
 
   init: Function;
+  setOriginalRequestInfo: Function;
   setMockItemResolver: Function;
   setResponseResult: Function;
+  sendEndingEvent: Function;
   sendError: Function;
   getEndArguments: Function;
   getRequestHeaders: Function;
   bufferToString: Function;
+  fallbackToOriginalRequest: Function;
 }

@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import FakeXMLHttpRequest from '../src/fake/xhr';
+import FakeXMLHttpRequest from '../src/faker/xhr';
 import HttpRequestMock from '../src/index';
 
 global.XMLHttpRequest = undefined; // do not use XMLHttpRequest in jsdom
@@ -62,7 +62,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/delay',
       delay: 100,
-      response: { ret: 0, msg: 'delay' },
+      body: { ret: 0, msg: 'delay' },
     });
 
     const time = Date.now();
@@ -76,7 +76,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/status404',
       status: 404,
-      response: 'not found'
+      body: 'not found'
     });
 
     request('http://www.api.com/status404').then(res => {
@@ -94,12 +94,12 @@ describe('mock xhr requests', () => {
     mocker.delete('http://www.api.com/delete', 'delete');
     mocker.head('http://www.api.com/head');
 
-    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', response: 'method-get'});
-    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', response: 'method-post'});
-    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', response: 'method-put'});
-    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', response: 'method-patch'});
-    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', response: 'method-delete'});
-    mocker.mock({method: 'head', url: 'http://www.api.com/method-head', response: ''});
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', body: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', body: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', body: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', body: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', body: 'method-delete'});
+    mocker.mock({method: 'head', url: 'http://www.api.com/method-head', body: ''});
 
     const res = await Promise.all([
       request('http://www.api.com/get', 'get').then(res => res.data),
@@ -127,7 +127,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
-      response: 'headers',
+      body: 'headers',
       header: {
         custom: 'a-customized-header',
         another: 'another-header'
@@ -182,7 +182,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/request-info',
       method: 'get',
-      response: (reqInfo) => {
+      body: (reqInfo) => {
         requestInfo = reqInfo;
         return requestInfo;
       }
@@ -198,7 +198,7 @@ describe('mock xhr requests', () => {
     mocker.mock({
       url: 'http://www.api.com/function',
       method: 'any',
-      response: () => {
+      body: () => {
         index = index + 1;
         return 'data'+index;
       }
@@ -214,7 +214,7 @@ describe('mock xhr requests', () => {
     let index = 0;
     mocker.mock({
       url: 'http://www.api.com/async-function',
-      response: async () => {
+      body: async () => {
         await new Promise(resolve => setTimeout(resolve, 101));
         index = index + 1;
         return 'data'+index;
@@ -232,10 +232,10 @@ describe('mock xhr requests', () => {
     expect(res2.data).toBe('data2');
   });
 
-  it('xhr object should have a xhrRequestInfo property', async () => {
+  it('xhr object should have a requestInfo property', async () => {
     mocker.mock({
       url: 'http://www.api.com/xhr-requestInfo',
-      response: 'xhr-requestInfo'
+      body: 'xhr-requestInfo'
     });
 
     await new Promise(resolve => {
@@ -243,8 +243,8 @@ describe('mock xhr requests', () => {
       expect(xhr).toBeInstanceOf(FakeXMLHttpRequest);
       xhr.open('post', 'http://www.api.com/xhr-requestInfo');
       xhr.onreadystatechange = function () {
-        expect(xhr.xhrRequestInfo).toBeTruthy();
-        expect(xhr.xhrRequestInfo.body).toMatchObject({test: 1});
+        expect(xhr.requestInfo).toBeTruthy();
+        expect(xhr.requestInfo.body).toMatchObject({test: 1});
         resolve();
       };
       xhr.send('{"test": 1}');
@@ -253,8 +253,8 @@ describe('mock xhr requests', () => {
       const xhr = new XMLHttpRequest();
       xhr.open('post', 'http://www.api.com/xhr-requestInfo');
       xhr.onreadystatechange = function () {
-        expect(xhr.xhrRequestInfo).toBeTruthy();
-        expect(xhr.xhrRequestInfo.body).toBe('{test: 1}');
+        expect(xhr.requestInfo).toBeTruthy();
+        expect(xhr.requestInfo.body).toBe('{test: 1}');
         resolve();
       };
       xhr.send('{test: 1}'); // faled to parse
@@ -263,8 +263,8 @@ describe('mock xhr requests', () => {
       const xhr = new XMLHttpRequest();
       xhr.open('post', 'http://www.api.com/xhr-requestInfo');
       xhr.onreadystatechange = function () {
-        expect(xhr.xhrRequestInfo).toBeTruthy();
-        expect(xhr.xhrRequestInfo.body).toBe('test: 1');
+        expect(xhr.requestInfo).toBeTruthy();
+        expect(xhr.requestInfo.body).toBe('test: 1');
         resolve();
       };
       xhr.send('test: 1'); // faled to parse
@@ -273,21 +273,19 @@ describe('mock xhr requests', () => {
 
   it('instance of FakeXMLHttpRequest should have some necessary properties.', async () => {
     const fake = new FakeXMLHttpRequest();
-    expect(fake.open()).toBe(undefined);
-    expect(fake.send()).toBe(undefined);
-    expect(fake.setRequestHeader()).toBe(undefined);
-    expect(fake.onreadystatechange()).toBe(undefined);
-    expect(fake.load()).toBe(undefined);
-    expect(fake.loadend()).toBe(undefined);
-    expect(fake.getAllResponseHeaders()).toBe(undefined);
-    expect(fake.getResponseHeader()).toBe(undefined);
+    fake.open('get', 'http://fake.api.com');
+    expect(fake.open).toBeTruthy();
+    expect(fake.send).toBeTruthy();
+    expect(fake.setRequestHeader).toBeTruthy();
+    expect(fake.getAllResponseHeaders).toBeTruthy();
+    expect(fake.getResponseHeader).toBeTruthy();
 
-    expect(fake.readyState).toBe(4);
-    expect(fake.status).toBe(200);
-    expect(fake.statusText).toBe('');
-    expect(fake.response).toBe('');
-    expect(fake.responseText).toBe('');
-    expect(fake.responseURL).toBe('');
-    expect(fake.responseXML).toBe('');
+    expect(fake.readyState).not.toBe(undefined);
+    expect(fake.status).not.toBe(undefined);
+    expect(fake.statusText).not.toBe(undefined);
+    expect(fake.response).not.toBe(undefined);
+    expect(fake.responseText).not.toBe(undefined);
+    expect(fake.responseURL).not.toBe(undefined);
+    expect(fake.responseXML).not.toBe(undefined);
   });
 });

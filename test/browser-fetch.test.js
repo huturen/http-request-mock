@@ -36,6 +36,30 @@ describe('mock fetch requests for browser envrioment', () => {
     ]);
   });
 
+  it('response of fetch should contain necessary properties of Response', async () => {
+    mocker.get('http://www.api.com/fetch-response', 'get content');
+    const originalHeaders = global.Headers;
+    const originalBlob = global.Blob;
+    global.Headers = undefined;
+    global.Blob = undefined;
+    const res = await fetch('http://www.api.com/partial');
+    expect(res.json().then).toBeTruthy();
+    expect(res.arrayBuffer().then).toBeTruthy();
+    expect(res.blob().then).toBeTruthy();
+    expect(res.formData().then).toBeTruthy();
+    expect(res.text().then).toBeTruthy();
+    expect(res.clone()).toBeTruthy();
+    expect(res.error()).toBeTruthy();
+    expect(res.redirect()).toBeTruthy();
+    global.Headers = originalHeaders;
+    global.Blob = originalBlob;
+
+    global.Response = function(){};
+    const res2 = await fetch('http://www.api.com/partial');
+    expect(res2 instanceof global.Response).toBe(true);
+    global.Response = undefined;
+  });
+
   it('url config item should support RegExp matching', async () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
@@ -47,7 +71,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.mock({
       url: 'http://www.api.com/delay',
       delay: 100,
-      response: { ret: 0, msg: 'delay'}
+      body: { ret: 0, msg: 'delay'}
     });
 
     const time = Date.now();
@@ -61,7 +85,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.mock({
       url: 'http://www.api.com/status404',
       status: 404,
-      response: 'not found'
+      body: 'not found'
     });
 
     request('http://www.api.com/status404').then(res => {
@@ -78,11 +102,11 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.patch('http://www.api.com/patch', 'patch');
     mocker.delete('http://www.api.com/delete', 'delete');
 
-    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', response: 'method-get'});
-    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', response: 'method-post'});
-    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', response: 'method-put'});
-    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', response: 'method-patch'});
-    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', response: 'method-delete'});
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', body: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', body: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', body: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', body: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', body: 'method-delete'});
 
     const res = await Promise.all([
       request('http://www.api.com/get', 'get').then(res => res.data),
@@ -108,7 +132,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
-      response: 'headers',
+      body: 'headers',
       header: {
         custom: 'a-customized-header',
         another: 'another-header'
@@ -148,7 +172,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.mock({
       url: 'http://www.api.com/request-info',
       method: 'get',
-      response: (reqInfo) => {
+      body: (reqInfo) => {
         requestInfo = reqInfo;
         return requestInfo;
       }
@@ -164,7 +188,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.mock({
       url: 'http://www.api.com/function',
       method: 'any',
-      response: () => {
+      body: () => {
         index = index + 1;
         return 'data'+index;
       }
@@ -180,7 +204,7 @@ describe('mock fetch requests for browser envrioment', () => {
     let index = 0;
     mocker.mock({
       url: 'http://www.api.com/async-function',
-      response: async () => {
+      body: async () => {
         await new Promise(resolve => setTimeout(resolve, 101));
         index = index + 1;
         return 'data'+index;

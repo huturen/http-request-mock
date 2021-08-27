@@ -1,9 +1,11 @@
 import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
+import Bypass from '../../common/bypass';
 import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
-import { ClientRequestType, MockItemInfo, RequestInfo } from '../../types';
+import MockItem from '../../mocker/mock-item';
+import { ClientRequestType, RequestInfo } from '../../types';
 
 /**
  * ClientRequest constructor
@@ -15,7 +17,7 @@ function ClientRequest(
   this: ClientRequestType,
   url: string,
   options: { [key: string]: any },
-  callback?: (...args: any[]) => any
+  callback: undefined | ((...args: any[]) => any),
 ) {
 
   // http.OutgoingMessage serves as the parent class of http.ClientRequest and http.ServerResponse.
@@ -26,6 +28,7 @@ function ClientRequest(
   this.url = url;
   this.options = options;
   this.callback = callback;
+  this.originalInstance = null;
 
   /**
    * Initialize socket & response object
@@ -76,11 +79,16 @@ function ClientRequest(
 
   /**
    * Set mock item resolver. 'mockItemResolver' will be used in end method.`
-   * @param {Promise<MockItemInfo>} mockItemResolver
+   * @param {Promise<MockItem>} mockItemResolver
    */
-  this.setMockItemResolver = (mockItemResolver: Promise<MockItemInfo>) => {
+  this.setMockItemResolver = (mockItemResolver: Promise<MockItem>) => {
     this.mockItemResolver = mockItemResolver;
     return this;
+  }
+
+  this.setOriginalRequestInfo = (originalReqestMethod: Function, originalRequestArgs: any[]) => {
+    this.originalReqestMethod = originalReqestMethod;
+    this.originalRequestArgs = originalRequestArgs;
   }
 
   /**
@@ -98,7 +106,9 @@ function ClientRequest(
 
     this.response.emit('close', error);
     // socket.destroy()
-    this.emit('abort')
+    this.emit('abort');
+
+    return this;
   };
 
   /**
@@ -107,6 +117,7 @@ function ClientRequest(
    */
   this.abort = () => {
     this.destroy();
+    return this;
   }
 
   /**
@@ -150,13 +161,13 @@ function ClientRequest(
   }
 
   /**
-     * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
-     *
-     * Finishes sending the request. If any parts of the body are unsent, it will flush them to the stream.
-     * Simulation: request.end([data[, encoding]][, callback])
-     * @param {any[]} args
-     */
-  this.end =  async (...args: any[]) => {
+   * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
+   *
+   * Finishes sending the request. If any parts of the body are unsent, it will flush them to the stream.
+   * Simulation: request.end([data[, encoding]][, callback])
+   * @param {any[]} args
+   */
+  this.end = async (...args: any[]) => {
     const [data, encoding, callback] = this.getEndArguments(args);
     // If data is specified, it is equivalent to calling
     // request.write(data, encoding) followed by request.end(callback).
@@ -167,9 +178,20 @@ function ClientRequest(
     }
 
     if (!this.response.complete) {
-      await this.setResponseResult();
+      const res = await this.setResponseResult();
+      if (res instanceof Bypass) {
+        return this.fallbackToOriginalRequest(...args);
+      }
     }
 
+    this.sendEndingEvent(callback);
+    return this;
+  }
+
+  /**
+   * Send completed event.
+   */
+  this.sendEndingEvent = (callback: Function) => {
     if (typeof callback === 'function') {
       callback();
     }
@@ -190,36 +212,72 @@ function ClientRequest(
    * It awaits mock item resolver & set response result.
    */
   this.setResponseResult = async () => {
-    const mockItem: MockItemInfo = await this.mockItemResolver;
+    const mockItem: MockItem = await this.mockItemResolver;
 
-    this.response.statusCode = mockItem.status || 200;
+    const responseBody = await mockItem.sendBody(<RequestInfo>{
+      url: this.url,
+      method: this.options.method || 'GET',
+      query: getQuery(this.url),
+      headers: this.getRequestHeaders(),
+      body: this.bufferToString(this.requestBody)
+    });
+
+    if (responseBody instanceof Bypass) {
+      return responseBody;
+    }
+
+    this.response.statusCode = mockItem.status;
     this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
     this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
     this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
       return res.concat(item as any)
     }, []);
 
-    const responseBody: any = typeof mockItem.response === 'function'
-      ? await mockItem.response(<RequestInfo>{
-        url: this.url,
-        method: this.options.method || 'GET',
-        query: getQuery(this.url),
-        headers: this.getRequestHeaders(),
-        body: this.bufferToString(this.requestBody)
-      })
-      : mockItem.response;
-
     // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
-    if (typeof mockItem.response === 'string'
-      || (mockItem.response instanceof Buffer)
-      || (mockItem.response instanceof ArrayBuffer)
-      || (mockItem.response instanceof SharedArrayBuffer)
-      || (mockItem.response instanceof Uint8Array)
+    if (typeof responseBody === 'string'
+      || (responseBody instanceof Buffer)
+      || (responseBody instanceof ArrayBuffer)
+      || (responseBody instanceof SharedArrayBuffer)
+      || (responseBody instanceof Uint8Array)
     ) {
-      this.response.push(Buffer.from(responseBody));
+      this.response.push(Buffer.from(responseBody as any));
     } else {
       this.response.push(JSON.stringify(responseBody));
     }
+    return true;
+  }
+
+  this.fallbackToOriginalRequest = (...endArgs: any[]) => {
+    this.originalInstance = this.originalReqestMethod(...this.originalRequestArgs);
+    // @ts-ignore
+    Object.entries(this.getHeaders()).forEach((entry) => {
+      if (entry[1] !== null && entry[1] !== undefined) {
+        this.originalInstance!.setHeader(entry[0], entry[1]);
+      }
+    });
+    if (this.requestBody.length) {
+      // @ts-ignore
+      this.originalInstance.write(this.requestBody);
+    }
+    // @ts-ignore
+    this.originalInstance.on('connect', (...args) => this.emit('connect', ...args));
+    // @ts-ignore
+    this.originalInstance.on('finish', (...args) => this.emit('finish', ...args));
+    // @ts-ignore
+    this.originalInstance.on('abort', (...args) => this.emit('abort', ...args));
+    // @ts-ignore
+    this.originalInstance.on('error', (error) => this.emit('error', error));
+    // @ts-ignore
+    this.originalInstance.on('information', (...args) => this.emit('information', ...args));
+    // @ts-ignore
+    this.originalInstance.on('response', (...args) => this.emit('response', ...args));
+    // @ts-ignore
+    this.originalInstance.on('timeout', (...args) => this.emit('timeout', ...args));
+
+    // @ts-ignore
+    this.originalInstance.end(...endArgs);
+
+    return this.originalInstance;
   }
 
   /**

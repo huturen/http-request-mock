@@ -1,6 +1,7 @@
 import { getQuery, tryToParseObject } from '../common/utils';
-import Mocker from '../mocker';
-import { Method, MockItemInfo, RequestInfo } from '../types';
+import MockItem from '../mocker/mock-item';
+import Mocker from '../mocker/mocker';
+import { Method, RequestInfo } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
@@ -40,8 +41,8 @@ export default class BaseInterceptor {
    * @param {string} reqUrl
    * @param {string} reqMethod
    */
-  protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
-    const mockItem: MockItemInfo | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
+  protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItem | null {
+    const mockItem: MockItem | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
     if (mockItem && mockItem.times !== undefined) {
       mockItem.times -= 1;
     }

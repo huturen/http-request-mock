@@ -9,7 +9,7 @@ const mockItem = mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
   method: 'any',
   times: 2,
-  response: {mock: 'some response data'}
+  body: {mock: 'some response data'}
 });
 
 (async () => {

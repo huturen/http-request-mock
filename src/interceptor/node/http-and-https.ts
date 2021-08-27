@@ -2,8 +2,9 @@ import http from 'http';
 import https from 'https';
 import urlUtil from 'url';
 import { isObject } from '../../common/utils';
-import Mocker from '../../mocker';
-import { ClientRequestType, MockItemInfo } from '../../types';
+import MockItem from '../../mocker/mock-item';
+import Mocker from '../../mocker/mocker';
+import { ClientRequestType } from '../../types';
 import Base from '../base';
 import ClientRequest from './client-request';
 
@@ -38,7 +39,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    */
   static setupForUnitTest(mocker: Mocker) {
     if (typeof process === 'undefined' || Object.prototype.toString.call(process) !== '[object process]') {
-      throw new Error('Not a node envrioment.');
+      throw new Error('Not a nodejs envrioment.');
     }
     return new NodeHttpAndHttpsRequestInterceptor(mocker);
   }
@@ -62,6 +63,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     http.request = function(...args: any[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
+        clientRequest.setOriginalRequestInfo(me.httpRequest, args);
         return clientRequest;
       }
       return me.httpRequest(...args);
@@ -69,6 +71,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     https.request = function(...args: any[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
+        clientRequest.setOriginalRequestInfo(me.httpsRequest, args);
         return clientRequest;
       }
       return me.httpsRequest(...args);
@@ -89,6 +92,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     http.get = function(...args: any[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
+        clientRequest.setOriginalRequestInfo(me.httpGet, args);
         clientRequest.end();
         return clientRequest;
       }
@@ -98,6 +102,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     https.get = function(...args: any[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
+        clientRequest.setOriginalRequestInfo(me.httpsGet, args);
         clientRequest.end();
         return clientRequest;
       }
@@ -111,9 +116,14 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    */
   private getClientRequest(args: any[]) {
     const [url, options, callback] = this.getRequestArguments(args);
+    if (options.useNativeModule) {
+      delete options.useNativeModule; // not a standard option
+      return false;
+    }
+
     const method = options.method || 'GET';
 
-    const mockItem:MockItemInfo | null  = this.matchMockRequest(url, method);
+    const mockItem:MockItem | null  = this.matchMockRequest(url, method);
 
     if (!mockItem) return false;
 
@@ -126,19 +136,19 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
   /**
    * Make mock request.
    * @param {ClientRequest} clientRequest
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    */
-  private doMockRequest(clientRequest: ClientRequestType, mockItem: MockItemInfo) {
+  private doMockRequest(clientRequest: ClientRequestType, mockItem: MockItem) {
     this.doMockResponse(clientRequest, mockItem);
   }
 
   /**
    * Make mock request.
    * @param {ClientRequest} clientRequest
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    */
-  private doMockResponse(clientRequest: ClientRequestType, mockItem: MockItemInfo) {
-    const mockItemResolver: Promise<MockItemInfo> = new Promise(resolve => {
+  private doMockResponse(clientRequest: ClientRequestType, mockItem: MockItem) {
+    const mockItemResolver: Promise<MockItem> = new Promise(resolve => {
       if (mockItem.delay && mockItem.delay > 0) {
         setTimeout(() => resolve(mockItem), +mockItem.delay);
       } else {

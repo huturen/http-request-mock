@@ -216,9 +216,9 @@ module.exports = class HttpRequestMockMockPlugin {
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
       const { method, delay, status, header, times } = tags;
 
-      const info = JSON.stringify({ url: '', method, response: '', delay, status, times, header }, null, 2)
+      const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
         .replace(`"url": "",`, `"url": ${url},`)
-        .replace(`"response": "",`, '"response": data.default,');
+        .replace(`"body": "",`, '"body": data.default,');
       items.push(`${gap}import('${file}').then(data => mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info}));`);
     }
     codes[4] = items.join('\n'); // mock-items-place-holder
@@ -258,7 +258,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
       const info = JSON.stringify({ url: '', method, response: '', delay, status, times, header }, null, 2)
         .replace(`"url": "",`, `"url": ${url},`)
-        .replace(`"response": "",`, `"response": require('${file}'),`);
+        .replace(`"body": "",`, `"body": require('${file}'),`);
       items.push(`${gap}mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info});`);
     }
     codes[4] = items.join('\n'); // mock-items-place-holder

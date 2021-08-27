@@ -8,7 +8,7 @@ const axios = require('axios');
 const mockItem = mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
   method: 'any',
-  response: {mock: 'some response data'}
+  body: {mock: 'some response data'}
 });
 
 (async () => {

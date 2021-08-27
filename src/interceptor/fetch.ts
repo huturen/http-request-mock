@@ -1,6 +1,10 @@
+import Bypass from '../common/bypass';
+import { sleep } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import Mocker from '../mocker';
-import { MockItemInfo, RequestInfo } from '../types';
+import fakeFetch from '../faker/fetch';
+import MockItem from '../mocker/mock-item';
+import Mocker from '../mocker/mocker';
+import { RequestInfo } from '../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
@@ -28,7 +32,7 @@ export default class FetchInterceptor extends Base{
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
-      global.fetch = function() {};
+      global.fetch = fakeFetch;
     }
     return new FetchInterceptor(mocker);
   }
@@ -47,7 +51,7 @@ export default class FetchInterceptor extends Base{
       // https://developer.mozilla.org/en-US/docs/Web/API/Request
       // Note: the first argument of fetch maybe a Request object.
       if (typeof args[0] === 'object') {
-        url = args[0].url || '';
+        url = args[0].url;
         params = args[0];
       } else {
         url = args[0];
@@ -57,10 +61,14 @@ export default class FetchInterceptor extends Base{
       const method = params && params.method ? params.method : 'GET';
 
       return new Promise((resolve, reject) => {
-        const mockItem:MockItemInfo | null  = me.matchMockRequest(url, method);
+        const mockItem:MockItem | null  = me.matchMockRequest(url, method);
         if (mockItem) {
           const requestInfo = me.getRequestInfo({ url, method, ...params });
-          me.doMockRequest(mockItem, requestInfo, resolve);
+          me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
+            if (isBypassed) {
+              me.fetch(...args).then(resolve).catch(reject);
+            }
+          });
         } else {
           me.fetch(...args).then(resolve).catch(reject);
         }
@@ -71,44 +79,48 @@ export default class FetchInterceptor extends Base{
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, resolve: Function) {
+  private async doMockRequest(mockItem: MockItem, requestInfo: RequestInfo, resolve: Function) {
+    let isBypassed = false;
     if (mockItem.delay && mockItem.delay > 0) {
-      setTimeout(() => {
-        this.doMockResponse(mockItem, requestInfo, resolve);
-      }, +mockItem.delay);
+      await sleep(+mockItem.delay);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve);
     } else {
-      this.doMockResponse(mockItem, requestInfo, resolve);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve);
     }
+    return isBypassed;
   }
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private async doMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo, resolve: Function) {
-    const body = typeof mockItem.response === 'function'
-      ? await mockItem.response(requestInfo)
-      : mockItem.response;
+  private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, resolve: Function) {
+    const body = await mockItem.sendBody(requestInfo);
 
-      resolve(this.getFetchResponse(body, mockItem, requestInfo));
+    if (body instanceof Bypass) {
+      return true;
+    }
+
+    resolve(this.getFetchResponse(body, mockItem, requestInfo));
+    return false;
   }
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
    * @param {any} responseBody
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getFetchResponse(responseBody: any, mockItem: MockItemInfo, requestInfo: RequestInfo) {
+  getFetchResponse(responseBody: any, mockItem: MockItem, requestInfo: RequestInfo) {
     const data = responseBody;
-    const status = mockItem.status || 200;
+    const status = mockItem.status;
     const statusText = HTTPStatusCodes[status] || '';
 
     const headers = typeof Headers === 'function'

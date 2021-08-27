@@ -1,4 +1,7 @@
 ### Changelog
+[2021-08-28]
+1. support to bypass a mock request
+
 [2021-08-20]
 1. add runtime plugin
 2. add `--type` option to cli
@@ -62,6 +65,10 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-08-28]
+1. support to bypass a mock request
+2. enhance interception capability
+
 [2021-08-14]
 1. `http-request-mock-cli -w` supports a customized command to start a mock development
 

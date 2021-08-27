@@ -1,6 +1,9 @@
-import { isObject } from '../common/utils';
-import Mocker from '../mocker';
-import { MockItemInfo, RequestInfo, WxRequestOpts } from '../types';
+import Bypass from '../common/bypass';
+import { isObject, sleep } from '../common/utils';
+import fakeWxRequest from '../faker/wx-request';
+import MockItem from '../mocker/mock-item';
+import Mocker from '../mocker/mocker';
+import { RequestInfo, WxRequestOpts } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -29,7 +32,7 @@ export default class WxRequestInterceptor extends Base {
     const global = Base.getGlobal();
     global.wx = global.wx || {};
     if (!global.wx.request) {
-      global.wx.request = function() {};
+      global.wx.request = fakeWxRequest.bind(global.wx);
     }
     return new WxRequestInterceptor(mocker);
   }
@@ -40,69 +43,77 @@ export default class WxRequestInterceptor extends Base {
    */
   private intercept() {
     Object.defineProperty(wx, 'request', {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value: (wxRequestOpts: WxRequestOpts) => {
-          if (!wxRequestOpts || !wxRequestOpts.url) {
-            return;
-          }
-
-          const mockItem: MockItemInfo | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
-          const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
-            if (/^get$/i.test(wxRequestOpts.method!) && isObject(wxRequestOpts.data)) {
-              requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
-            } else {
-              requestInfo.body = wxRequestOpts.data;
-            }
-
-          if (mockItem) {
-            this.doMockRequest(mockItem, requestInfo, wxRequestOpts);
-          } else {
-            this.wxRequest(wxRequestOpts); // fallback to original wx.request
-          }
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: (wxRequestOpts: WxRequestOpts) => {
+        if (!wxRequestOpts || !wxRequestOpts.url) {
+          return;
         }
+
+        const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
+        const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
+          if (/^get$/i.test(wxRequestOpts.method!) && isObject(wxRequestOpts.data)) {
+            requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
+          } else {
+            requestInfo.body = wxRequestOpts.data;
+          }
+
+        if (mockItem) {
+          this.doMockRequest(mockItem, requestInfo, wxRequestOpts).then(isBypassed => {
+            if (isBypassed) {
+              this.wxRequest(wxRequestOpts); // fallback to original wx.request
+            }
+          });
+          return { abort() {} };
+        } else {
+          return this.wxRequest(wxRequestOpts); // fallback to original wx.request
+        }
+      }
     });
     return this;
   }
 
   /**
    * Make mock request.
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    * @param {WxRequestOpts} wxRequestOpts
    */
-  private doMockRequest(mockItem: MockItemInfo, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+  private async doMockRequest(mockItem: MockItem, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+    let isBypassed = false;
     if (mockItem.delay && mockItem.delay > 0) {
-      setTimeout(() => {
-        this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
-      }, +mockItem.delay);
+      await sleep(+mockItem.delay);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
     } else {
-      this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
     }
+    return isBypassed;
   }
 
   /**
    * Make mock response.
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    * @param {WxRequestOpts} wxRequestOpts
    */
-  private async doMockResponse(mockItem: MockItemInfo, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
-    const body = typeof mockItem.response === 'function'
-      ? await mockItem.response(requestInfo)
-      : mockItem.response;
+  private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+    const body = await mockItem.sendBody(requestInfo);
+    if (body instanceof Bypass) {
+      return true;
+    }
 
     const wxResponse = this.getWxResponse(body, mockItem);
     this.sendResult(wxRequestOpts, wxResponse);
+    return false;
   }
 
   /**
    * Format mock data to fit wx.request callbacks.
-   * @param {MockItemInfo} mockItem
+   * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getWxResponse(responseBody: any, mockItem: MockItemInfo) {
+  getWxResponse(responseBody: any, mockItem: MockItem) {
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
     const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as any);
     return {

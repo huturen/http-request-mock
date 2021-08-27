@@ -15,7 +15,7 @@ mocker.mock({
     'content-type': 'application/text',
     'some-header': 'some-header-value',
   },
-  response(requestInfo) {
+  body(requestInfo) {
     console.log('requestInfo:', requestInfo);
     return 'test response';
   }

@@ -4,7 +4,7 @@ import InterceptorFetch from './interceptor/fetch';
 import NodeHttpAndHttpsRequestInterceptor from './interceptor/node/http-and-https';
 import InterceptorWxRequest from './interceptor/wx-request';
 import InterceptorXhr from './interceptor/xml-http-request';
-import Mocker from './mocker';
+import Mocker from './mocker/mocker';
 
 export default class Index {
   /**
@@ -94,6 +94,10 @@ export default class Index {
    * @param {string} type
    */
   static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request' | 'all') : Mocker {
+    if (typeof process === 'undefined' || Object.prototype.toString.call(process) !== '[object process]') {
+      throw new Error('"setupForUnitTest" is only for nodejs envrioment.');
+    }
+
     const mocker = new Mocker();
 
     if (type === 'wx') {
@@ -110,13 +114,6 @@ export default class Index {
 
     if (type === 'node' || type === 'node.http.request') {
       NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
-
-      // By default, 'jsdom' will set up a fake XMLHttpRequest which triggers "http.request".
-      // So we set up XMLHttpRequest mock too in jest envrioment.
-      // @ts-ignore
-      if (process.env.JEST_WORKER_ID || typeof jest !== 'undefined') {
-        InterceptorXhr.setupForUnitTest(mocker);
-      }
     }
 
     if (type === 'all') {

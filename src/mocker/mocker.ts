@@ -1,4 +1,5 @@
-import { Disable, Method, MockConfigData, MockItemExt, MockItemInfo } from './types';
+import { Method, MockConfigData, MockItemExt } from '../types';
+import MockItem from './mock-item';
 
 export default class Mocker {
   private static instance: Mocker;
@@ -33,7 +34,7 @@ export default class Mocker {
    * @param {string} key
    * @param {any} val
    */
-  private addMockItem(key: string, val: MockItemInfo) {
+  private addMockItem(key: string, val: MockItem) {
     this.mockConfigData[key] = val;
     return this;
   }
@@ -66,33 +67,21 @@ export default class Mocker {
 
   /**
    * Check specified mock item & add it to global mock data configuration.
-   * @param {MockItemInfo} mockItem
-   * @returns false | MockItemInfo
+   * @param {MockItem} mockItem
+   * @returns false | MockItem
    */
-  public mock(mockItem: MockItemInfo) {
-    if (!mockItem.url || (typeof mockItem.url !== 'string' && !(mockItem.url instanceof RegExp))) {
-      return false;
-    }
+  public mock(mockItemInfo: MockItem) {
+    const mockItem = new MockItem(mockItemInfo);
+    if (!mockItem.key) return false;
 
-    mockItem.method = /^(get|post|put|patch|delete|head|any)$/i.test(mockItem.method || '')
-      ? <Method> mockItem.method!.toLowerCase()
-      : <Method> 'any';
-
-    mockItem.header = typeof mockItem.header === 'object' ? mockItem.header : {};
-    mockItem.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;
-    mockItem.times = mockItem.times !== undefined && /^-?\d{0,15}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;
-    mockItem.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
-    mockItem.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'yes' : 'no') as Disable;
-
-    const key = `${mockItem.url}-${mockItem.method}`;
-    this.addMockItem(key, mockItem);
+    this.addMockItem(mockItem.key, mockItem);
     return mockItem;
   }
 
   /**
    * Make a mock item that matches an HTTP GET request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -100,21 +89,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public get(url: RegExp | String, response: any, opts: MockItemExt = {
+  public get(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'get', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'get', body, delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP POST request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -122,21 +111,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public post(url: RegExp | String, response: any, opts: MockItemExt = {
+  public post(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'post', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'post', body, delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP PUT request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -144,21 +133,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public put(url: RegExp | String, response: any, opts: MockItemExt = {
+  public put(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'put', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'put', body, delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP PATCH request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -166,21 +155,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public patch(url: RegExp | String, response: any, opts: MockItemExt = {
+  public patch(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'patch', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'patch', body, delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP DELETE request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -188,14 +177,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public delete(url: RegExp | String, response: any, opts: MockItemExt = {
+  public delete(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'delete', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'delete', body, delay, status, header, times });
     return this;
   }
 
@@ -222,14 +211,14 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'head', response: '', delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'head', body: '', delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD request.
    * @param {RegExp | String} url
-   * @param {any} response
+   * @param {any} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -237,14 +226,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public any(url: RegExp | String, response: any, opts: MockItemExt = {
+  public any(url: RegExp | String, body: any, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItemInfo>{ url, method: 'any', response, delay, status, header, times });
+    this.mock(<MockItem>{ url, method: 'any', body, delay, status, header, times });
     return this;
   }
 
@@ -253,9 +242,9 @@ export default class Mocker {
    * If a match were found, return mock meta information, otherwise a null is returned.
    * @param {string} reqUrl
    * @param {string} reqMethod
-   * @return null | MockItemInfo
+   * @return null | MockItem
    */
-  public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItemInfo | null {
+  public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItem | null {
     if (this.disabled) {
       return null;
     }

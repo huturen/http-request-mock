@@ -1,6 +1,6 @@
 import HttpRequestMock from '../src/index';
 import FetchInterceptor from '../src/interceptor/fetch';
-import Mocker from '../src/mocker';
+import Mocker from '../src/mocker/mocker';
 
 describe('test HttpRequestMock necessary methods', () => {
   it('setup method should return an instance of Mocker', () => {

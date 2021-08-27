@@ -47,7 +47,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/delay',
       delay: 100,
-      response: { ret: 0, msg: 'delay' }
+      body: { ret: 0, msg: 'delay' }
     });
 
     const time = Date.now();
@@ -61,7 +61,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/status404',
       status: 404,
-      response: 'not found'
+      body: 'not found'
     });
 
     request('http://www.api.com/status404').catch(err => {
@@ -79,11 +79,11 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.patch('http://www.api.com/patch', 'patch');
     mocker.delete('http://www.api.com/delete', 'delete');
 
-    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', response: 'method-get'});
-    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', response: 'method-post'});
-    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', response: 'method-put'});
-    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', response: 'method-patch'});
-    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', response: 'method-delete'});
+    mocker.mock({method: 'get', url: 'http://www.api.com/method-get', body: 'method-get'});
+    mocker.mock({method: 'post', url: 'http://www.api.com/method-post', body: 'method-post'});
+    mocker.mock({method: 'put', url: 'http://www.api.com/method-put', body: 'method-put'});
+    mocker.mock({method: 'patch', url: 'http://www.api.com/method-patch', body: 'method-patch'});
+    mocker.mock({method: 'delete', url: 'http://www.api.com/method-delete', body: 'method-delete'});
 
     const res = await Promise.all([
       request('http://www.api.com/get', 'get').then(res => res.data),
@@ -109,7 +109,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
-      response: 'headers',
+      body: 'headers',
       header: {
         custom: 'a-customized-header',
         another: 'another-header'
@@ -149,7 +149,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/request-info',
       method: 'get',
-      response: (reqInfo) => {
+      body: (reqInfo) => {
         requestInfo = reqInfo;
         return requestInfo;
       }
@@ -165,7 +165,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/function',
       method: 'any',
-      response: () => {
+      body: () => {
         index = index + 1;
         return 'data'+index;
       }
@@ -181,7 +181,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     let index = 0;
     mocker.mock({
       url: 'http://www.api.com/async-function',
-      response: async () => {
+      body: async () => {
         await new Promise(resolve => setTimeout(resolve, 101));
         index = index + 1;
         return 'data'+index;

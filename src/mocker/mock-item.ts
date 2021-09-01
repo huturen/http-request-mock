@@ -1,3 +1,4 @@
+import * as faker from 'faker';
 import Bypass from '../common/bypass';
 import { Disable, Header, Method } from '../types';
 
@@ -14,6 +15,7 @@ export default class MockItem {
   public disable: Disable;
   public times: number;
   public key: string;
+  public faker: Faker.FakerStatic;
 
   /**
    * Format specified mock item.
@@ -41,7 +43,8 @@ export default class MockItem {
     } else {
       this.body = '';
     }
-
+    // @ts-ignore
+    this.faker = faker;
     this.key = `${this.url}-${this.method}`;
   }
 

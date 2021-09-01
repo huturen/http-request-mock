@@ -1,4 +1,5 @@
 import http from 'http';
+import https from 'https';
 import { Socket } from 'net';
 import { inherits } from 'util';
 import Bypass from '../../common/bypass';
@@ -251,6 +252,8 @@ function ClientRequest(
   this.fallbackToOriginalRequest = (...endArgs: any[]) => {
     this.originalInstance = this.originalReqestMethod(...this.originalRequestArgs);
     console.log(this.originalReqestMethod.toString());
+    console.log('raw:', this.originalReqestMethod('https://www.a-nonexist-api.com/https-request-bypass'));
+    console.log('raw2:', https.request('https://www.a-nonexist-api.com/https-request-bypass'));
     console.log(this.originalReqestMethod, this.originalRequestArgs, this.originalInstance);
     // @ts-ignore
     Object.entries(this.getHeaders()).forEach((entry) => {

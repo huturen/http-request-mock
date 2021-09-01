@@ -14,7 +14,7 @@ export default function fakeWxRequest(wxReqOpts : any) {
         } else if (typeof res.body === 'string') {
           try {
             data = JSON.parse(res.body);
-          } catch(e) {
+          } catch(e: any) {
             e.message = `res.body is not a json-like string: ${e.message}`
             throw e;
           }

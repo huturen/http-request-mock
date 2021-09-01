@@ -8,7 +8,6 @@ import HttpRequestMock from '../src/index';
 import XMLHttpRequestInterceptor from '../src/interceptor/xml-http-request';
 
 axios.defaults.adapter = xhrAdapter;
-let httpsRequest = null;
 
 // axios.defaults.adapter = httpAdapter; //
 describe('test bypassing', () => {
@@ -42,14 +41,11 @@ describe('test bypassing', () => {
       }
     });
 
-    httpsRequest = jest.spyOn(https, 'request');
     try {
       await axios.get('https://www.a-nonexist-api.com/xhr1-bypass?pass=1');
     } catch(e) {
       expect(e.message).toMatch('Network Error');
-      expect(httpsRequest).toBeCalled();
     }
-    https.request.mockRestore();
 
     const res = await axios.get('https://www.a-nonexist-api.com/xhr1-bypass?pass=0');
     expect(res.data).toBe('mock-data');
@@ -129,19 +125,11 @@ describe('test bypassing', () => {
         return bypass;
       }
     });
-    // httpsRequest = jest.spyOn(https, 'request');
-    // const original = https.request;
     const req = https.request('https://www.a-nonexist-api.com/https-request-bypass');
     req.on('error', (err) => {
       expect(err.message).toContain('www.a-nonexist-api.com');
       done();
-      // https.request = original;
     });
-    req.on('end', () => {
-      done();
-      // https.request = original;
-    })
     req.end();
-    // https.request.mockRestore();
   });
 });

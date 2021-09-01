@@ -7,7 +7,7 @@
     "http-request-mock-cli": "bin/cli.js"
   },
   "scripts": {
-    "test": "jest --no-cache --testTimeout 8000",
+    "test": "jest --no-cache --testTimeout 8000 --detectOpenHandles",
     "coverage": "jest --no-cache --coverage --testTimeout 8000",
     "coveralls": "jest --coverage --testTimeout 8000 --coverageReporters=text-lcov | coveralls",
     "clean": "del-cli dist",

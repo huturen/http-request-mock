@@ -253,16 +253,16 @@ describe('test fake request object', () => {
 
       return { on, end, emit };
     });
+    const [oriHttpsRequest, oriHttpRequest] = [https.request, http.request];
     https.request = request;
     http.request = request;
-    await fallbackDefault('https://www.example.com', null, null, 'abc=123').catch(e => {
-    });
+    await fallbackDefault('https://www.example.com', null, null, 'abc=123').catch(e => {});
     expect(https.request).toBeCalled();
-
 
     await fallbackDefault('http://www.example.com', 'get', {}, 123).catch(e => {
       expect(e instanceof Error).toBe(true);
     });
     expect(http.request).toBeCalled();
+    [https.request, http.request] = [oriHttpsRequest, oriHttpRequest];
   });
 });

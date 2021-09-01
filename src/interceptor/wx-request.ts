@@ -1,6 +1,5 @@
 import Bypass from '../common/bypass';
 import { isObject, sleep } from '../common/utils';
-import fakeWxRequest from '../faker/wx-request';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { RequestInfo, WxRequestOpts } from '../types';
@@ -32,8 +31,9 @@ export default class WxRequestInterceptor extends Base {
     const global = Base.getGlobal();
     global.wx = global.wx || {};
     if (!global.wx.request) {
-      global.wx.request = fakeWxRequest.bind(global.wx);
+      global.wx.request = require('../faker/wx-request').default.bind(global.wx);
     }
+
     return new WxRequestInterceptor(mocker);
   }
 

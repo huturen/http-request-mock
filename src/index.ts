@@ -1,7 +1,4 @@
-
-
 import InterceptorFetch from './interceptor/fetch';
-import NodeHttpAndHttpsRequestInterceptor from './interceptor/node/http-and-https';
 import InterceptorWxRequest from './interceptor/wx-request';
 import InterceptorXhr from './interceptor/xml-http-request';
 import Mocker from './mocker/mocker';
@@ -28,7 +25,7 @@ export default class Index {
 
     // for http.get, https.get, http.request, https.request in node enviroment
     if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
-      NodeHttpAndHttpsRequestInterceptor.setup(mocker);
+      require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
     return mocker;
@@ -60,7 +57,7 @@ export default class Index {
    */
   static setupForNode() : Mocker {
     const mocker = new Mocker();
-    NodeHttpAndHttpsRequestInterceptor.setup(mocker);
+    require('./interceptor/node/http-and-https').default.setup(mocker);
     return mocker;
   }
 
@@ -113,14 +110,14 @@ export default class Index {
     }
 
     if (type === 'node' || type === 'node.http.request') {
-      NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
+      require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 
     if (type === 'all') {
       InterceptorWxRequest.setupForUnitTest(mocker);
       InterceptorXhr.setupForUnitTest(mocker);
       InterceptorFetch.setupForUnitTest(mocker);
-      NodeHttpAndHttpsRequestInterceptor.setupForUnitTest(mocker);
+      require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 
     return mocker;

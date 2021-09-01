@@ -1,7 +1,6 @@
 import Bypass from '../common/bypass';
 import { sleep, tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import FakeXMLHttpRequest from '../faker/xhr';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { Method, XMLHttpRequestInstance } from '../types';
@@ -31,8 +30,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
-    const global = Base.getGlobal();
-    global.XMLHttpRequest = global.XMLHttpRequest || FakeXMLHttpRequest;
+    global.XMLHttpRequest = global.XMLHttpRequest || require('../faker/xhr').default;
     return new XMLHttpRequestInterceptor(mocker);
   }
 

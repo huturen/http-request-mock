@@ -1,4 +1,9 @@
 ### Changelog
+[2021-09-01]
+1. integrate with faker.js
+2. fallback to nodejs native http/https request if not matched for fetch, xhr and wx in unit test enviroment
+
+
 [2021-08-28]
 1. support to bypass a mock request
 
@@ -65,6 +70,10 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-09-01]
+1. integrate with faker.js
+2. fallback request if not matched for fetch, xhr and wx in unit test enviroment
+
 [2021-08-28]
 1. support to bypass a mock request
 2. enhance interception capability

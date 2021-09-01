@@ -56,7 +56,7 @@ describe('mock requests which are triggered by request library', () => {
   it('delay config item should support a delayed response', (done) => {
     mocker.mock({
       url: 'http://www.api.com/delay',
-      delay: 100,
+      delay: 101,
       body: { ret: 0, msg: 'delay'},
       header: {
         'content-type': 'application/json' // response to json

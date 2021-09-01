@@ -9,12 +9,12 @@ cache:
   directories:
     - node_modules
 
-before_deploy: npm run build
-deploy:
-  provider: npm
-  email: "$NPM_EMAIL_ADDRESS"
-  api_key: "$NPM_AUTH_TOKEN"
-  skip_cleanup: true
-  on:
-    tags: true
-    branch: main
+# before_deploy: npm run build
+# deploy:
+#   provider: npm
+#   email: "$NPM_EMAIL_ADDRESS"
+#   api_key: "$NPM_AUTH_TOKEN"
+#   skip_cleanup: true
+#   on:
+#     tags: true
+#     branch: main

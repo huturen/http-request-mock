@@ -180,7 +180,8 @@ function ClientRequest(
     if (!this.response.complete) {
       const res = await this.setResponseResult();
       if (res instanceof Bypass) {
-        return this.fallbackToOriginalRequest(...args);
+        this.fallbackToOriginalRequest(...args);
+        return this;
       }
     }
 
@@ -249,6 +250,7 @@ function ClientRequest(
 
   this.fallbackToOriginalRequest = (...endArgs: any[]) => {
     this.originalInstance = this.originalReqestMethod(...this.originalRequestArgs);
+    console.log(this.originalReqestMethod.toString());
     console.log(this.originalReqestMethod, this.originalRequestArgs, this.originalInstance);
     // @ts-ignore
     Object.entries(this.getHeaders()).forEach((entry) => {

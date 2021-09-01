@@ -1,7 +1,6 @@
 import Bypass from '../common/bypass';
 import { sleep } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import fakeFetch from '../faker/fetch';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { RequestInfo } from '../types';
@@ -32,7 +31,7 @@ export default class FetchInterceptor extends Base{
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
-      global.fetch = fakeFetch;
+      global.fetch = require('../faker/fetch').default;
     }
     return new FetchInterceptor(mocker);
   }

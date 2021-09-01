@@ -249,6 +249,7 @@ function ClientRequest(
 
   this.fallbackToOriginalRequest = (...endArgs: any[]) => {
     this.originalInstance = this.originalReqestMethod(...this.originalRequestArgs);
+    console.log(this.originalReqestMethod, this.originalRequestArgs, this.originalInstance);
     // @ts-ignore
     Object.entries(this.getHeaders()).forEach((entry) => {
       if (entry[1] !== null && entry[1] !== undefined) {

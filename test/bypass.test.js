@@ -130,10 +130,16 @@ describe('test bypassing', () => {
       }
     });
     // httpsRequest = jest.spyOn(https, 'request');
+    // const original = https.request;
     const req = https.request('https://www.a-nonexist-api.com/https-request-bypass');
     req.on('error', (err) => {
       expect(err.message).toContain('www.a-nonexist-api.com');
       done();
+      // https.request = original;
+    });
+    req.on('end', () => {
+      done();
+      // https.request = original;
     })
     req.end();
     // https.request.mockRestore();

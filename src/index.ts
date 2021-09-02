@@ -1,3 +1,4 @@
+import { isNodejs } from './common/utils';
 import InterceptorFetch from './interceptor/fetch';
 import InterceptorWxRequest from './interceptor/wx-request';
 import InterceptorXhr from './interceptor/xml-http-request';
@@ -24,7 +25,7 @@ export default class Index {
     }
 
     // for http.get, https.get, http.request, https.request in node enviroment
-    if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
+    if (isNodejs()) {
       require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
@@ -52,22 +53,22 @@ export default class Index {
   }
 
   /**
-   * Setup request mock for node http/https request.
-   * @param {string} type
-   */
-  static setupForNode() : Mocker {
-    const mocker = new Mocker();
-    require('./interceptor/node/http-and-https').default.setup(mocker);
-    return mocker;
-  }
-
-  /**
    * Setup request mock for fetch.
    * @param {string} type
    */
   static setupForFetch() : Mocker {
     const mocker = new Mocker();
     InterceptorFetch.setup(mocker);
+    return mocker;
+  }
+
+  /**
+   * Setup request mock for node http/https request.
+   * @param {string} type
+   */
+  static setupForNode() : Mocker {
+    const mocker = new Mocker();
+    require('./interceptor/node/http-and-https').default.setup(mocker);
     return mocker;
   }
 
@@ -85,13 +86,26 @@ export default class Index {
     return Mocker.getInstance().disable();
   }
 
+  /**
+   * Enable verbose log.
+   */
+  static enableLog() : Mocker {
+    return Mocker.getInstance().enableLog();
+  }
+
+  /**
+   * Disable verbose log.
+   */
+  static disableLog() : Mocker {
+    return Mocker.getInstance().disableLog();
+  }
 
   /**
    * Setup request mock for unit test.
    * @param {string} type
    */
   static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request' | 'all') : Mocker {
-    if (typeof process === 'undefined' || Object.prototype.toString.call(process) !== '[object process]') {
+    if (!isNodejs()) {
       throw new Error('"setupForUnitTest" is only for nodejs envrioment.');
     }
 

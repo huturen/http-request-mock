@@ -102,10 +102,13 @@ export default class FetchInterceptor extends Base{
   private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, resolve: Function) {
     const body = await mockItem.sendBody(requestInfo);
 
+    const now = Date.now();
     if (body instanceof Bypass) {
       return true;
     }
+    const spent = (Date.now() - now) + (mockItem.delay || 0);
 
+    this.mocker.sendResponseLog(spent, body, requestInfo, mockItem);
     resolve(this.getFetchResponse(body, mockItem, requestInfo));
     return false;
   }

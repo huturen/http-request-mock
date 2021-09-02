@@ -86,3 +86,56 @@ export function isArrayBuffer(data:any) {
   }
   return false;
 }
+
+/**
+ * Get current date.
+ */
+export function currentDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const two = (num: number) => num < 10 ? `0${num}` : `${num}`;
+
+  return `${two(year)}-${two(month)}-${two(date)}`;
+}
+
+/**
+ * Get current time.
+ */
+export function currentTime() {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const second = now.getSeconds();
+  const two = (num: number) => num < 10 ? `0${num}` : `${num}`;
+
+  return `${two(hour)}:${two(minute)}:${two(second)}`;
+}
+
+/**
+ * Get current datetime.
+ */
+export function currentDatetime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const second = now.getSeconds();
+  const two = (num: number) => num < 10 ? `0${num}` : `${num}`;
+
+  return `${two(year)}-${two(month)}-${two(date)} ${two(hour)}:${two(minute)}:${two(second)}`;
+}
+
+/**
+ * Check current envrioment: nodejs or not.
+ * Note: arrow function is required.
+ */
+export function isNodejs() {
+  return (typeof process !== 'undefined')
+    && (Object.prototype.toString.call(process) === '[object process]')
+    && (!!(process.versions && process.versions.node));
+};

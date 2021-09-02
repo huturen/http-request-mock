@@ -15,7 +15,6 @@ export default class MockItem {
   public disable: Disable;
   public times: number;
   public key: string;
-  public faker: Faker.FakerStatic;
 
   /**
    * Format specified mock item.
@@ -43,9 +42,11 @@ export default class MockItem {
     } else {
       this.body = '';
     }
-    // @ts-ignore
-    this.faker = faker;
     this.key = `${this.url}-${this.method}`;
+  }
+
+  get faker(): Faker.FakerStatic {
+    return faker;
   }
 
   public bypass() {

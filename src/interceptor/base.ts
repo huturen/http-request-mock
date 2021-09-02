@@ -52,7 +52,7 @@ export default class BaseInterceptor {
   public getRequestInfo(mixedRequestInfo: any) : RequestInfo {
     const info: RequestInfo = {
       url: mixedRequestInfo.url,
-      method: mixedRequestInfo.method,
+      method: mixedRequestInfo.method || 'GET',
       query: getQuery(mixedRequestInfo.url),
     };
     if (mixedRequestInfo.headers || mixedRequestInfo.header) {

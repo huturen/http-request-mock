@@ -1,4 +1,9 @@
 ### Changelog
+[2021-09-02]
+1. clientRequest.end should return an instance of ClientRequest
+2. pretty log
+3. dynamic import http-request-mock dependency for .runtime.js
+
 [2021-09-01]
 1. integrate with faker.js
 2. fallback to nodejs native http/https request if not matched for fetch, xhr and wx in unit test enviroment
@@ -70,6 +75,11 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-09-02]
+1. clientRequest.end should return an instance of ClientRequest
+2. pretty log
+3. dynamic import http-request-mock dependency for .runtime.js
+
 [2021-09-01]
 1. integrate with faker.js
 2. fallback request if not matched for fetch, xhr and wx in unit test enviroment

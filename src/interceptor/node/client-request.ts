@@ -28,7 +28,7 @@ function ClientRequest(
   this.url = url;
   this.options = options;
   this.callback = callback;
-  this.originalInstance = null;
+  this.nativeInstance = null;
 
   /**
    * Initialize socket & response object
@@ -81,14 +81,14 @@ function ClientRequest(
    * Set mock item resolver. 'mockItemResolver' will be used in end method.`
    * @param {Promise<MockItem>} mockItemResolver
    */
-  this.setMockItemResolver = (mockItemResolver: Promise<MockItem>) => {
+  this.setMockItemResolver = (mockItemResolver: Function) => {
     this.mockItemResolver = mockItemResolver;
     return this;
   }
 
-  this.setOriginalRequestInfo = (originalReqestMethod: Function, originalRequestArgs: any[]) => {
-    this.originalReqestMethod = originalReqestMethod;
-    this.originalRequestArgs = originalRequestArgs;
+  this.setOriginalRequestInfo = (nativeReqestMethod: Function, nativeRequestArgs: any[]) => {
+    this.nativeReqestMethod = nativeReqestMethod;
+    this.nativeRequestArgs = nativeRequestArgs;
   }
 
   /**
@@ -167,7 +167,7 @@ function ClientRequest(
    * Simulation: request.end([data[, encoding]][, callback])
    * @param {any[]} args
    */
-  this.end = async (...args: any[]) => {
+  this.end = (...args: any[]) => {
     const [data, encoding, callback] = this.getEndArguments(args);
     // If data is specified, it is equivalent to calling
     // request.write(data, encoding) followed by request.end(callback).
@@ -178,15 +178,51 @@ function ClientRequest(
     }
 
     if (!this.response.complete) {
-      const res = await this.setResponseResult();
-      if (res instanceof Bypass) {
-        this.fallbackToOriginalRequest(...args);
-        return this;
-      }
+      this.sendResponseResult(callback, ...args);
+      return this;
     }
 
     this.sendEndingEvent(callback);
     return this;
+  }
+
+  /**
+   * It awaits mock item resolver & set response result.
+   */
+  this.sendResponseResult = (endCallback: Function, ...endArgs: any[]) => {
+    this.mockItemResolver((mockItem: MockItem) => {
+      mockItem.sendBody(<RequestInfo>{
+        url: this.url,
+        method: this.options.method || 'GET',
+        query: getQuery(this.url),
+        headers: this.getRequestHeaders(),
+        body: this.bufferToString(this.requestBody)
+      }).then((responseBody) => {
+        if (responseBody instanceof Bypass) {
+          return this.fallbackToNativeRequest(...endArgs);
+        }
+
+        this.response.statusCode = mockItem.status;
+        this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
+        this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
+        this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
+          return res.concat(item as any)
+        }, []);
+
+        // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
+        if (typeof responseBody === 'string'
+          || (responseBody instanceof Buffer)
+          || (responseBody instanceof ArrayBuffer)
+          || (responseBody instanceof SharedArrayBuffer)
+          || (responseBody instanceof Uint8Array)
+        ) {
+          this.response.push(Buffer.from(responseBody as any));
+        } else {
+          this.response.push(JSON.stringify(responseBody));
+        }
+        this.sendEndingEvent(endCallback);
+      });
+    });
   }
 
   /**
@@ -209,76 +245,37 @@ function ClientRequest(
     return this;
   }
 
-  /**
-   * It awaits mock item resolver & set response result.
-   */
-  this.setResponseResult = async () => {
-    const mockItem: MockItem = await this.mockItemResolver;
-
-    const responseBody = await mockItem.sendBody(<RequestInfo>{
-      url: this.url,
-      method: this.options.method || 'GET',
-      query: getQuery(this.url),
-      headers: this.getRequestHeaders(),
-      body: this.bufferToString(this.requestBody)
-    });
-
-    if (responseBody instanceof Bypass) {
-      return responseBody;
-    }
-
-    this.response.statusCode = mockItem.status;
-    this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
-    this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
-    this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
-      return res.concat(item as any)
-    }, []);
-
-    // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
-    if (typeof responseBody === 'string'
-      || (responseBody instanceof Buffer)
-      || (responseBody instanceof ArrayBuffer)
-      || (responseBody instanceof SharedArrayBuffer)
-      || (responseBody instanceof Uint8Array)
-    ) {
-      this.response.push(Buffer.from(responseBody as any));
-    } else {
-      this.response.push(JSON.stringify(responseBody));
-    }
-    return true;
-  }
-
-  this.fallbackToOriginalRequest = (...endArgs: any[]) => {
-    this.originalInstance = this.originalReqestMethod(...this.originalRequestArgs);
+  this.fallbackToNativeRequest = (...endArgs: any[]) => {
+    this.nativeInstance = this.nativeReqestMethod(...this.nativeRequestArgs);
     // @ts-ignore
     Object.entries(this.getHeaders()).forEach((entry) => {
       if (entry[1] !== null && entry[1] !== undefined) {
-        this.originalInstance!.setHeader(entry[0], entry[1]);
+        this.nativeInstance!.setHeader(entry[0], entry[1]);
       }
     });
     if (this.requestBody.length) {
       // @ts-ignore
-      this.originalInstance.write(this.requestBody);
+      this.nativeInstance.write(this.requestBody);
     }
     // @ts-ignore
-    this.originalInstance.on('connect', (...args) => this.emit('connect', ...args));
+    this.nativeInstance.on('connect', (...args) => this.emit('connect', ...args));
     // @ts-ignore
-    this.originalInstance.on('finish', (...args) => this.emit('finish', ...args));
+    this.nativeInstance.on('finish', (...args) => this.emit('finish', ...args));
     // @ts-ignore
-    this.originalInstance.on('abort', (...args) => this.emit('abort', ...args));
+    this.nativeInstance.on('abort', (...args) => this.emit('abort', ...args));
     // @ts-ignore
-    this.originalInstance.on('error', (error) => this.emit('error', error));
+    this.nativeInstance.on('error', (error) => this.emit('error', error));
     // @ts-ignore
-    this.originalInstance.on('information', (...args) => this.emit('information', ...args));
+    this.nativeInstance.on('information', (...args) => this.emit('information', ...args));
     // @ts-ignore
-    this.originalInstance.on('response', (...args) => this.emit('response', ...args));
+    this.nativeInstance.on('response', (...args) => this.emit('response', ...args));
     // @ts-ignore
-    this.originalInstance.on('timeout', (...args) => this.emit('timeout', ...args));
+    this.nativeInstance.on('timeout', (...args) => this.emit('timeout', ...args));
 
     // @ts-ignore
-    this.originalInstance.end(...endArgs);
+    this.nativeInstance.end(...endArgs);
 
-    return this.originalInstance;
+    return this.nativeInstance;
   }
 
   /**

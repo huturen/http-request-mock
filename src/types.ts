@@ -78,13 +78,13 @@ export interface WxRequestOpts {
 };
 
 export interface ClientRequestType extends http.ClientRequest{
-  originalInstance: null | http.ClientRequest;
-  originalReqestMethod: Function;
-  originalRequestArgs: any[];
+  nativeInstance: null | http.ClientRequest;
+  nativeReqestMethod: Function;
+  nativeRequestArgs: any[];
 
   response: http.IncomingMessage;
   requestBody: Buffer;
-  mockItemResolver: Promise<MockItem>;
+  mockItemResolver: Function;
 
 
   url: string;
@@ -94,11 +94,11 @@ export interface ClientRequestType extends http.ClientRequest{
   init: Function;
   setOriginalRequestInfo: Function;
   setMockItemResolver: Function;
-  setResponseResult: Function;
+  sendResponseResult: Function;
   sendEndingEvent: Function;
   sendError: Function;
   getEndArguments: Function;
   getRequestHeaders: Function;
   bufferToString: Function;
-  fallbackToOriginalRequest: Function;
+  fallbackToNativeRequest: Function;
 }

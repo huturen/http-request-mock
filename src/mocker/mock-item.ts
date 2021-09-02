@@ -1,4 +1,4 @@
-import * as faker from 'faker';
+import faker from 'faker';
 import Bypass from '../common/bypass';
 import { Disable, Header, Method } from '../types';
 

@@ -191,14 +191,16 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   getES6RuntimeFileContent() {
     const files = this.getAllMockFiles();
-    const gap = this.enviroment ? '  ' : '';
+    const gap1 = this.enviroment ? '  ' : ''; // for if statement
+    const gap2 = '  '; // for import statement
 
     const codes = [
       '/* eslint-disable */',
-      `import HttpRequestMock from 'http-request-mock';`,
       (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
-      `${gap}const mocker = HttpRequestMock.setup();`,
-      'mock-items-place-holder',
+      `${gap1}import('http-request-mock').then(HttpRequestMock => {`,
+      `${gap1}${gap2}const mocker = HttpRequestMock.default.setup();`,
+      '', // mock-items-place-holder
+      `${gap1}});`,
       (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
     ];
     const items = [];
@@ -219,7 +221,8 @@ module.exports = class HttpRequestMockMockPlugin {
       const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
         .replace(`"url": "",`, `"url": ${url},`)
         .replace(`"body": "",`, '"body": data.default,');
-      items.push(`${gap}import('${file}').then(data => mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info}));`);
+      const config = info.replace(/\n/g, `\n${gap1}${gap2}`);
+      items.push(`${gap1}${gap2}import('${file}').then(data => mocker.mock(${config}));`);
     }
     codes[4] = items.join('\n'); // mock-items-place-holder
     return codes.join('\n');
@@ -234,10 +237,10 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const codes = [
       '/* eslint-disable */',
-      `const HttpRequestMock = require('http-request-mock').default;`,
       (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
+      `${gap}const HttpRequestMock = require('http-request-mock').default;`,
       `${gap}const mocker = HttpRequestMock.setup();`,
-      'mock-items-place-holder',
+      '', // mock-items-place-holder
       (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
     ];
 

@@ -1,6 +1,7 @@
 import { expect, jest } from '@jest/globals';
 import axios from 'axios';
 import xhrAdapter from 'axios/lib/adapters/xhr';
+import http from 'http';
 import https from 'https';
 import Bypass from '../src/common/bypass';
 import * as fallback from '../src/faker/fallback';
@@ -130,6 +131,6 @@ describe('test bypassing', () => {
       expect(err.message).toContain('www.a-nonexist-api.com');
       done();
     });
-    req.end();
+    expect(req.end()).toBeInstanceOf(http.ClientRequest);
   });
 });

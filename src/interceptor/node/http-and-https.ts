@@ -148,13 +148,13 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {MockItem} mockItem
    */
   private doMockResponse(clientRequest: ClientRequestType, mockItem: MockItem) {
-    const mockItemResolver: Promise<MockItem> = new Promise(resolve => {
+    const mockItemResolver = (resolve: Function) => {
       if (mockItem.delay && mockItem.delay > 0) {
         setTimeout(() => resolve(mockItem), +mockItem.delay);
       } else {
         resolve(mockItem);
       }
-    });
+    };
     clientRequest.setMockItemResolver(mockItemResolver);
   }
 

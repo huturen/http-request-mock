@@ -1,5 +1,5 @@
 
-    import HttpRequestMock from '../src/index';
+import HttpRequestMock from '../src/index';
 import FetchInterceptor from '../src/interceptor/fetch';
 import NodeHttpAndHttps from '../src/interceptor/node/http-and-https';
 import WxInterceptor from '../src/interceptor/wx-request';

@@ -1,17 +1,22 @@
-import { Method, MockConfigData, MockItemExt } from '../types';
+import { currentTime, isNodejs } from '../common/utils';
+import { HTTPStatusCodes } from '../config';
+import { Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
   private static instance: Mocker;
   private mockConfigData: MockConfigData;
   private disabled: boolean = false;
+  private log: boolean = false;
 
   constructor() {
     if (Mocker.instance) {
       return Mocker.instance;
     }
     Mocker.instance = this;
+    this.log = !isNodejs();
     this.mockConfigData = {};
+    this.groupLog([['[http-request-mock] is %cloaded.', 'color:inherit;font-weight:bold;']]);
   }
 
   static getInstance() {
@@ -54,6 +59,7 @@ export default class Mocker {
    */
   public enable() {
     this.disabled = false;
+    this.groupLog([['[http-request-mock] is %cenabled.', 'color:green;font-weight:bold;']]);
     return this;
   }
 
@@ -62,6 +68,23 @@ export default class Mocker {
    */
   public disable() {
     this.disabled = true;
+    this.groupLog([['[http-request-mock] is %cdisabled.', 'color:red;font-weight:bold;']]);
+    return this;
+  }
+
+  /**
+   * Disable mock function temporarily.
+   */
+  public disableLog() {
+    this.log = false;
+    return this;
+  }
+
+  /**
+   * Disable mock function temporarily.
+   */
+  public enableLog() {
+    this.log = true;
     return this;
   }
 
@@ -263,12 +286,6 @@ export default class Mocker {
           continue;
         }
 
-        if (Array.isArray(info.regexp) && info.regexp.length === 2
-          && new RegExp(info.regexp[0], info.regexp[1]).test(reqUrl)
-        ) {
-          return info;
-        }
-
         if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
           return info;
         }
@@ -279,5 +296,54 @@ export default class Mocker {
       } catch(e) {}
     }
     return null;
+  }
+
+  public groupLog(logs: any[]) {
+    if (!this.log) return;
+    if (typeof console.groupCollapsed !== 'function') return;
+    if (typeof console.groupEnd !== 'function') return;
+
+    if (Array.isArray(logs[0])) {
+      console.groupCollapsed(...logs[0]);
+    } else {
+      console.groupCollapsed(logs[0])
+    }
+    for(let i = 1; i < logs.length; i++) {
+      if (Array.isArray(logs[i])) {
+        console.log(...logs[i]);
+      } else {
+        console.log(logs[i])
+      }
+    }
+    console.groupEnd()
+  }
+
+  public sendResponseLog(spent: number, body: any, requestInfo: RequestInfo, mockItem: MockItem) {
+    const logs = [
+      [
+        '[http-request-mock] %s %s %s (%c%s%c)',
+        `${currentTime()}`,
+        requestInfo.method,
+        requestInfo.url,
+
+        ('color:' + (mockItem.status < 300 ? 'green' : 'red')),
+        mockItem.status,
+        'color:inherit',
+      ],
+      ['Request: ', requestInfo],
+      ['Response: ', {
+        body,
+        spent,
+        headers: {...mockItem.header, 'x-powered-by': 'http-request-mock'},
+        status: mockItem.status,
+        statusText: HTTPStatusCodes[mockItem.status] || ''
+      }],
+      ['MockItem: ', mockItem]
+    ];
+    if (isNodejs()) { // less information for nodejs
+      const { url, method, delay, times, status, disable } = mockItem;
+      logs[3][1] = { url, method, delay, times, status, disable } as any;
+    }
+    this.groupLog(logs);
   }
 }

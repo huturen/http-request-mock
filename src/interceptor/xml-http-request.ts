@@ -148,11 +148,15 @@ export default class XMLHttpRequestInterceptor extends Base {
   private async doMockResponse(xhr: XMLHttpRequestInstance) {
     const { mockItem, requestInfo } = xhr;
 
+    const now = Date.now();
     const body = await mockItem.sendBody(requestInfo);
     if (body instanceof Bypass) {
       return true;
     }
+    const spent = (Date.now() - now) + (mockItem.delay || 0);
     xhr.mockResponse = body;
+
+    this.mocker.sendResponseLog(spent, body, xhr.requestInfo, mockItem);
     this.sendResult(xhr);
     return false;
   }
@@ -290,7 +294,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'status', {
       get: function() {
         if (this.isMockRequest) {
-          return this.mockItem.status || 200;
+          return this.mockItem.status;
         }
         return typeof original === 'function' ? original.call(this) : original;
       }
@@ -306,7 +310,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'statusText', {
       get: function() {
         if (this.isMockRequest) {
-          return HTTPStatusCodes[this.mockItem.status || 200] || '';
+          return HTTPStatusCodes[this.mockItem.status] || '';
         }
         return typeof original === 'function' ? original.call(this) : original;
       }

@@ -1,7 +1,7 @@
 import http from 'http';
 import https from 'https';
 import urlUtil from 'url';
-import { isObject } from '../../common/utils';
+import { isNodejs, isObject } from '../../common/utils';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
 import { ClientRequestType } from '../../types';
@@ -38,7 +38,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
-    if (typeof process === 'undefined' || Object.prototype.toString.call(process) !== '[object process]') {
+    if (!isNodejs()) {
       throw new Error('Not a nodejs envrioment.');
     }
     return new NodeHttpAndHttpsRequestInterceptor(mocker);
@@ -150,9 +150,9 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
   private doMockResponse(clientRequest: ClientRequestType, mockItem: MockItem) {
     const mockItemResolver = (resolve: Function) => {
       if (mockItem.delay && mockItem.delay > 0) {
-        setTimeout(() => resolve(mockItem), +mockItem.delay);
+        setTimeout(() => resolve(mockItem, this.mocker), +mockItem.delay);
       } else {
-        resolve(mockItem);
+        resolve(mockItem, this.mocker);
       }
     };
     clientRequest.setMockItemResolver(mockItemResolver);

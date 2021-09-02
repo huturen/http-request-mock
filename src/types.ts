@@ -77,6 +77,12 @@ export interface WxRequestOpts {
   complete?: (info: any) => any;
 };
 
+// https://developers.weixin.qq.com/miniprogram/dev/api/network/request/RequestTask.html
+export interface WxRequestTask {
+  abort: () => any;
+  onHeadersReceived: (callback: Function) => any;
+  offHeadersReceived: (callback: Function) => any;
+};
 export interface ClientRequestType extends http.ClientRequest{
   nativeInstance: null | http.ClientRequest;
   nativeReqestMethod: Function;

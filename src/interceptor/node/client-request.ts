@@ -5,6 +5,7 @@ import Bypass from '../../common/bypass';
 import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
 import MockItem from '../../mocker/mock-item';
+import Mocker from '../../mocker/mocker';
 import { ClientRequestType, RequestInfo } from '../../types';
 
 /**
@@ -190,17 +191,21 @@ function ClientRequest(
    * It awaits mock item resolver & set response result.
    */
   this.sendResponseResult = (endCallback: Function, ...endArgs: any[]) => {
-    this.mockItemResolver((mockItem: MockItem) => {
-      mockItem.sendBody(<RequestInfo>{
+    const now = Date.now();
+    this.mockItemResolver((mockItem: MockItem, mocker: Mocker) => {
+      const requestInfo = <RequestInfo>{
         url: this.url,
         method: this.options.method || 'GET',
         query: getQuery(this.url),
         headers: this.getRequestHeaders(),
         body: this.bufferToString(this.requestBody)
-      }).then((responseBody) => {
+      };
+      mockItem.sendBody(requestInfo).then((responseBody) => {
         if (responseBody instanceof Bypass) {
           return this.fallbackToNativeRequest(...endArgs);
         }
+        const spent = Date.now() - now;
+        mocker.sendResponseLog(spent, responseBody, requestInfo, mockItem);
 
         this.response.statusCode = mockItem.status;
         this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',

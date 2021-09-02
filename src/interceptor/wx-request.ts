@@ -2,7 +2,7 @@ import Bypass from '../common/bypass';
 import { isObject, sleep } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { RequestInfo, WxRequestOpts } from '../types';
+import { RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -65,13 +65,21 @@ export default class WxRequestInterceptor extends Base {
               this.wxRequest(wxRequestOpts); // fallback to original wx.request
             }
           });
-          return { abort() {} };
+          return this.getRequstTask();
         } else {
           return this.wxRequest(wxRequestOpts); // fallback to original wx.request
         }
       }
     });
     return this;
+  }
+
+  private getRequstTask() : WxRequestTask{
+    return <WxRequestTask>{
+      abort() {},
+      onHeadersReceived(callback: Function) {},
+      offHeadersReceived(callback: Function) {}
+    }
   }
 
   /**
@@ -98,12 +106,16 @@ export default class WxRequestInterceptor extends Base {
    * @param {WxRequestOpts} wxRequestOpts
    */
   private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+    const now = Date.now();
     const body = await mockItem.sendBody(requestInfo);
     if (body instanceof Bypass) {
       return true;
     }
+    const spent = (Date.now() - now) + (mockItem.delay || 0);
 
     const wxResponse = this.getWxResponse(body, mockItem);
+
+    this.mocker.sendResponseLog(spent, body, requestInfo, mockItem);
     this.sendResult(wxRequestOpts, wxResponse);
     return false;
   }

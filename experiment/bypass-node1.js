@@ -2,7 +2,7 @@
 // npm run build && node experiment/disable.js
 const HttpRequestMock = require('../dist/index').default;
 // const HttpRequestMock = require('http-request-mock').default;
-const mocker = HttpRequestMock.setupForNode();
+const mocker = HttpRequestMock.setupForNode(); // .enableLog();
 const https = require('https');
 const axios = require('axios');
 

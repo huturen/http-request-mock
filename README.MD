@@ -115,7 +115,7 @@ mocker.mock({
     'content-type': 'application/json',
     'some-header': 'value',
   },
-  response: 'some response data'
+  body: 'some response data'
 });
 
 // 或者只调用指定method进行模拟:
@@ -219,7 +219,7 @@ const mocker = HttpRequestMock.setup();
 const mockItem = mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
   method: 'any',
-  response: {mock: 'some response data'}
+  body: {mock: 'some response data'}
 });
 
 (async () => {
@@ -247,7 +247,7 @@ mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
   method: 'any',
   times: 2,
-  response: {mock: 'some response data'}
+  body: {mock: 'some response data'}
 });
 
 (async () => {
@@ -567,7 +567,7 @@ interface MockItemInfo {
 };
 ```
 
-**get(url: RegExp | String, response: any, opts: MockItemExt)**
+**get(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP GET request.
 
@@ -583,19 +583,19 @@ interface MockItemExt {
 
 
 
-**post(url: RegExp | String, response: any, opts: MockItemExt)**
+**post(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP POST request.
 
-**put(url: RegExp | String, response: any, opts: MockItemExt)**
+**put(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP PUT request.
 
-**patch(url: RegExp | String, response: any, opts: MockItemExt)**
+**patch(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP PATCH request.
 
-**delete(url: RegExp | String, response: any, opts: MockItemExt)**
+**delete(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP DELETE request.
 
@@ -603,7 +603,7 @@ Make a mock item that matches an HTTP DELETE request.
 
 Make a mock item that matches an HTTP HEAD request.
 
-**any(url: RegExp | String, response: any, opts: MockItemExt)**
+**any(url: RegExp | String, body: any, opts: MockItemExt)**
 
 Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  request.
 

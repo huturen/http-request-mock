@@ -296,10 +296,10 @@ module.exports = class HttpRequestMockMockPlugin {
     // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
     res.header = Object.keys(header).length > 0 ? header : undefined;
     res.method = /^(get|post|put|patch|delete|head|any)$/i.test(res.method) ? res.method.toLowerCase() : undefined;
-    res.disable = /^(yes|true|1|no|false|0)$/i.test(res.disable) ? res.disable.toLowerCase() : undefined;
     res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
     res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;
     res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
+    res.disable = res.disable !== undefined && /^(yes|true|1|)$/i.test(res.disable) ? 'yes' : (res.disable || undefined);
 
     if (this.isRegExp(res.url)) {
       res.regexp = this.str2RegExp(res.url, true);

@@ -219,7 +219,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const { method, delay, status, header, times } = tags;
 
       const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
-        .replace(`"url": "",`, `"url": ${url},`)
+        .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, '"body": data.default,');
       const config = info.replace(/\n/g, `\n${gap1}${gap2}`);
       items.push(`${gap1}${gap2}import('${file}').then(data => mocker.mock(${config}));`);
@@ -259,8 +259,8 @@ module.exports = class HttpRequestMockMockPlugin {
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
       const { method, delay, status, header, times } = tags;
 
-      const info = JSON.stringify({ url: '', method, response: '', delay, status, times, header }, null, 2)
-        .replace(`"url": "",`, `"url": ${url},`)
+      const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
+        .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, `"body": require('${file}'),`);
       items.push(`${gap}mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info});`);
     }

@@ -207,7 +207,7 @@ axios.get('https://www.api.com/status404').catch(err => {
 
 #### Disable a mock item
 
-For more details, please refer to `experiment/disable.js`。
+For more details, please refer to `experiment/disable.js`.
 
 ```javascript
 // configuration
@@ -235,7 +235,7 @@ const mockItem = mocker.mock({
 
 ### Limited number of mocking
 
-For more details, please refer to `experiment/times.js`。
+For more details, please refer to `experiment/times.js`:
 
 ```javascript
 const mocker = HttpRequestMock.setup();
@@ -379,7 +379,7 @@ To avoid having to change your code frequently to use mocks. This library comes 
 We assume you have a source directory likes [above](#Directory-structure), you can simply use mocks like below:
 
 1. Run `npx http-request-mock-cli -i`. It'll initialize a .runtime.js file in your mock directory.
-2. Configure `HttpRequestMockWebpackPlugin` in your webpack config file like below.
+2. Configure `HttpRequestMockWebpackPlugin` in your webpack config file, which looks like below.
 ```javascript
 
 const path = require('path');

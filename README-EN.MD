@@ -49,7 +49,7 @@ your business code to mock something ever again after a one-time configuration.
 * [Command line tool](#Command-line-tool)
 * [API](#API)
 * [Unit test](#Unit-test)
-* [Mock data file confiuration](#Mock-data-file-confiuration)
+* [Mock data file](#Mock-data-file)
 * [License](#License)
 
 
@@ -61,7 +61,7 @@ backend APIs are down or not ready yet. It supplies a new way to prototype your 
 
 
 This library intercepts requests by monkey patching XMLHttpRequest/fetch/nodejs native http/https modules.
-It'll return and do a real request use original request object if no request was matched.
+It'll return and do a real request use original request object if no request is matched.
 
 There are some problems you may encounter when using the other mocking libraries:
 1. You may have to hack your source code to mock something and revert it back to restore normal.
@@ -370,7 +370,7 @@ if (process.env.NODE_ENV === 'development') { // as you need
 createApp(App).mount('#app')
 ```
 Depends on your needs, that it's ok in a small project.
-However, for a larger web application, it may have lots of APIs to be mocked.
+However, for a large web application, it may have lots of APIs to be mocked.
 You may need frequently change the entry file when adding/deleting/updating a mock.
 There will be a day that you'll get a mess as the project grows.
 
@@ -443,7 +443,7 @@ Options:
   -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
                                     (default: "NODE_ENV=development")
   -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
-  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command was specified,
+  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command is specified,
                                     ths specified command will be executed together with watching.
   -j, --inject <app-entry-file>     Inject .runtime.js into app entry file
                                     which must be relative to the working directory.
@@ -485,7 +485,7 @@ Also, add it into package.json, please refer to `examples/vue-with-cli` for more
 
 ***Note：***
 
-If `-e --enviroment` was not specified, mock function will be enabled by `NODE_ENV=development`.
+If `-e --enviroment` is not specified, mock function will be enabled by `NODE_ENV=development`.
 
 Or, you can specify another enviroment variable, such as: `-e MOCK=yes`.
 
@@ -516,7 +516,7 @@ Set up request mock for fetch.
 
 **setupForNode() : Mocker**:
 
-Set up request mock for http.get, https.get, http.request and https.request in node envrioment.
+Set up request mock for http.get, https.get, http.request and https.request in nodejs envrioment.
 
 **setupForUnitTest('wx' | 'xhr' | 'fetch' | 'all') : Mocker**:
 
@@ -625,7 +625,7 @@ describe('mock axios request', () => {
 2. For a mocha example, please refer to `experiment/mocha.js`.
 
 
-## Mock data file confiuration
+## Mock data file
 ```javascript
 /**
  * Note: Only the first comments block will be parsed.
@@ -664,7 +664,7 @@ describe('mock axios request', () => {
  */
 // Response body to be mocked.
 // It supports to export an object, function, async function, sting or any other types.
-// If a function was specified, the function accepts an argument with request information.
+// If a function is specified, the function accepts an argument with request information.
 export default (requestInfo) => {
   return 'Your response data';
 };

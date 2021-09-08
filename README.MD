@@ -451,7 +451,7 @@ Options:
   -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
                                     (default: "NODE_ENV=development")
   -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
-  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command was specified,
+  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command is specified,
                                     ths specified command will be executed together with watching.
   -j, --inject <app-entry-file>     Inject .runtime.js into app entry file
                                     which must be relative to the working directory.
@@ -525,7 +525,7 @@ Set up request mock for fetch.
 
 **setupForNode() : Mocker**:
 
-Set up request mock for http.get, https.get, http.request and https.request in node envrioment.
+Set up request mock for http.get, https.get, http.request and https.request in nodejs envrioment.
 
 **setupForUnitTest('wx' | 'xhr' | 'fetch' | 'all') : Mocker**:
 

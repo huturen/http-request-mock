@@ -16,7 +16,7 @@ module.exports = class HttpRequestMockMockPlugin {
    *                         The default value will depend on your enviroment variable NODE_ENV if not specified:
    *                         i.e.: It'll be true on a development enviroment(NODE_ENV=development) by default.
    * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory. Defaults to true.
-   *                          If mock directory were in src/ that has configured to be monitored,
+   *                          If mock directory is in src/ that has configured to be monitored,
    *                          then set monitor to false. If this option would confuse you, let it be true.
    * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'es6'.
    *                          Valid values are: es6(alias of module), commonjs.

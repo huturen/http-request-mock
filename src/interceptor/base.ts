@@ -37,7 +37,7 @@ export default class BaseInterceptor {
 
   /**
    * Check whether the specified request url matchs a defined mock item.
-   * If a match were found, return mock meta information, otherwise a null is returned.
+   * If a match is found, return mock meta information, otherwise a null is returned.
    * @param {string} reqUrl
    * @param {string} reqMethod
    */

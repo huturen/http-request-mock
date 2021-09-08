@@ -1,4 +1,4 @@
-import { currentTime, isNodejs } from '../common/utils';
+import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import { Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
@@ -73,7 +73,7 @@ export default class Mocker {
   }
 
   /**
-   * Disable mock function temporarily.
+   * Disable logs function temporarily.
    */
   public disableLog() {
     this.log = false;
@@ -81,7 +81,7 @@ export default class Mocker {
   }
 
   /**
-   * Disable mock function temporarily.
+   * Disable logs function temporarily.
    */
   public enableLog() {
     this.log = true;
@@ -94,6 +94,9 @@ export default class Mocker {
    * @returns false | MockItem
    */
   public mock(mockItemInfo: MockItem) {
+    if (!isObject(mockItemInfo) || !(('url' in mockItemInfo) || ('regexp' in mockItemInfo))) {
+      throw new Error('Invalid mock item, a valid mock item must be contain a "url" property at least.');
+    }
     const mockItem = new MockItem(mockItemInfo);
     if (!mockItem.key) return false;
 
@@ -262,7 +265,7 @@ export default class Mocker {
 
   /**
    * Check whether the specified request url matchs a defined mock item.
-   * If a match were found, return mock meta information, otherwise a null is returned.
+   * If a match is found, return the matched mock item, otherwise a null is returned.
    * @param {string} reqUrl
    * @param {string} reqMethod
    * @return null | MockItem

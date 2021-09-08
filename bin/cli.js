@@ -39,7 +39,7 @@ program
   .option('-i, --init', 'Initialize .runtime.js & samples(if necessary) in the mock directory.')
   .option(
     '-w, --watch [command]',
-    'Watch mock directory & update .runtime.js. If a command was specified,\n'+spaces+
+    'Watch mock directory & update .runtime.js. If a command is specified,\n'+spaces+
     ' ths specified command will be executed together with watching.'
   )
   .option(

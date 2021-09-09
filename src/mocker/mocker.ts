@@ -94,8 +94,8 @@ export default class Mocker {
    * @returns false | MockItem
    */
   public mock(mockItemInfo: MockItem) {
-    if (!isObject(mockItemInfo) || !(('url' in mockItemInfo) || ('regexp' in mockItemInfo))) {
-      throw new Error('Invalid mock item, a valid mock item must be contain a "url" property at least.');
+    if (!isObject(mockItemInfo)) {
+      throw new Error('Invalid mock item, a valid mock item must be an object.');
     }
     const mockItem = new MockItem(mockItemInfo);
     if (!mockItem.key) return false;

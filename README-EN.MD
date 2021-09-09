@@ -6,7 +6,7 @@
 [中文](https://github.com/huturen/http-request-mock/blob/main/README.MD) | **English**
 
 
-Full documentation： [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
+Full documentation: [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
 
 # http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)
 

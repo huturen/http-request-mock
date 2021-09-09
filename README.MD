@@ -4,6 +4,8 @@
 
 **中文** | [English](https://github.com/huturen/http-request-mock/blob/main/README-EN.MD)
 
+完整文档： [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
+
 
 
 # http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)

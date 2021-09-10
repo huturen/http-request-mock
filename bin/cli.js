@@ -167,6 +167,7 @@ function watch() {
     timer = setTimeout(() => {
       const runtime = webpack.getRuntimeConfigFile();
 
+      console.log(' ');
       log(`The changes of \x1b[32m[${[...set]}]\x1b[0m have been applied to .runtime.js.`);
       log(`${runtime} has been updated.`);
       set.clear();

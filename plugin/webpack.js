@@ -152,7 +152,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {array} level
    */
   getAllMockFiles(level = []){
-    if (level.length > 3) return [];
+    if (level.length > 4) return [];
 
     const dir = this.resolve(this.dir, ...level);
     const files = fs.readdirSync(dir, { withFileTypes: true });

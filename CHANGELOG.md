@@ -1,4 +1,8 @@
 ### Changelog
+[2021-09-10]
+1. mock directory supports a maximum of 4 sub-levels
+2. replace fs.watch with chokidar
+
 [2021-09-02]
 1. clientRequest.end should return an instance of ClientRequest
 2. pretty log
@@ -75,6 +79,10 @@
 [2021-03-29] init http-request-mock, add XMLHttpRequest interceptor
 
 ### Features
+[2021-09-10]
+1. mock directory supports a maximum of 4 sub-levels
+2. replace fs.watch with chokidar
+
 [2021-09-02]
 1. clientRequest.end should return an instance of ClientRequest
 2. pretty log

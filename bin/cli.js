@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 const program = require('commander');
 const pkg = require('../package.json');
 const readline = require('readline');
+const chokidar = require('chokidar');
 const WebpackPlugin = require('../plugin/webpack');
 
 const appRoot = (() => {
@@ -151,18 +152,16 @@ function watch() {
   });
   const set = new Set();
   let timer = null;
+  webpack.getRuntimeConfigFile(); // update .runtime.js before watching
 
-  // update .runtime.js before watching
-  webpack.getRuntimeConfigFile();
-
-  // Note: fs.watch may be replaced by chokidar in the future.
-  fs.watch(dir, { recursive: true }, (eventType, filename) => {
+  chokidar.watch(dir, {ignoreInitial: true}).on('all', (event, filePath) => {
+    const filename = path.basename(filePath);
     // Only watch file that matches /^[\w][-\w]*\.js$/
-    if(filename && !/^[\w][-\w]*\.js$/.test(filename.replace(/.*(\/|\\)/g, ''))) return;
-    // It may not report filenames on MacOS.
-    const key = filename ? filename : eventType;
-    if (set.has(key)) return;
-    set.add(key);
+    if (event === 'addDir' || event === 'error') return;
+    if(filename && !/^[\w][-\w]*\.js$/.test(filename)) return;
+
+    if (set.has(filename)) return;
+    set.add(filename);
 
     clearTimeout(timer);
     timer = setTimeout(() => {
@@ -173,6 +172,7 @@ function watch() {
       set.clear();
     }, 300);
   });
+
   if (typeof program.watch === 'string') {
     spawn(program.watch, {
       cwd: appRoot, // process.cwd()

@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.2.16",
+  "version": "1.2.17",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "bin": {
@@ -130,6 +130,7 @@
   },
   "dependencies": {
     "@types/faker": "^5.5.8",
+    "chokidar": "^3.5.2",
     "commander": "^2.20.3",
     "faker": "^5.5.3",
     "simple-functional-loader": "^1.2.1"

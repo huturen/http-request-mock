@@ -76,9 +76,8 @@ There are some problems you may encounter when using the other mocking libraries
 
 * **Easy to set up**: No additional http server, no proxy.
 * **Non-hacking**: You don't have to change your business code.
-* **Switchable**: Enable or disable mock function by specified enviroment variable.
 * **Support a bunch of the 3th-party request libraries**: Axios, jQuery, SuperAgent, Got...
-* **Unit test capability**: It can be used in a `jest` or `mocha` enviroment.
+* **Unit test capability**: It can be used in a `jest`, `mocha` and `ava` enviroment,.
 * **Dynamic response mocking**: Supports to resolve dynamic response based on request information(query, payloads,...).
 * **Flexible route matching**: Supports RegExp matching and partial string matching.
 * **Delaying mocking**: Supports to simulate network latency.

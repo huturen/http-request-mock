@@ -2,137 +2,133 @@
 [![Coverage Status](https://coveralls.io/repos/github/huturen/http-request-mock/badge.svg)](https://coveralls.io/github/huturen/http-request-mock)
 ![License](https://img.shields.io/npm/l/http-request-mock)
 
-**中文** | [English](https://github.com/huturen/http-request-mock/blob/main/README.MD)
+
+**English** | [中文](https://github.com/huturen/http-request-mock/blob/main/README.MD)
+
+
 
 # http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)
 
-完整文档： [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
+Full documentation: [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
 
 
 
-本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。
+It mocks http requests issued by axios, jquery, superagent, ky, node-fetch, got, request
+or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native
+HTTP/HTTPS module requests in low level.
 
 1. XMLHttpRequest
 2. fetch
-3. wx.request (微信小程序)
-4. https.request, https.get (nodejs原生请求对象)
-5. http.request, http.get (nodejs原生请求对象)
+3. https.request, https.get (nodejs native https request)
+4. http.request, http.get (nodejs native http request)
 
-由于基于底层拦截，因此基于以上请求的第3方请求库，也能得到支持，如：
+Because of the low-level interception, any 3th-party request libraries that
+based on the above requests can also be supported, such as:
 
 `axios`, `jquery`, `superagent`, `ky`, `node-fetch`, `got`, `request` ...
 
 ![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
 
-本库提供了mock文件注释块内容解析，并提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
+It differs from the other mocking libraries in that it supplies a webpack plugin and command line tool
+to parse your mock file comments. It's a truly non-hacking mocking library. You never have to hack into
+your business code to mock something ever again after a one-time configuration.
 
-## 目录
 
-* [简介](#简介)
-* [特性](#特性)
-* [安装](#安装)
-* [例子](#例子)
-    - [使用](#使用)
-    - [静态响应](#静态响应)
-    - [动态响应](#动态响应)
-    - [延迟响应](#延迟响应)
-    - [状态码及头信息模拟](#状态码及头信息模拟)
-    - [单独禁用mock](#单独禁用mock)
-    - [mock次数限制](#mock次数限制)
-    - [请求信息](#请求信息)
-* [目录结构](#目录结构)
-* [webpack插件](#webpack插件)
-* [命令行工具](#命令行工具)
-* [API文档](#API文档)
-* [单元测试](#单元测试)
-* [mock数据文件配置说明](#mock数据文件配置说明)
+## Table of Contents
+
+* [Introduction](#Introduction)
+* [Features](#Features)
+* [Installation](#Installation)
+* [Examples](#Examples)
+    - [Usage](#Usage)
+    - [Static response](#Static-response)
+    - [Dynamic response](#Dynamic-response)
+    - [Delay](#Delay)
+    - [HTTP-status](#HTTP-status)
+    - [Disable a mock item](#Disable-a-mock-item)
+    - [Limited number of mocking](#Limited-number-of-mocking)
+    - [Request information](#Request-information)
+* [Directory structure](#Directory-structure)
+* [Webpack plugin](#Webpack-plugin)
+* [Command line tool](#Command-line-tool)
+* [API](#API)
+* [Unit test](#Unit-test)
+* [Mock data file](#Mock-data-file)
 * [License](#License)
 
 
 
-## 简介
+## Introduction
 
-在后台接口未开发好或接口挂掉，甚至无网络环境的情况下，这个库可以让你不受干扰的继续开发，以快速构建产品原型。
-此外，我们还提供了一个额外webpack插件及命令行工具，进行简单配置后，可以不侵入源代码，来完成网络请求的模拟处理。
-
-
-
-本库基于拦截 `XHR(XMLHttpRequest)`, `fetch` , `wx.request`, node自带https/http请求对象 实现。
-
-如果请求有匹配到mock配置，则返回mock配置数据，否则走真实的网络请求。
-
-因为是通过拦截实现，匹配不到mock请求，则返回并使用原生的请求对象。
-
-较之其他mock库，提供了更可靠的稳定性。
+`http-request-mock` is an http request mocking library that lets you develop, build and test as normal even when
+backend APIs are down or not ready yet. It supplies a new way to prototype your web application.
 
 
-目前现存的mock库，存在以下这些问题：
-1. 使用mock时，需要修改源代码，在mock完毕后可能需要再把代码改回来
+This library intercepts requests by monkey patching XMLHttpRequest/fetch/nodejs native http/https modules.
+It'll return and do a real request use original request object if no request is matched.
 
-2. 配置复杂，需要使用这样或者那样的http服务，或者代理
+There are some problems you may encounter when using the other mocking libraries:
+1. You may have to hack your source code to mock something and revert it back to restore normal.
+2. You may involve complex setups, such as all kinds of proxies, http servers.
+3. Not all in one, some library only for `XMLHttpRequest`, some library only for `fetch`.
 
-3. mock功能不全，有些只能mock XMLHttpRequest，有些只能fetch
+## Features
 
-
-## 特性
-
-本库提供了以下特性:
-
-* **配置简单**: 免去了格式样的本地服务，代理或其他复杂的配置。
-* **无侵入**: 支持不侵入源代码来实现mock处理。
-* **丰富的第3方请求库支持**: Axios, jQuery, SuperAgent, Got...。
-* **支持测试库及Node环境**: 支持jest，mocha, ava测试库运行环境，甚至裸node运行环境。
-* **动态内容响应**: 基于请求信息，如url，查询参数，post请求包体，来动态模拟返回内容。
-* **URL局部匹配及正则匹配**: 支持URL局部匹配及RegExp正则匹配。
-* **网络延迟模拟**: 支持模拟网络请求的时延，精确到毫秒级别。
-* **http状态码模拟**: 支持http状态码模拟。
-* **http响应头模拟**: http响应头模拟。
-* **丰富的单元测试验证**: 具有较完整的单元测试, 包括针对第3方请求库的单元测试。
-* **支持跨域请求**: 支持跨域请求模拟，跨域请求无额外配置。
+* **Easy to set up**: No additional http server, no proxy.
+* **Non-hacking**: You don't have to change your business code.
+* **Support a bunch of the 3th-party request libraries**: Axios, jQuery, SuperAgent, Got...
+* **Unit test capability**: It can be used in a `jest`, `mocha` and `ava` enviroment,.
+* **Dynamic response mocking**: Supports to resolve dynamic response based on request information(query, payloads,...).
+* **Flexible route matching**: Supports RegExp matching and partial string matching.
+* **Delaying mocking**: Supports to simulate network latency.
+* **Http status mocking**: Supports to mock http status.
+* **Http response headers mocking**: Supports to mock http response headers.
+* **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
+* **Cross domain**: Supports cross-domain requests.
 
 
-## 安装
+## Installation
 
 `npm install --save-dev http-request-mock`
 
 
 
-## 例子
+## Examples
 
-#### 使用
+#### Usage
 
-要模拟一个请求，只需简单调用`mock`或者 `get`,`post`,`put`,`patch`,`delete`：
+To mock an http request, just call a `mock` method or http verb method(`get`,`post`,`put`,`patch`,`delete`).
 ```javascript
 import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 
 mocker.mock({
-  url: 'www.api.com/some-api' // 或者使用正则 /.*\/some-api$/
-  method: 'get', // get post put patch delete
+  url: 'www.api.com/some-api' // or RegExp: /.*\/some-api$/
+  method: 'get', // get, post, put, patch or delete
   delay: 0,
   status: 200,
-  header: { // 模拟响应头
+  header: { // respone headers
     'content-type': 'application/json',
     'some-header': 'value',
   },
   body: 'some response data'
 });
 
-// 或者只调用指定method进行模拟:
+// or using http verb method:
 mocker.get('www.api.com/some-api', 'some response data');
 ```
 
-#### 静态响应
+#### Static response
 
 ```javascript
-// mock配置文件：
+// mock configuration:
 import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 
 mocker.get('https://www.api.com/text-response', '<html>mock response content</html>');
 mocker.post('https://www.api.com/json-response', { ret: 0, msg: 'ok' });
 
-// 然后在你的业务文件，使用请求库请求对于的链接就可以了：
+// issue some requests:
 ...
 const text = await axios.get('https://www.api.com/text-response');
 const json = await axios.post('https://www.api.com/json-response', null, { responseType: 'json' });
@@ -142,23 +138,25 @@ console.log(json); // { ret: 0, msg: 'ok' }
 ```
 
 
-#### 动态响应
+#### Dynamic response
 
-可以动态返回响应内容，以更真实的模拟网络请求。
+You can export a function instead of an object to resolve a dynamic response,
+so as to simulate a complex business logic in the real world.
+
 
 ```javascript
-// mock配置文件
+// mock configuration:
 import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 
 let times = 0;
-// requestInfo 请参考 src/types.ts 中的 < RequestInfo >
+// requestInfo: please refer to < RequestInfo > in src/types.ts
 mocker.get('https://www.api.com/dynamic-response', (requestInfo) => {
   times = times + 1;
   return { times: 'times: ' + times, url: requestInfo.url };
 });
 
-// 你的业务文件, 注意 times 及 url 内容， 前后两次请求调用返回的是不一样的内容
+// Note: the contents of url and times fields are different between the two requests below:
 ...
 const res1 = await axios({ url: 'https://www.api.com/dynamic-response?a=1', responseType: 'json' });
 const res2 = await axios({ url: 'https://www.api.com/dynamic-response?b=2', responseType: 'json' });
@@ -168,27 +166,27 @@ console.log(res2); // { times: 'times: 2', url: 'https://www.api.com/dynamic-res
 ```
 
 
-#### 延迟响应
+#### Delay
 ```javascript
-// 配置文件内容：
+// configuration
 import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 mocker.mock({
   url: 'https://some.api.com/name',
   method: 'get',
-  delay: 3000 // 如果匹配到请求，3秒后执行返回响应内容
+  delay: 3000 // the response will be resolved in 3 seconds
 });
 
-// 业务代码:
+// issue a request:
 let time = Date.now();
 axios.get('https://some.api.com/name').then(() => {
   console.log(Date.now() - time); // >= 3000
 });
 ```
 
-#### 状态码及头信息模拟
+#### HTTP status
 ```javascript
-// 配置文件内容：
+// configuration
 import HttpRequestMock from 'http-request-mock';
 const mocker = HttpRequestMock.setup();
 mocker.mock({
@@ -200,7 +198,8 @@ mocker.mock({
   }
 });
 
-// 业务代码, 注意：如果请求返回404时，axios会抛异常
+// issue a request:
+// Note: axios will throw an error when meets a 404 response
 axios.get('https://www.api.com/status404').catch(err => {
   console.log(err.message); // Request failed with status code 404
   console.log(err.response.status); // 404
@@ -209,12 +208,12 @@ axios.get('https://www.api.com/status404').catch(err => {
 ```
 
 
-#### 单独禁用mock
+#### Disable a mock item
 
-详细，请参考项目中 `experiment/disable.js` 例子。
+For more details, please refer to `experiment/disable.js`.
 
 ```javascript
-// 配置文件内容：
+// configuration
 const mocker = HttpRequestMock.setup();
 const mockItem = mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
@@ -224,12 +223,12 @@ const mockItem = mocker.mock({
 
 (async () => {
   const res1 = await axios.get('https://jsonplaceholder.typicode.com/todos/1');
-  console.log('res1:', res1.data); // 返回mock内容
+  console.log('res1:', res1.data); // it'll resolve a response from mocking.
 
   mockItem.disable = 'yes';
 
   const res2 = await axios.get('https://jsonplaceholder.typicode.com/todos/1');
-  console.log('res2:', res2.data); // 返回真实网络返回
+  console.log('res2:', res2.data); // it'll resolve a response from real network request.
 })();
 
 // res1: { mock: 'some response data' }
@@ -237,9 +236,9 @@ const mockItem = mocker.mock({
 ```
 
 
-#### mock次数限制
+### Limited number of mocking
 
-详细，请参考项目中 `experiment/times.js` 例子。
+For more details, please refer to `experiment/times.js`:
 
 ```javascript
 const mocker = HttpRequestMock.setup();
@@ -269,7 +268,7 @@ mocker.mock({
 ```
 
 
-#### 请求信息
+#### Request information
 ```javascript
 mocker.mock({
   url: 'https://www.api.com/reqinfo',
@@ -282,7 +281,7 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
   console.log('info:', res.data);
 });
 
-// 以上会输出以下类似的内容：
+// output may look like below:
 // info: {
 //   "url": "https://www.api.com/reqinfo?abc=123",
 //   "method": "POST",
@@ -300,24 +299,24 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 
 
-## 目录结构
-运行`npx http-request-mock-cli -i` 它将会生成类似如下的目录结构:
+## Directory structure
+Run `npx http-request-mock-cli -i` to initialize a mock directory which looks like below.
 
-**注意**： mock/ 目录下的文件名符合 `/[\w][-\w]*\.js/` 正则的才被视为mock数据配置文件。
+**Note**： Any file names matched with `/^[\w][-\w]*\.js$/` will be recognized as a mock data file.
 ```
 App
 ├─── mock/
-|   ├─── .runtime.js   (mock入口配置文件)
-|   ├─── config.js      (mock数据配置文件)
-|   ├─── detail.js     (mock数据配置文件)
-|   ├─── ...           (其他mock数据配置文件)
+|   ├─── .runtime.js   (runtime mock configuration entry file)
+|   ├─── config.js      (a mock data file)
+|   ├─── detail.js     (a mock data file)
+|   ├─── ...           (other mock data files)
 ├─── src/
-|   ├─── index.js      (业务入口文件)
-|   ├─── ...           (其他业务代码)
+|   ├─── index.js      (web application entry file)
+|   ├─── ...           (other files)
 ```
 ```javascript
-// mock文件 config.js：
-// 以下注释中的 @url, @method 等标签信息，会被webpack插件或cli工具所解析并使用。
+// mock data file: config.js：
+// tags(@url, @method,...) in the comments below will be parsed by webpack plugin or cli.
 /**
  * @url https://some.api.com/config
  * @method get
@@ -328,7 +327,7 @@ export default {
   ...
 };
 
-// mock文件 user.js：
+// mock data file: user.js：
 /**
  * @url https://some.api.com/user
  * @method post
@@ -340,8 +339,8 @@ export default {
 };
 ```
 
-webpack插件或cli工具会解析mock目录下面的mock文件，
-并生成类似如下mock配置入口文件 `.runtime.js`：
+Files that in the mock directory will be parsed by webpack plugin or cli,
+and a mock configuration entry file named .runtime.js like below will be generated/updated.
 ```javascript
 import data0 from './config.js';
 import data1 from './user.js';
@@ -357,8 +356,9 @@ if (process.env.NODE_ENV === 'development') { // depends on webpack or cli confi
 
 ---
 
-## webpack插件
-简单来说，只要在入口引入`http-request-mock`并配置就可以用mock了, 以vue项目为例：
+## Webpack plugin
+In a bare-bones example, you just import `http-request-mock` into your app entry file(such as: src/index.js) and
+configure your mock datas there. Take a Vue project as an example:
 ```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -372,17 +372,17 @@ if (process.env.NODE_ENV === 'development') { // as you need
 
 createApp(App).mount('#app')
 ```
-取决于你的需要，对与小项目，这样做是ok的。
+Depends on your needs, that it's ok in a small project.
+However, for a large web application, it may have lots of APIs to be mocked.
+You may need frequently change the entry file when adding/deleting/updating a mock.
+There will be a day that you'll get a mess as the project grows.
 
----
 
-但是这样的方式，仍具有一定的侵入性。增，删mock数据时，仍然需要反复修
-改业务入口文件。为避免修改你的业务源码入口文件（如，src/index.js）。
+To avoid having to change your code frequently to use mocks. This library comes with a built-in webpack plugin.
+We assume you have a source directory likes [above](#Directory-structure), you can simply use mocks like below:
 
-我们额外提供了一个内置webpack插件，使用方式如下：
-
-1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js（mock配置入口）
-2. 在你的 `webpack` 配置文件中：
+1. Run `npx http-request-mock-cli -i`. It'll initialize a .runtime.js file in your mock directory.
+2. Configure `HttpRequestMockWebpackPlugin` in your webpack config file, which looks like below.
 ```javascript
 
 const path = require('path');
@@ -392,9 +392,9 @@ module.exports = {
   plugins: [
     // ...
     new HttpRequestMockWebpackPlugin(
-      enable: process.env.NODE_ENV === 'development', // 根据环境变量启用插件
-      entry: /src\/index\.js$/, // 入口页面
-      dir: path.resolve(__dirname, 'mock/'), // mock文件目录
+      enable: process.env.NODE_ENV === 'development', // activate/deactivate
+      entry: /src\/index\.js$/, // web application entry
+      dir: path.resolve(__dirname, 'mock/'), // mock directory
     ),
     // ...
   ]
@@ -402,16 +402,11 @@ module.exports = {
 };
 ```
 
-此插件，会自动解析mock目录下面的文件，并从文件的注释内容中提取：
+The webpack plugin will parse mock data files in the mock directory and extract tags
+(@url, @method, @delay, @status, ...) in the first comments block which begins with `/**`.
+Then .runtime.js will be updated and injected into app entry file automatically.
 
-"@url, @method, @delay, @status, @header" 等标签信息，
-
-并自动注入到 entry 匹配到的入口文件中，免去了修改入口文件的必要。
-
-注意：enable选项，根据环境变量自动拆卸，启动跟关闭mock均不需要修改源码。
-
-
-可以在package.json中，配置script命令，来启动自动拆卸mock功能。
+In your packgae.josn, set a mock-dev command to start a mock development:
 ```json
 ...
   "scripts": {
@@ -422,18 +417,18 @@ module.exports = {
 ...
 ```
 
-#### webpack 插件选项
+#### webpack options
 
-| 选项      | 配置   | 说明                                                     |
-| :-----    | :---- | :----                                                   |
-| **entry** | 必填   | 正则对象，用于匹配入口文件                                  |
-| **dir**   | 必填   | 绝对路径，mock文件夹用于存放mock配置文件                     |
-| **enable** | 可选   | 是否启用该插件，默认 true                                  |
-| **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
-| **monitor** | 可选   | 是否监控mock目录下的文件，默认为true                    |
+| Option      | Required | Description                                                         |
+| :-----      | :----    | :----                                                               |
+| **entry**   | yes      | Application entry file, must be a Regexp object                      |
+| **dir**     | yes      | Mock directory, must be an absulte path                             |
+| **enable**  | no       | Whether or not to enable this plugin, defaut: true                  |
+| **watch**   | no       | Callback function triggered when a mock data file changed            |
+| **monitor** | no       | Whether or not to monitor files in the mock directory, default: true |
 
 
-## 命令行工具
+## Command line tool
 `npx http-request-mock-cli -h`:
 
 ```
@@ -459,12 +454,12 @@ Options:
   -h, --help                        output usage information
 ```
 
-如果你的项目不使用webpack，可以使用以下命令行工具代替，步骤如下:
+You can use the command-line below instead if your project does not use webpack:
 
-1. 运行 `npx http-request-mock-cli -j src/xx.js` 初始化.runtime.js，把依赖注入到指定的业务入口
-2. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
+1. Run `npx http-request-mock-cli -j src/xx.js` to initialize a .runtime.js & inject it to app entry.
+2. Run `npx http-request-mock-cli -w` to watch mock data files.
 
-`npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
+You may need to add `npx http-request-mock-cli -w` into package.json files:
 
 ```json
 ...
@@ -474,14 +469,15 @@ Options:
 },
 ...
 ```
-如果希望只使用一个命令启动开发，我们也也提供了启动整合方案：
+This library supplies a integration for development.
+In this way, you can just use one command instead:
 
 `npx http-request-mock-cli -w "vue-cli-service serve"`
 
-可以添加到scripts里面，详细请参考 `examples/vue-with-cli`:
+Also, add it into package.json, please refer to `examples/vue-with-cli` for more details:
 ```json
 ...
-// 传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
+// The command passed into `http-request-mock-cli -w` must be quoted with double quotes.
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
@@ -490,18 +486,16 @@ Options:
 ```
 
 
-***注意：***
+***Note：***
 
-如果不指定 `-e --enviroment` 默认的会根据 `NODE_ENV=development` 来开启mock。
+If `-e --enviroment` is not specified, mock function will be enabled by `NODE_ENV=development`.
 
-如果需要其他环境变量来开启mock，可指定其他变量，如: `-e MOCK=yes`.
+Or, you can specify another enviroment variable, such as: `-e MOCK=yes`.
 
-如果想去掉环境变量判断，直接指定 `-e none` 就可以了。
-
-
+Or, you can enable mock function with no conditions by just specifying an `-e none` arugment.
 
 
-## API文档
+## API
 
 
 ### For HttpRequestMock
@@ -608,13 +602,12 @@ Make a mock item that matches an HTTP HEAD request.
 Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  request.
 
 
-## 单元测试
+## Unit test
 
-本库支持常用单元测试库，支持jest， mocha，或其他 node测试环境。
+This library comes built-in with unit test capability and can be used in jest and mocha envrioment.
+The unit tests of this library are also based on itself.
 
-本库的单元测试，也是基于本库自带的库完成的验证测试。
-
-jest测试环境：
+An example of jest：
 ```javascript
 import HttpRequestMock from 'http-request-mock';
 import axios from 'axios';
@@ -632,37 +625,49 @@ describe('mock axios request', () => {
 });
 ```
 
-2. mocha测试环境, 请参考： `experiment/mocha.js`
+2. For a mocha example, please refer to `experiment/mocha.js`.
 
 
-## mock数据文件配置说明
+## Mock data file
 ```javascript
 /**
- * 注意： 只会解析第一个注释块中的标签信息
- * 请求的url，支持正则，如果是正则，请使用 / 或者 # 做为正则的起始分割字符，
- * 如： #.*\/getUserInfo.*#
+ * Note: Only the first comments block will be parsed.
+ *
+ * The url to be mocked.
+ * Both string and RegExp(which begins and ends with # or /) are supported.
+ * RegExp example: #.*\/getUserInfo.*#
  * @url https://jsonplaceholder.typicode.com/todos/1
  *
- * http请求方法，支持 get, post, put, patch, delete, head, any 默认，any
+ * The request method to be mocked.
+ * One of http verb method get, post, put, patch, delete, head.
+ * Default: any
  * @method any
  *
- * http响应状态码，默认200
+ * Response http status to be mocked.
+ * Default: 200
  * @status 200
  *
- * http响应头信息，支持重复配置
+ * Response http headers to be mocked.
+ * It can be set repeatedly.
  * @header content-type: application/json
  *
- * http响应延迟，模拟网络延时，单位毫秒，默认0
+ * Simulate network latency in milliseconds.
+ * Default: 0
  * @delay 100
  *
- * 执行指定次数mock后，回退到真实网络请求，默认 Infinity
+ * Limited number of mocking.
+ * It'll do a real network request after specified number of mocking.
+ * Default: Infinity
  * @times 5
  *
- * 是否禁用这个mock配置项，如果是yes，则走真实网络请求，默认no
+ * Whether or not to enable this mock item.
+ * 'yes' for real network request, 'no' for mock request.
+ * Default: no
  * @disable no
  */
-// http响应内容，支持静态对象，函数，或者 异步函数,
-// 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。
+// Response body to be mocked.
+// It supports to export an object, function, async function, sting or any other types.
+// If a function is specified, the function accepts an argument with request information.
 export default (requestInfo) => {
   return 'Your response data';
 };

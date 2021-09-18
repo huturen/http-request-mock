@@ -79,7 +79,7 @@ export default class XMLHttpRequestInterceptor extends Base {
               // 'this' points XMLHttpRequest instance.
               this.isMockRequest = true;
               this.mockItem = mockItem;
-              this.mockResponse = null;
+              this.mockResponse = new NotResolved();
               this.requestInfo = me.getRequestInfo({ url, method, });
               this.requestArgs = [method, url, async, user, password];
               return;
@@ -272,12 +272,15 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Logic of intercepting XMLHttpRequest.readyState getter.
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState
    */
   private interceptReadyState() {
     const original = this.getGetter('readyState');
     Object.defineProperty(this.xhr, 'readyState', {
       get: function() {
         if (this.isMockRequest) {
+          if (this.mockResponse instanceof NotResolved) return 1; // OPENED
+
           return 4;
         }
         return typeof original === 'function' ? original.call(this) : original;
@@ -288,12 +291,15 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Logic of intercepting XMLHttpRequest.status getter.
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status
    */
   private interceptStatus() {
     const original = this.getGetter('status');
     Object.defineProperty(this.xhr, 'status', {
       get: function() {
         if (this.isMockRequest) {
+          if (this.mockResponse instanceof NotResolved) return 0;
+
           return this.mockItem.status;
         }
         return typeof original === 'function' ? original.call(this) : original;
@@ -304,12 +310,15 @@ export default class XMLHttpRequestInterceptor extends Base {
 
   /**
    * Logic of intercepting XMLHttpRequest.statusText getter.
+   * https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/statusText
    */
   private interceptStatusText() {
     const original = this.getGetter('statusText');
     Object.defineProperty(this.xhr, 'statusText', {
       get: function() {
         if (this.isMockRequest) {
+          if (this.mockResponse instanceof NotResolved) return '';
+
           return HTTPStatusCodes[this.mockItem.status] || '';
         }
         return typeof original === 'function' ? original.call(this) : original;
@@ -326,6 +335,8 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'responseText', {
       get: function() {
         if (this.isMockRequest) {
+          if (this.mockResponse instanceof NotResolved) return '';
+
           const data = this.mockResponse;
           return typeof data === 'string' ? data : JSON.stringify(data);
         }
@@ -349,6 +360,8 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'response', {
       get: function() {
         if (this.isMockRequest) {
+          if (this.mockResponse instanceof NotResolved) return null;
+
           const type = this.responseType;
           // An empty responseType string is the same as "text", the default type.
           if (type === 'text' || type === '') {
@@ -425,3 +438,4 @@ export default class XMLHttpRequestInterceptor extends Base {
   }
 }
 
+class NotResolved{}

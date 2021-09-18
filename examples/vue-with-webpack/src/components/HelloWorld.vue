@@ -24,7 +24,7 @@
     </div>
     <pre class="result">{{resultOfXhr}}</pre>
   </div>
-  <div>Press F12 to check out console log.</div>
+  <div>Hit F12 to access Developer Tools and view the console logs.</div>
   </div>
 </template>
 

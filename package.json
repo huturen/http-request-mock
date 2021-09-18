@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.2.22",
+  "version": "1.2.23",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "bin": {
@@ -12,7 +12,8 @@
     "coverage": "jest --no-cache --coverage --testTimeout 8000",
     "coveralls": "jest --coverage --testTimeout 8000 --coverageReporters=text-lcov | coveralls",
     "clean": "del-cli dist",
-    "build": "npm run clean && tsc",
+    "build:bundle": "webpack --env=full && webpack --env=pure",
+    "build": "npm run clean && tsc && npm run build:bundle",
     "dev": "tsc -w"
   },
   "keywords": [
@@ -110,10 +111,11 @@
     "standard-version": "^9.0.0",
     "superagent": "^6.1.0",
     "ts-jest": "^27.0.4",
-    "ts-loader": "^8.1.0",
+    "ts-loader": "^8.3.0",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.3",
-    "webpack": "^5.50.0"
+    "typescript": "^4.4.3",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0"
   },
   "husky": {
     "hooks": {

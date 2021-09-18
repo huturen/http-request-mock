@@ -1,4 +1,3 @@
-import faker from 'faker/locale/en';
 import Bypass from '../common/bypass';
 import { Disable, Header, Method } from '../types';
 
@@ -46,7 +45,7 @@ export default class MockItem {
   }
 
   get faker(): Faker.FakerStatic {
-    return faker;
+    return require('faker/locale/en');
   }
 
   public bypass() {

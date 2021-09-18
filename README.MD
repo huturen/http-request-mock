@@ -11,6 +11,8 @@
 
 Full documentation: [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
 
+A quick demo: [https://huturen.github.io/http-request-mock-homepage/plain-html/](https://huturen.github.io/http-request-mock-homepage/plain-html/)
+
 
 
 It mocks http requests issued by axios, jquery, superagent, ky, node-fetch, got, request

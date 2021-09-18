@@ -8,7 +8,7 @@
 
 完整文档： [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
 
-
+简短演示： [https://huturen.github.io/http-request-mock-homepage/plain-html/](https://huturen.github.io/http-request-mock-homepage/plain-html/)
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。
 

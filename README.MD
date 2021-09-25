@@ -89,8 +89,10 @@ There are some problems you may encounter when using the other mocking libraries
 
 ## Installation
 
+**NPM**:
 
 `npm install --save-dev http-request-mock`
+
 
 ```javascript
 // using ES6 modules
@@ -100,16 +102,19 @@ import HttpRequestMock from 'http-request-mock';
 const HttpRequestMock = require('http-request-mock').default;
 ```
 
+**CDN**:
 
 The UMD build is also available on unpkg:
 
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
 
+
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
 
 You can find the library on window.HttpRequestMock.
 
-`http-request-mock.pure.js`: An alternative version, without `faker.js` integration , only 48K.
+
+`http-request-mock.pure.js`: An alternative version, without `faker` , only 48K.
 
 
 ## Examples

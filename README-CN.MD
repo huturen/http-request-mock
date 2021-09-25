@@ -95,6 +95,24 @@
 
 `npm install --save-dev http-request-mock`
 
+```javascript
+// using ES6 modules
+import HttpRequestMock from 'http-request-mock';
+
+// using CommonJS modules
+const HttpRequestMock = require('http-request-mock').default;
+```
+
+也可在浏览器中直接引用, 可以直接使用unpkg的CDN:
+
+<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
+
+<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
+
+配置对象可以在 window.HttpRequestMock 中找到.
+
+`http-request-mock.pure.js`: 纯净版，无faker.js整合, 只有48K.
+
 
 
 ## 例子

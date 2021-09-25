@@ -106,10 +106,12 @@ const HttpRequestMock = require('http-request-mock').default;
 
 The UMD build is also available on unpkg:
 
+```html
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
 
-
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
+```
+
 
 You can find the library on window.HttpRequestMock.
 

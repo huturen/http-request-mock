@@ -9,7 +9,7 @@ const externals = {
   url: 'url',
 };
 
-let bundle = 'http-mock-request.js';
+let bundle = 'http-request-mock.js';
 let env = 'full';
 for(let i = 0; i < process.argv.length; i++) {
   if (/^--env=\w+$/.test(process.argv[i])) {
@@ -20,14 +20,14 @@ for(let i = 0; i < process.argv.length; i++) {
 }
 
 if (env === 'pure') {
-  bundle = 'http-mock-request.pure.js';
+  bundle = 'http-request-mock.pure.js';
   externals['faker/locale/en'] = 'commonjs faker/locale/en';
 }
 
 
 module.exports = {
   mode: 'production',  // development, production
-  entry: './src/bundle.ts',
+  entry: './src/index.ts',
   // devtool: 'inline-source-map',
   module: {
     rules: [
@@ -47,5 +47,8 @@ module.exports = {
   output: {
     filename: bundle,
     path: path.resolve(__dirname, 'dist'),
+    library: 'HttpRequestMock',
+    libraryTarget: 'umd',
+    libraryExport: 'default'
   },
 };

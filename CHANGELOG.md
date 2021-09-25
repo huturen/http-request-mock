@@ -1,4 +1,7 @@
 ### Changelog
+[2021-09-25]
+1. add umd bundles for browser
+
 [2021-09-19]
 1. add a plain html example
 

@@ -73,17 +73,18 @@ There are some problems you may encounter when using the other mocking libraries
 
 ## Features
 
-* **Easy to set up**: No additional http server, no proxy.
+* **Easy to set up**: No complex servers, no proxies, no lots of URL replacements.
+* **Cross domain**: Out of the box, with no configuration, support for cross domain.
 * **Non-hacking**: You don't have to change your business code.
-* **Support a bunch of the 3th-party request libraries**: Axios, jQuery, SuperAgent, Got...
-* **Unit test capability**: It can be used in a `jest`, `mocha` and `ava` enviroment,.
-* **Dynamic response mocking**: Supports to resolve dynamic response based on request information(query, payloads,...).
+* **Interceptor**: It can be used as an interceptor. You can decide how to handle requests.
+* **All in one**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
+* **More 3rd-party libraries support**: It supports axios, jquery, superagent, ky, node-fetch, got, request...
+* **Unit test capability**: It has built-in support for unit test and works in jest, mocha and ava.
+* **Dynamic mocking**: Dynamically resolve response based on request query, payloads...
 * **Flexible route matching**: Supports RegExp matching and partial string matching.
 * **Delaying mocking**: Supports to simulate network latency.
-* **Http status mocking**: Supports to mock http status.
-* **Http response headers mocking**: Supports to mock http response headers.
+* **Integrate with faker.js**: Easy to generate massive amounts of fake data, automatically and programmatically.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
-* **Cross domain**: Supports cross-domain requests.
 
 
 ## Installation

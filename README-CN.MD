@@ -111,10 +111,11 @@ const HttpRequestMock = require('http-request-mock').default;
 也可在浏览器中直接引用, 可以直接使用unpkg的CDN:
 
 
+```html
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
 
-
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
+```
 
 
 配置对象可以在 window.HttpRequestMock 中找到.

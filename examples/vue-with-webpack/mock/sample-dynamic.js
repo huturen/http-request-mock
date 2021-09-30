@@ -4,7 +4,7 @@
  * @header content-type: application/json
  */
 /* eslint-disable */
-export default (request) => {
+module.exports = (request) => {
   return  {
     ret: 0,
     msg: 'ok',

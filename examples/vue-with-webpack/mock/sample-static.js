@@ -5,7 +5,7 @@
  * @delay 1000
  */
 /* eslint-disable */
-export default {
+module.exports = {
   ret: 0,
   msg: 'ok',
   data: 'Your mock data',

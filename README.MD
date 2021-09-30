@@ -23,6 +23,7 @@ HTTP/HTTPS module requests in low level.
 2. fetch
 3. https.request, https.get (nodejs native https request)
 4. http.request, http.get (nodejs native http request)
+5. wx.request (for mini program in Wechat)
 
 Because of the low-level interception, any 3th-party request libraries that
 based on the above requests can also be supported, such as:
@@ -32,13 +33,12 @@ based on the above requests can also be supported, such as:
 ![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
 
 It differs from the other mocking libraries in that it supplies a webpack plugin and command line tool
-to parse your mock file comments. It's a truly non-hacking mocking library. You never have to hack into
-your business code to mock something ever again after a one-time configuration.
-
+to separate mock data from your business code. It's a truly non-hacking mocking library. You never
+have to hack into your business code to mock something ever again after a one-time configuration.
 
 ## Table of Contents
 
-* [Introduction](#Introduction)
+* [Introduction And Motivation](#Introduction-And-Motivation)
 * [Features](#Features)
 * [Installation](#Installation)
 * [Examples](#Examples)
@@ -60,16 +60,23 @@ your business code to mock something ever again after a one-time configuration.
 
 
 
-## Introduction
+## Introduction And Motivation
 
 `http-request-mock` is an http request mocking library that lets you develop, build and test as normal even when
 backend APIs are down or not ready yet. It supplies a new way to prototype your web application.
 
 
+The original intention of making this library was to find a mock library to decouple from backend.
+However， we can't find a library which meets our requirements. Some libraries has occupied the most
+readable names, but they provide weak functionalities or even no longer provide any updates .
+
+
 There are some problems you may encounter when using the other mocking libraries:
-1. You may have to hack your source code to mock something and revert it back to restore normal.
+1. You may have to hack your source code to mock something and revert it back to restore normal after mocking.
 2. You may involve complex setups, such as all kinds of proxies, http servers.
 3. Not all in one, some library only for `XMLHttpRequest`, some library only for `fetch`.
+4. No updates, hard to set up and a lot of bugs.
+
 
 ## Features
 
@@ -104,12 +111,16 @@ const HttpRequestMock = require('http-request-mock').default;
 
 **CDN**:
 
-The UMD build is also available on unpkg:
+The UMD build is also available on `unpkg` and `cdnjs`:
 
 ```html
+<!-- unpkg -->
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
-
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
+
+<!-- cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.pure.js"></script>
 ```
 
 

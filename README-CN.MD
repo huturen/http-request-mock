@@ -14,9 +14,9 @@
 
 1. XMLHttpRequest
 2. fetch
-3. wx.request (微信小程序)
-4. https.request, https.get (nodejs原生请求对象)
-5. http.request, http.get (nodejs原生请求对象)
+3. https.request, https.get (nodejs原生请求对象)
+4. http.request, http.get (nodejs原生请求对象)
+5. wx.request (微信小程序)
 
 由于基于底层拦截，因此基于以上请求的第3方请求库，也能得到支持，如：
 
@@ -24,11 +24,11 @@
 
 ![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
 
-本库提供了mock文件注释块内容解析，并提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
+区别于其他mock库，为把mock数据从你的业务代码中分离出去，本库提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
 
 ## 目录
 
-* [简介](#简介)
+* [简介和动机](#简介和动机)
 * [特性](#特性)
 * [安装](#安装)
 * [例子](#例子)
@@ -50,29 +50,20 @@
 
 
 
-## 简介
+## 简介和动机
 
 在后台接口未开发好或接口挂掉，甚至无网络环境的情况下，这个库可以让你不受干扰的继续开发，以快速构建产品原型。
-此外，我们还提供了一个额外webpack插件及命令行工具，进行简单配置后，可以不侵入源代码，来完成网络请求的模拟处理。
 
 
-
-本库基于拦截 `XHR(XMLHttpRequest)`, `fetch` , `wx.request`, node自带https/http请求对象 实现。
-
-如果请求有匹配到mock配置，则返回mock配置数据，否则走真实的网络请求。
-
-因为是通过拦截实现，匹配不到mock请求，则返回并使用原生的请求对象。
-
-较之其他mock库，提供了更可靠的稳定性。
+设计本库的初衷是为了在开发及测试过程中从后端解耦。我们找了一堆库，但是基本不能满足我们的要求。
+一些库占据了最直观可读的名字，但是却提供了相对较弱的功能，甚至不提供后续的版本更新。
 
 
-目前现存的mock库，存在以下这些问题：
-1. 使用mock时，需要修改源代码，在mock完毕后可能需要再把代码改回来
-
-2. 配置复杂，需要使用这样或者那样的http服务，或者代理
-
-3. mock功能不全，有些只能mock XMLHttpRequest，有些只能fetch
-
+目前现存的mock库，可能存在以下这些问题：
+1. 必须侵入修改源码来进行mock， mock完毕后还得再改回来。
+2. 时常陷入复杂的配置，比如各种各样的代理， 复杂的服务器配置等等。
+3. mock功能不全，有些只能mock XMLHttpRequest，有些只能fetch。
+4. 不提供后续版本更新， 配置困难，以及太多的bug以至于不能用。
 
 ## 特性
 
@@ -108,13 +99,17 @@ const HttpRequestMock = require('http-request-mock').default;
 
 **CDN**:
 
-也可在浏览器中直接引用, 可以直接使用unpkg的CDN:
+也可在浏览器中直接引用, 提供了`unpkg` 和 `cdnjs` 的CDN做为备选:
 
 
 ```html
+<!-- unpkg -->
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
-
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
+
+<!-- cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.pure.js"></script>
 ```
 
 

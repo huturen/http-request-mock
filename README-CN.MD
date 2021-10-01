@@ -94,7 +94,7 @@
 import HttpRequestMock from 'http-request-mock';
 
 // using CommonJS modules
-const HttpRequestMock = require('http-request-mock').default;
+const HttpRequestMock = require('http-request-mock');
 ```
 
 **CDN**:

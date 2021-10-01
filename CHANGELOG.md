@@ -1,4 +1,7 @@
 ### Changelog
+[2021-10-01]
+1. make it can be required without 'default' property
+
 [2021-09-25]
 1. add umd bundles for browser
 

@@ -1,7 +1,7 @@
 // run `npm run build` before running the command below
 // npm run build && node experiment/disable.js
-const HttpRequestMock = require('../dist/index').default;
-// const HttpRequestMock = require('http-request-mock').default;
+const HttpRequestMock = require('../dist/index');
+// const HttpRequestMock = require('http-request-mock');
 // const mocker = HttpRequestMock.setupForUnitTest('xhr');
 const mocker = HttpRequestMock.setupForUnitTest('xhr', true);
 const axios = require('axios');

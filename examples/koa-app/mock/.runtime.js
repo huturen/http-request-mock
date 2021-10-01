@@ -1,5 +1,5 @@
 /* eslint-disable */
-const HttpRequestMock = require('http-request-mock').default;
+const HttpRequestMock = require('http-request-mock');
 if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup();
   mocker.mock({

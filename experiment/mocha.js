@@ -1,6 +1,6 @@
 // run `npm run build` before running the command below
 // npm run build && npx mocha experiment/mocha.js
-const HttpRequestMock = require('../dist/index').default;
+const HttpRequestMock = require('../dist/index');
 const mocker = HttpRequestMock.setupForUnitTest('all');
 
 const axios = require('axios');

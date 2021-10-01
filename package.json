@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "bin": {

@@ -4,7 +4,7 @@
 
 **中文** | [English](https://github.com/huturen/http-request-mock/blob/main/README.MD)
 
-# http-request-mock ![Logo](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/logo-small.png)
+# http-request-mock ![Logo](https://huturen.github.io/http-request-mock-homepage/imgs/logo-small.png)
 
 完整文档： [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
 
@@ -22,7 +22,7 @@
 
 `axios`, `jquery`, `superagent`, `ky`, `node-fetch`, `got`, `request` ...
 
-![layers-design](https://raw.githubusercontent.com/huturen/http-request-mock/main/docs/layers-design.png)
+![layers-design](https://huturen.github.io/http-request-mock-homepage/imgs/layers-design.png)
 
 区别于其他mock库，为把mock数据从你的业务代码中分离出去，本库提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
 

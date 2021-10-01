@@ -22,4 +22,4 @@ app.use(async ctx => {
 });
 
 app.listen(3500);
-console.log('Listion at: 3500');
+console.log('Listion at: http://localhost:3500');

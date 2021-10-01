@@ -1,7 +1,7 @@
 // run `npm run build` before running the command below
 // npm run build && node experiment/other.js
-const HttpRequestMock = require('../dist/index').default;
-// const HttpRequestMock = require('http-request-mock').default;
+const HttpRequestMock = require('../dist/index');
+// const HttpRequestMock = require('http-request-mock');
 const mocker = HttpRequestMock.setupForUnitTest('node');
 
 const axios = require('axios');

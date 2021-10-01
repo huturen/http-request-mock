@@ -30,6 +30,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
+    // use requre here to avoid static analysis
     global.XMLHttpRequest = global.XMLHttpRequest || require('../faker/xhr').default;
     return new XMLHttpRequestInterceptor(mocker);
   }

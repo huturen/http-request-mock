@@ -31,6 +31,7 @@ export default class FetchInterceptor extends Base{
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
+      // use requre here to avoid static analysis
       global.fetch = require('../faker/fetch').default;
     }
     return new FetchInterceptor(mocker);

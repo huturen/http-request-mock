@@ -238,7 +238,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const codes = [
       '/* eslint-disable */',
       (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
-      `${gap}const HttpRequestMock = require('http-request-mock').default;`,
+      `${gap}const HttpRequestMock = require('http-request-mock');`,
       `${gap}const mocker = HttpRequestMock.setup();`,
       '', // mock-items-place-holder
       (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),

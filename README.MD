@@ -106,7 +106,7 @@ There are some problems you may encounter when using the other mocking libraries
 import HttpRequestMock from 'http-request-mock';
 
 // using CommonJS modules
-const HttpRequestMock = require('http-request-mock').default;
+const HttpRequestMock = require('http-request-mock');
 ```
 
 **CDN**:

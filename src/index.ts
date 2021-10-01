@@ -26,6 +26,7 @@ export default class Index {
 
     // for http.get, https.get, http.request, https.request in node enviroment
     if (isNodejs()) {
+      // use requre here to avoid static analysis
       require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
@@ -68,6 +69,7 @@ export default class Index {
    */
   static setupForNode() : Mocker {
     const mocker = new Mocker();
+    // use requre here to avoid static analysis
     require('./interceptor/node/http-and-https').default.setup(mocker);
     return mocker;
   }
@@ -124,6 +126,7 @@ export default class Index {
     }
 
     if (type === 'node' || type === 'node.http.request') {
+      // use requre here to avoid static analysis
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 
@@ -131,9 +134,14 @@ export default class Index {
       InterceptorWxRequest.setupForUnitTest(mocker);
       InterceptorXhr.setupForUnitTest(mocker);
       InterceptorFetch.setupForUnitTest(mocker);
+      // use requre here to avoid static analysis
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 
     return mocker;
   }
+
+  static default = Index; // for backward compatibility
 }
+
+module.exports = Index; // make it can be required without 'default' property

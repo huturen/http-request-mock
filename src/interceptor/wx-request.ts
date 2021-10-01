@@ -31,6 +31,7 @@ export default class WxRequestInterceptor extends Base {
     const global = Base.getGlobal();
     global.wx = global.wx || {};
     if (!global.wx.request) {
+      // use requre here to avoid static analysis
       global.wx.request = require('../faker/wx-request').default.bind(global.wx);
     }
 

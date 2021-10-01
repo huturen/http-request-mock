@@ -5,15 +5,14 @@
 npm install
 ```
 
+## Mock development
+```
+npm run mock-dev
+```
+
 ### Compiles and hot-reloads for development
 ```
 npm run serve
-```
-
-
-### Compiles and hot-reloads with mock for development
-```
-npm run mockdev
 ```
 
 ### Compiles and minifies for production

@@ -37,15 +37,15 @@ export default {
   data() {
     return {
       url: 'https://jsonplaceholder.typicode.com/todos/1',
-      status: false,
+      status: true,
       resultOfFetch: '',
       resultOfXhr: '',
     }
   },
 
   mounted () {
-    this.status = false;
-    HttpRequetMock.disable();
+    this.status = true;
+    HttpRequetMock.enable();
   },
 
   methods: {

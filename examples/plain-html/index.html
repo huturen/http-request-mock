@@ -8,12 +8,14 @@
       button { padding: 5px; border-radius: 2px; border: 1px solid #000; background: #eee;}
       .item { white-space: nowrap; margin: 5px; padding: 5px; border-bottom: 1px dashed #ccc;}
       .result {border: 1px dashed red}
+      a {color: #0000cc; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
-    <!-- <script src="./http-request-mock.pure.js"></script> -->
-    <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
-
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script> -->
+    <!-- <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script> -->
+    <script src="./jquery.min.js"></script>
+    <script src="./axios.min.js"></script>
+    <script src="./http-request-mock.pure.js"></script>
 </head>
 <body>
     <div class="item">
@@ -28,7 +30,14 @@
     <div class="result">
       Result: <pre id="result">...</pre>
     </div>
-    <div>Hit F12 to access Developer Tools and view the console logs.</div>
+    <div>
+      Hit <b>F12</b> to access Developer Tools and view the console logs.
+
+      <br />
+
+      Hit <b>Ctrl + u(windows)</b> or <b>Option+Command+u(MacOs)</b> to view the example source code.
+    </div>
+    <div>For more details, please refer to <a href="/http-request-mock-homepage/intro/">Introduction</a>.</div>
 </body>
 </html>
 

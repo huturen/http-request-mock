@@ -20,6 +20,7 @@ const appRoot = (() => {
 })();
 
 const spaces = ' '.repeat(33);
+
 program
   .name('npx http-request-mock-cli')
   .usage('[options]')

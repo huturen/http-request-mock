@@ -159,7 +159,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const res = [];
 
     for (const file of files) {
-      if (file.isFile() && /^[\w][-\w]*\.js$/.test(file.name)) {
+      if (file.isFile() && /^[0-9A-Za-z][-\w]*\.js$/.test(file.name)) {
         res.push(this.resolve(dir, file.name));
       } else if (file.isDirectory()) {
         res.push(...this.getAllMockFiles(level.concat(file.name)));

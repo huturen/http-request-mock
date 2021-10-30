@@ -288,11 +288,11 @@ export default class Mocker {
             return info;
           }
           // [whole matching] takes precedence over partial matching
-          if (i === 0 && (reqUrl === info.url || reqUrl.indexOf(info.url as string) === 0)) {
+          if (i === 0 && reqUrl === info.url) {
             return info;
           }
           // whole matching takes precedence over [partial matching]
-          if (i === 1 && reqUrl.indexOf(info.url as string) > 0) {
+          if (i === 1 && reqUrl.indexOf(info.url as string) !== -1) {
             return info;
           }
         } catch(e) {}

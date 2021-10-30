@@ -14,24 +14,21 @@ module.exports = function cacheWrapper(cacheKey, mockData) {
   if (!isObjOrArr(mockData)) {
     throw new Error('http-request-mock cacheWrapper: The [mockData] must be an object or array.');
   }
-
   if (typeof Proxy !== 'function' || typeof Reflect !== 'object') {
     return mockData;
   }
 
-  const wrap = (obj, handler) => {
-    return isObjOrArr(obj) ? new Proxy(obj, handler) : obj;
-  };
-
   let timer = null;
   const save = () => {
     clearTimeout(timer);
-    timer = setTimeout(() => localStorage.setItem(cacheKey, JSON.stringify(mockData)), 150);
+    timer = setTimeout(() => localStorage.setItem(cacheKey, JSON.stringify(result)), 100);
   };
-
+  const wrap = (obj, handler) => {
+    return isObjOrArr(obj) && !obj.__proxy__ ? new Proxy(obj, handler) : obj;
+  };
   const handler = {
     get(target, key, receiver) {
-      return wrap(Reflect.get(target, key, receiver), handler);
+      return key === '__proxy__' ? true : wrap(Reflect.get(target, key, receiver), handler);
     },
     set(target, key, value, receiver) {
       const res = Reflect.set(target, key, wrap(value, handler), receiver);
@@ -45,7 +42,7 @@ module.exports = function cacheWrapper(cacheKey, mockData) {
     },
   };
 
-  const isCached = cacheKey in localStorage;
-
-  return wrap(isCached ? JSON.parse(localStorage.getItem(cacheKey)) : mockData, handler);
+  const cache = (cacheKey in localStorage);
+  const result = wrap(cache ? JSON.parse(localStorage.getItem(cacheKey)) : mockData, handler);
+  return result;
 }

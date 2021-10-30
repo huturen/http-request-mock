@@ -1,4 +1,7 @@
 ### Changelog
+[2021-10-30]
+1. add cache plugin: set the specified data into localeStorage cache when it changes.
+
 [2021-10-01]
 1. make it can be required without 'default' property
 

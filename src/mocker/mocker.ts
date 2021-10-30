@@ -274,29 +274,29 @@ export default class Mocker {
     if (this.disabled) {
       return null;
     }
+    const requestMethod = (reqMethod || 'get').toLowerCase();
 
-    const requestMethod = reqMethod || 'get';
+    const items = Object.values(this.mockConfigData).filter(({disable, times, method}: MockItem) => {
+      const verb = String(method).toLowerCase();
+      return disable !== 'yes' && (times === undefined || times > 0) && (verb === 'any' || verb === requestMethod);
+    });
 
-    for(let key in this.mockConfigData) {
-      try {
-        const info = this.mockConfigData[key];
-        if (info.disable === 'yes' || (typeof info.times !== 'undefined' && info.times <= 0)) {
-          continue;
-        }
-
-        const method = `${info.method}`.toLowerCase();
-        if (method !== 'any' && method !== `${requestMethod}`.toLowerCase()) {
-          continue;
-        }
-
-        if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
-          return info;
-        }
-
-        if (reqUrl.indexOf(info.url as string) !== -1) {
-          return info;
-        }
-      } catch(e) {}
+    for(let i = 0; i < 2; i++) {
+      for(const info of items) {
+        try {
+          if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
+            return info;
+          }
+          // [whole matching] takes precedence over partial matching
+          if (i === 0 && (reqUrl === info.url || reqUrl.indexOf(info.url as string) === 0)) {
+            return info;
+          }
+          // whole matching takes precedence over [partial matching]
+          if (i === 1 && reqUrl.indexOf(info.url as string) > 0) {
+            return info;
+          }
+        } catch(e) {}
+      }
     }
     return null;
   }

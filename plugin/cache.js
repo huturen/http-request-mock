@@ -1,19 +1,20 @@
 /**
  * Set the specified mockData into localeStorage cache when it changes.
- * @param {object | array} mockData
  * @param {string} cacheKey
+ * @param {object | array} mockData
  */
-module.exports = function cacheWrapper(mockData, cacheKey) {
+module.exports = function cacheWrapper(cacheKey, mockData) {
   const isObjOrArr = (obj) => {
     return {}.toString.call(obj) === '[object Object]' || {}.toString.call(obj) === '[object Array]';
   };
 
-  if (!isObjOrArr(mockData)) {
-    throw new Error('http-request-mock cacheWrapper: The [mockData] must be an object or array.');
-  }
   if (!cacheKey || typeof cacheKey !== 'string') {
     throw new Error('http-request-mock cacheWrapper: The [cacheKey] must be a non-empty string.');
   }
+  if (!isObjOrArr(mockData)) {
+    throw new Error('http-request-mock cacheWrapper: The [mockData] must be an object or array.');
+  }
+
   if (typeof Proxy !== 'function' || typeof Reflect !== 'object') {
     return mockData;
   }

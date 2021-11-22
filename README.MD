@@ -358,7 +358,7 @@ App
  * @url https://some.api.com/config
  * @method get
  */
-export default {
+module.exports = {
   enable: false,
   title: 'Some Title',
   ...
@@ -369,7 +369,7 @@ export default {
  * @url https://some.api.com/user
  * @method post
  */
-export default {
+module.exports = {
   name: 'John',
   age: 25,
   ...
@@ -705,7 +705,7 @@ describe('mock axios request', () => {
 // Response body to be mocked.
 // It supports to export an object, function, async function, sting or any other types.
 // If a function is specified, the function accepts an argument with request information.
-export default (requestInfo) => {
+module.exports = (requestInfo) => {
   return 'Your response data';
 };
 ```

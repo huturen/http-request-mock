@@ -345,7 +345,7 @@ App
  * @url https://some.api.com/config
  * @method get
  */
-export default {
+module.exports = {
   enable: false,
   title: 'Some Title',
   ...
@@ -356,7 +356,7 @@ export default {
  * @url https://some.api.com/user
  * @method post
  */
-export default {
+module.exports = {
   name: 'John',
   age: 25,
   ...
@@ -686,7 +686,7 @@ describe('mock axios request', () => {
  */
 // http响应内容，支持静态对象，函数，或者 异步函数,
 // 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。
-export default (requestInfo) => {
+module.exports = (requestInfo) => {
   return 'Your response data';
 };
 ```

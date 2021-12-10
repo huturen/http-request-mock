@@ -1,43 +1,46 @@
+import { IncomingMessage } from 'http';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
+import { FetchRequest } from '../types';
 import fallback from './fallback';
 
-export default function fakeFetch() {
-  const args = [ ...(arguments as any) ];
 
-  let url: any;
-  let params: any;
+
+export default function fakeFetch(input: string | FetchRequest, init: Record<string, unknown>) {
+  let url: string | FetchRequest;
+  let params: Record<string, unknown>;
   // https://developer.mozilla.org/en-US/docs/Web/API/Request
   // Note: the first argument of fetch maybe a Request object.
-  if (typeof args[0] === 'object') {
-    url = args[0].url;
-    params = args[0];
+  if (typeof input === 'object') {
+    url = input.url;
+    params = input;
   } else {
-    url = args[0];
-    params = args[1] || {};
+    url = input;
+    params = init || {};
   }
 
-  return fallback(url, params.method, params.headers, params.body)
-    .then((res: any) => {
-      return getResponse(url, res.body, res.response);
+  return fallback(url, params.method as string, params.headers as Record<string, string>, params.body)
+    .then((res: {body: string, response: IncomingMessage}) => {
+      return getResponse(url as string, res.body, res.response);
     });
 }
 
-function getResponse(url: string, responseBody: any, res: any) {
+function getResponse(url: string, responseBody: string, responseObject: IncomingMessage) {
   const data = responseBody;
-  const status = res.statusCode || 200;
+  const status = responseObject.statusCode || 200;
   const statusText = HTTPStatusCodes[status] || '';
 
+  const responseObjectHeaders = responseObject.headers as HeadersInit;
   const headers = typeof Headers === 'function'
-    ? new Headers({ ...res.headers, 'x-powered-by': 'http-request-mock' })
-    : { ...res.headers, 'x-powered-by': 'http-request-mock' };
+    ? new Headers({ ...responseObjectHeaders, 'x-powered-by': 'http-request-mock' })
+    : { ...responseObjectHeaders, 'x-powered-by': 'http-request-mock' };
 
   const body = typeof Blob === 'function'
     ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
     : data;
 
   if (typeof Response === 'function') {
-    const response = new Response(body,{ status, statusText, headers });
+    const response = new Response(body, { status, statusText, headers });
     Object.defineProperty(response, 'url', { value: url });
     return response;
   }
@@ -56,7 +59,7 @@ function getResponse(url: string, responseBody: any, res: any) {
     json: () => Promise.resolve(data),
     arrayBuffer: () => {
       if (isArrayBuffer(data)) {
-        return Promise.resolve(data)
+        return Promise.resolve(data);
       }
       return Promise.resolve(str2arrayBuffer(typeof data === 'string' ? data : JSON.stringify(data)));
     },

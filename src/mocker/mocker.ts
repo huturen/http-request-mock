@@ -1,13 +1,13 @@
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import { Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
+import { Logs, Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
   private static instance: Mocker;
   private mockConfigData: MockConfigData;
-  private disabled: boolean = false;
-  private log: boolean = false;
+  private disabled = false;
+  private log = false;
 
   constructor() {
     if (Mocker.instance) {
@@ -28,7 +28,7 @@ export default class Mocker {
    * @param {object} mockConfigData
    */
   public setMockData(mockConfigData: MockConfigData) {
-    for(let key in mockConfigData) {
+    for(const key in mockConfigData) {
       this.mock(mockConfigData[key]);
     }
     return this;
@@ -37,7 +37,7 @@ export default class Mocker {
   /**
    * Add an mock item to global mock data configuration.
    * @param {string} key
-   * @param {any} val
+   * @param {MockItem} val
    */
   private addMockItem(key: string, val: MockItem) {
     this.mockConfigData[key] = val;
@@ -46,8 +46,6 @@ export default class Mocker {
 
   /**
    * Reset global mock data configuration.
-   * @param {string} key
-   * @param {any} val
    */
   public reset() {
     this.setMockData({});
@@ -93,7 +91,7 @@ export default class Mocker {
    * @param {MockItem} mockItem
    * @returns false | MockItem
    */
-  public mock(mockItemInfo: MockItem) {
+  public mock(mockItemInfo: Partial<MockItem>) {
     if (!isObject(mockItemInfo)) {
       throw new Error('Invalid mock item, a valid mock item must be an object.');
     }
@@ -107,7 +105,7 @@ export default class Mocker {
   /**
    * Make a mock item that matches an HTTP GET request.
    * @param {RegExp | String} url
-   * @param {any} body
+   * @param {unknown} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -115,14 +113,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public get(url: RegExp | String, body: any, opts: MockItemExt = {
+  public get(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'get', body, delay, status, header, times });
+    this.mock({ url, method: Method.GET, body, delay, status, header, times });
     return this;
   }
 
@@ -137,14 +135,15 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public post(url: RegExp | String, body: any, opts: MockItemExt = {
+  public post(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'post', body, delay, status, header, times });
+
+    this.mock({ url, method: Method.POST, body, delay, status, header, times });
     return this;
   }
 
@@ -159,14 +158,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public put(url: RegExp | String, body: any, opts: MockItemExt = {
+  public put(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'put', body, delay, status, header, times });
+    this.mock({ url, method: Method.PUT, body, delay, status, header, times });
     return this;
   }
 
@@ -181,14 +180,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public patch(url: RegExp | String, body: any, opts: MockItemExt = {
+  public patch(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'patch', body, delay, status, header, times });
+    this.mock({ url, method: Method.PATCH, body, delay, status, header, times });
     return this;
   }
 
@@ -203,21 +202,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public delete(url: RegExp | String, body: any, opts: MockItemExt = {
+  public delete(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'delete', body, delay, status, header, times });
+    this.mock({ url, method: Method.DELETE, body, delay, status, header, times });
     return this;
   }
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
    * Warning: A response to a HEAD method should not have a body.
-   * If it has one anyway, that body must be ignored: any representation
+   * If it has one anyway, that body must be ignored, any representation
    * headers that might describe the erroneous body are instead assumed
    * to describe the response which a similar GET request would have received.
    *
@@ -230,21 +229,21 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public head(url: RegExp | String, opts: MockItemExt = {
+  public head(url: RegExp | string, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'head', body: '', delay, status, header, times });
+    this.mock({ url, method: Method.HEAD, body: '', delay, status, header, times });
     return this;
   }
 
   /**
    * Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD request.
    * @param {RegExp | String} url
-   * @param {any} body
+   * @param {unknown} body
    * @param {MockItemExt} opts {
    *    @param {number} delay
    *    @param {number} status
@@ -252,14 +251,14 @@ export default class Mocker {
    *    @param {number} times
    * }
    */
-  public any(url: RegExp | String, body: any, opts: MockItemExt = {
+  public any(url: RegExp | string, body: unknown, opts: MockItemExt = {
     delay: 0,
     status: 200,
     times: Infinity,
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock(<MockItem>{ url, method: 'any', body, delay, status, header, times });
+    this.mock({ url, method: Method.ANY, body, delay, status, header, times });
     return this;
   }
 
@@ -274,11 +273,11 @@ export default class Mocker {
     if (this.disabled) {
       return null;
     }
-    const requestMethod = (reqMethod || 'get').toLowerCase();
+    const requestMethod = (reqMethod || 'GET').toUpperCase();
 
     const items = Object.values(this.mockConfigData).filter(({disable, times, method}: MockItem) => {
-      const verb = String(method).toLowerCase();
-      return disable !== 'yes' && (times === undefined || times > 0) && (verb === 'any' || verb === requestMethod);
+      const verb = String(method).toUpperCase();
+      return disable !== 'YES' && (times === undefined || times > 0) && (verb === 'ANY' || verb === requestMethod);
     });
 
     for(let i = 0; i < 2; i++) {
@@ -295,13 +294,20 @@ export default class Mocker {
           if (i === 1 && reqUrl.indexOf(info.url as string) !== -1) {
             return info;
           }
-        } catch(e) {}
+        } catch(e) {
+          // ignore match error, normally, user doesn't case it.
+        }
       }
     }
     return null;
   }
 
-  public groupLog(logs: any[]) {
+  /**
+   * Set group logs
+   * @param {Logs[]} logs
+   * @returns
+   */
+  public groupLog(logs: Logs[]) {
     if (!this.log) return;
     if (typeof console.groupCollapsed !== 'function') return;
     if (typeof console.groupEnd !== 'function') return;
@@ -309,20 +315,20 @@ export default class Mocker {
     if (Array.isArray(logs[0])) {
       console.groupCollapsed(...logs[0]);
     } else {
-      console.groupCollapsed(logs[0])
+      console.groupCollapsed(logs[0]);
     }
     for(let i = 1; i < logs.length; i++) {
       if (Array.isArray(logs[i])) {
         console.log(...logs[i]);
       } else {
-        console.log(logs[i])
+        console.log(logs[i]);
       }
     }
-    console.groupEnd()
+    console.groupEnd();
   }
 
-  public sendResponseLog(spent: number, body: any, requestInfo: RequestInfo, mockItem: MockItem) {
-    const logs = [
+  public sendResponseLog(spent: number, body: unknown, requestInfo: RequestInfo, mockItem: MockItem) {
+    const logs: Logs[] = [
       [
         '[http-request-mock] %s %s %s (%c%s%c)',
         `${currentTime()}`,
@@ -341,11 +347,13 @@ export default class Mocker {
         status: mockItem.status,
         statusText: HTTPStatusCodes[mockItem.status] || ''
       }],
-      ['MockItem: ', mockItem]
+      // ['MockItem: ', mockItem]
     ];
     if (isNodejs()) { // less information for nodejs
       const { url, method, delay, times, status, disable } = mockItem;
-      logs[3][1] = { url, method, delay, times, status, disable } as any;
+      logs[3] = ['MockItem:', { url, method, delay, times, status, disable }];
+    } else {
+      logs[3] = ['MockItem: ', mockItem];
     }
     this.groupLog(logs);
   }

@@ -1,14 +1,15 @@
 import { getQuery, tryToParseObject } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, RequestInfo } from '../types';
+import { Method, MixedRequestInfo, RequestInfo } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
 export default class BaseInterceptor {
   protected mocker: Mocker;
-  protected global: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected global: Record<string, any>;
 
   constructor(mocker: Mocker) {
     this.mocker = mocker;
@@ -26,7 +27,7 @@ export default class BaseInterceptor {
   /**
    * return global variable
    */
-  public static getGlobal() : any {
+  public static getGlobal() {
     if (typeof window !== 'undefined') {
       return window;
     } else if (typeof global !== 'undefined')  {
@@ -49,7 +50,7 @@ export default class BaseInterceptor {
     return mockItem;
   }
 
-  public getRequestInfo(mixedRequestInfo: any) : RequestInfo {
+  public getRequestInfo(mixedRequestInfo: MixedRequestInfo) : RequestInfo {
     const info: RequestInfo = {
       url: mixedRequestInfo.url,
       method: mixedRequestInfo.method || 'GET',

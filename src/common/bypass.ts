@@ -1,3 +1,3 @@
 export default class Bypass {
-  flag: string = 'yes';
+  flag = 'yes';
 }

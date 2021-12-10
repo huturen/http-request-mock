@@ -1,11 +1,13 @@
+import { IncomingMessage } from 'http';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
+import { WxRequestOpts } from '../types';
 import fallback from './fallback';
 
-export default function fakeWxRequest(wxReqOpts : any) {
+export default function fakeWxRequest(wxReqOpts : WxRequestOpts) {
   const { url, method, data, header, dataType, responseType, success, fail, complete } = wxReqOpts;
 
   const body = (data && (method + '').toUpperCase() !== 'GET') ? data : null;
-  fallback(url, method, header, body).then((res: any) => {
+  fallback(url, method as string, header, body).then((res: {body: string, response: IncomingMessage}) => {
     if (typeof success === 'function') {
       let data;
       if (dataType === 'json') {
@@ -14,8 +16,8 @@ export default function fakeWxRequest(wxReqOpts : any) {
         } else if (typeof res.body === 'string') {
           try {
             data = JSON.parse(res.body);
-          } catch(e: any) {
-            e.message = `res.body is not a json-like string: ${e.message}`
+          } catch(e) {
+            (e as Error).message = 'res.body is not a json-like string.';
             throw e;
           }
         }
@@ -27,13 +29,14 @@ export default function fakeWxRequest(wxReqOpts : any) {
           ? res.body
           : str2arrayBuffer(typeof res.body === 'string' ? res.body : JSON.stringify(res.body));
       }
+
       success({
         data,
         statusCode: res.response.statusCode,
         header: {
-          ...res.headers,
+          ...res.response.headers,
         },
-        cookies: [].concat((res.headers?.['set-cookie'] || []) as any),
+        cookies: res.response.headers?.['set-cookie'] || [],
         profile: {},
       });
     }
@@ -51,6 +54,8 @@ export default function fakeWxRequest(wxReqOpts : any) {
   });
 
   return {
-    abort(){}
-  }
+    abort(){
+      // `abort` method is not supported in a fake enviroment.'
+    }
+  };
 }

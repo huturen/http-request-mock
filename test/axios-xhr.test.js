@@ -34,13 +34,8 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
   it('url config item should support RegExp matching', async () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
-    console.error = jest.fn();
-    await axios.get('http://www.api.com/regexp').then(res => {
-      expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
-    });
-    await axios.get('http://www.api.com/otherregexp').catch(err => {
-      expect(err).toBeTruthy();
-    });
+    const res = await axios.get('http://www.api.com/regexp');
+    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
   it('delay config item should support a delayed response', (done) => {
@@ -182,6 +177,7 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     mocker.mock({
       url: 'http://www.api.com/async-function',
       body: async () => {
+        // simulate network latency.
         await new Promise(resolve => setTimeout(resolve, 101));
         index = index + 1;
         return 'data'+index;

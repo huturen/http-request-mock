@@ -13,7 +13,7 @@ const request = (url, method = 'get', opts = {}) => {
       res.text().then(text => {
         let data;
         try {
-          data = JSON.parse(text)
+          data = JSON.parse(text);
         } catch(e) {
           data = text;
         }
@@ -34,14 +34,14 @@ const request = (url, method = 'get', opts = {}) => {
 describe('mock fetch requests for node envrioment', () => {
   it('fetch function which is from node-fetch should be called when there is no mock request is matched', (done) => {
     request('http://www.example', 'get')
-    .then(() => {
-      expect(fetch).toBeCalled();
-      done();
-    })
-    .catch(() => {
-      expect(fetch).toBeCalled();
-      done();
-    });
+      .then(() => {
+        expect(fetch).toBeCalled();
+        done();
+      })
+      .catch(() => {
+        expect(fetch).toBeCalled();
+        done();
+      });
   });
 
 

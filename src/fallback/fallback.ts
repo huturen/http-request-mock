@@ -1,5 +1,6 @@
 import http, { IncomingMessage } from 'http';
 import https from 'https';
+import { URL } from 'url';
 import * as zlib from 'zlib';
 
 /**
@@ -16,11 +17,17 @@ import * as zlib from 'zlib';
  * @param {object} opts
  * @returns
  */
-export default function fallback(url: any, method: string, headers: any, body: any, opts: any = {}) {
+export default function fallback(
+  url: string | URL,
+  method: string,
+  headers: Record<string, string>,
+  body: unknown,
+  opts: Record<string, string> = {}
+): Promise<{body: string, response: IncomingMessage}> {
   return new Promise((resolve, reject) => {
-    const isHttps = /^https:/i.test(url);
+    const isHttps = isHttpsUrl(url);
     const protocol = isHttps ? https : http;
-    const reqOpts: any = {
+    const reqOpts = {
       useNativeModule: true,
       method: (method || 'GET').toUpperCase(),
       headers: headers || {},
@@ -44,13 +51,23 @@ export default function fallback(url: any, method: string, headers: any, body: a
         || (body instanceof SharedArrayBuffer)
         || (body instanceof Uint8Array)
       ) {
-        req.write(Buffer.from(body as any));
+        req.write(Buffer.from(body as string));
       } else {
         req.write(Buffer.from(JSON.stringify(body)));
       }
     }
     req.end();
   });
+}
+
+function isHttpsUrl(url: string | URL) {
+  if (typeof url === 'string') {
+    return /^https:/i.test(url);
+  }
+  if (url && (url.href || url.protocol)) {
+    return /^https:/i.test(url.href) || String(url.protocol).toLowerCase() === 'https:';
+  }
+  return false;
 }
 
 function getResponseBody(response: IncomingMessage): Promise<string> {
@@ -71,5 +88,5 @@ function getResponseBody(response: IncomingMessage): Promise<string> {
       resolve(body);
       stream.removeAllListeners();
     });
-  })
+  });
 }

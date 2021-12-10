@@ -10,4 +10,4 @@ module.exports = {
     'subject-case': [0],
     'subject-min-length': [2, 'always', 5],
   },
-}
+};

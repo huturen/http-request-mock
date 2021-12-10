@@ -5,15 +5,21 @@ import Mocker from '../src/mocker/mocker';
 
 describe('test HttpRequestMock necessary methods', () => {
   it('setup method should return an instance of Mocker', () => {
-    global.wx = { request: function(){} };
+    global.wx = { request: function(){
+      void(0);
+    } };
     expect(HttpRequestMock.setup()).toBe(new Mocker());
 
-    window.fetch = function(){};
+    window.fetch = function(){
+      void(0);
+    };
     expect(HttpRequestMock.setup()).toBe(new Mocker());
   });
 
   it('setupForWx method should return an instance of Mocker', () => {
-    global.wx = { request: function(){} };
+    global.wx = { request: function(){
+      void(0);
+    } };
     expect(HttpRequestMock.setupForWx()).toBe(new Mocker());
   });
 
@@ -58,7 +64,7 @@ describe('test HttpRequestMock necessary methods', () => {
     mocker.enable();
     expect(mocker.matchMockItem('http://www.api.com/mock')).toBe(null);
 
-    mocker.mock({url: new RegExp('\/regexp-mock$')});
+    mocker.mock({url: new RegExp('/regexp-mock$')});
     expect(mocker.matchMockItem('http://www.api.com/regexp-mock')).toBeTruthy();
   });
 
@@ -106,7 +112,7 @@ describe('test HttpRequestMock necessary methods', () => {
       response: '<html>xxx</html>',
       disable: 'true',
     });
-    expect(mockItem.disable).toBe('yes');
+    expect(mockItem.disable).toBe('YES');
     expect(mockItem.faker).toBeTruthy();
     expect(mockItem.faker.name).toBeTruthy();
     expect(typeof mockItem.faker.name.findName()).toBe('string');

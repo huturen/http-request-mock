@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+/* eslint-env node */
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -26,7 +26,7 @@ program
   .usage('[options]')
   .description([
     `Description: http-request-mock command line tool at version ${pkg.version}.`,
-    `Glossary: [.runtime.js] A runtime mock entry configuration file.`,
+    'Glossary: [.runtime.js] A runtime mock entry configuration file.',
     `Current working directory: \x1b[32m${appRoot}\x1b[0m`,
     'Example: ',
     '    npx http-request-mock-cli -i',
@@ -80,7 +80,7 @@ async function init() {
 
   if (!fs.existsSync(dir)) {
     log(`${dir} does not exist.`);
-    if (/^(yes|y|)$/i.test(await askInput(`Are you sure to create it? [Yes/no]`))) {
+    if (/^(yes|y|)$/i.test(await askInput('Are you sure to create it? [Yes/no]'))) {
       fs.mkdirSync(dir, { recursive: true });
     } else {
       return log('Nothing was happened.');
@@ -98,7 +98,7 @@ async function init() {
   }
 
   const runtime = webpack.getRuntimeConfigFile();
-  log(`A runtime mock entry configuration has been initialized:`);
+  log('A runtime mock entry configuration has been initialized:');
   log(runtime);
 }
 
@@ -128,12 +128,12 @@ async function inject() {
   const entryContent = fs.readFileSync(appEntryFile, 'utf8');
   if (/(\/|\\)\.runtime\.js('|")/.test(entryContent)) {
     log(`The specified application entry file [\x1b[32m${appEntryFile}\x1b[0m] already contains '.runtime.js'.`);
-    log(`Please check out your application entry file.`);
+    log('Please check out your application entry file.');
     return;
   }
   fs.writeFileSync(appEntryFile, codes+'\n'+entryContent);
   log(`[.runtime.js] dependency has been injected into [\x1b[32m${appEntryFile}\x1b[0m].`);
-  log(`Please check out your application entry file.`);
+  log('Please check out your application entry file.');
 }
 
 function watch() {

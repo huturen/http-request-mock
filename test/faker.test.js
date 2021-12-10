@@ -1,12 +1,11 @@
-
 import { expect, jest } from '@jest/globals';
 import http from 'http';
 import https from 'https';
 import { isArrayBuffer, str2arrayBuffer } from '../src/common/utils';
-import * as fallback from '../src/faker/fallback';
-import fakeFetch from '../src/faker/fetch';
-import fakeWxRequest from '../src/faker/wx-request';
-import fakeXhr from '../src/faker/xhr';
+import * as fallback from '../src/fallback/fallback';
+import fakeFetch from '../src/fallback/fetch';
+import fakeWxRequest from '../src/fallback/wx-request';
+import fakeXhr from '../src/fallback/xhr';
 
 let times = 0;
 const xhrRequest = (url, method, body = null, opts = {}) => {
@@ -24,7 +23,7 @@ const xhrRequest = (url, method, body = null, opts = {}) => {
         opts.dispatchEvent();
         resolve(xhr);
       }
-      : (() => {});
+      : (() => void(0));
     xhr.onerror = opts.onerror || ((err) => {
       reject(err);
     });
@@ -32,8 +31,8 @@ const xhrRequest = (url, method, body = null, opts = {}) => {
     xhr.onloadend = opts.onloadend || (() => {
       resolve(xhr);
     });
-    xhr.onload = opts.onloadend || (() => {});
-    xhr.onreadystatechange = opts.onreadystatechange || (() => {});
+    xhr.onload = opts.onloadend || (() => void(0));
+    xhr.onreadystatechange = opts.onreadystatechange || (() => void(0));
     xhr.send(body);
   });
 };
@@ -51,11 +50,13 @@ const wxRequest = (opts) => {
       fail(err) {
         reject(err);
       },
-      complete() {},
+      complete() {
+        void(0);
+      },
       ...opts,
     });
   });
-}
+};
 const fallbackDefault = fallback.default;
 
 // axios.defaults.adapter = httpAdapter; //
@@ -68,6 +69,7 @@ describe('test fake request object', () => {
         headers: { abc: 'xyz' }
       }
     };
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockResolvedValue(fakeResponse);
     const res = await fakeFetch(new URL('http://www.example.com'));
     const body = await res.text();
@@ -97,7 +99,9 @@ describe('test fake request object', () => {
     expect(res3.headers.abc === 'xyz').toBe(true);
     expect(body3).toContain('fake-body');
 
-    global.Response = function(){};
+    global.Response = function(){
+      void(0);
+    };
     global.Blob = undefined;
     const res4 = await fakeFetch('http://www.example.com');
     expect(res4).toBeInstanceOf(global.Response);
@@ -113,6 +117,7 @@ describe('test fake request object', () => {
         headers: { abc: 'xyz' }
       }
     };
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockResolvedValue(fakeResponse);
     const xhr = await xhrRequest('http://www.example.com', 'post', {abc: 123});
     expect(xhr.response).toMatchObject({msg:'fake-body'});
@@ -121,7 +126,7 @@ describe('test fake request object', () => {
     expect(xhr.getResponseHeader('efg')).toBe(null);
 
     // body: object
-    fakeResponse.body = {msg:"fake-body"};
+    fakeResponse.body = {msg:'fake-body'};
     fakeResponse.response.headers = undefined;
     const xhr2 = await xhrRequest('http://www.example.com', 'post', {abc: 123});
     expect(xhr2.response).toMatchObject({msg:'fake-body'});
@@ -138,7 +143,7 @@ describe('test fake request object', () => {
     expect(xhr4.response).toBe(null);
 
     // arraybuffer
-    fakeResponse.body = {msg:"fake-body"};
+    fakeResponse.body = {msg:'fake-body'};
     const xhr5 = await xhrRequest('http://www.example.com', 'post', {abc: 123}, {
       responseType: 'arraybuffer'
     });
@@ -173,7 +178,7 @@ describe('test fake request object', () => {
     xhr8.abort();
     expect(xhr8.status).toBe(0);
 
-    // error
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockRejectedValue(new Error('fake'));
     const xhr9 = await xhrRequest('http://www.example.com', 'post').catch(e => e);
     expect(xhr9 instanceof Error).toBe(true);
@@ -189,9 +194,10 @@ describe('test fake request object', () => {
         headers: { abc: 'xyz' }
       }
     };
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockResolvedValue(fakeResponse);
     const res = await wxRequest({ data: '{"abc":123}' });
-    expect(res.data).toMatchObject({msg:'fake-body'})
+    expect(res.data).toMatchObject({msg:'fake-body'});
 
     fakeResponse.body = {msg:'fake-body'};
     const res2 = await wxRequest({ dataType: '', responseType: 'text' });
@@ -217,6 +223,7 @@ describe('test fake request object', () => {
     const err = await wxRequest({}).catch(e => e);
     expect(err).toBeInstanceOf(Error);
 
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockRejectedValue(new Error('fake'));
     const err2 = await wxRequest({url: 'https://www.example.com'}).catch(e => e);
     expect(err2 instanceof Error).toBe(true);
@@ -230,8 +237,8 @@ describe('test fake request object', () => {
       (key === 'error') && fn(new Error('fake'));
     });
     const end = jest.fn();
-    const emit = jest.fn((key, val) => {
-      (key === 'error') && on('error', (()=>{}));
+    const emit = jest.fn((key) => {
+      (key === 'error') && on('error', (() => void(0)));
     });
     const request = jest.fn((url, opts, callback) => {
       const response = {
@@ -246,8 +253,12 @@ describe('test fake request object', () => {
         on(key, fn){
           (key === 'data') && fn('fake-body');
         },
-        pipe(){},
-        removeAllListeners() {}
+        pipe(){
+          void(0);
+        },
+        removeAllListeners() {
+          void(0);
+        }
       };
       callback(response);
 
@@ -256,7 +267,7 @@ describe('test fake request object', () => {
     const [oriHttpsRequest, oriHttpRequest] = [https.request, http.request];
     https.request = request;
     http.request = request;
-    await fallbackDefault('https://www.example.com', null, null, 'abc=123').catch(e => {});
+    await fallbackDefault('https://www.example.com', null, null, 'abc=123').catch(() => void(0));
     expect(https.request).toBeCalled();
 
     await fallbackDefault('http://www.example.com', 'get', {}, 123).catch(e => {

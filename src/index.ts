@@ -27,6 +27,7 @@ export default class Index {
     // for http.get, https.get, http.request, https.request in node enviroment
     if (isNodejs()) {
       // use requre here to avoid static analysis
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
@@ -70,6 +71,7 @@ export default class Index {
   static setupForNode() : Mocker {
     const mocker = new Mocker();
     // use requre here to avoid static analysis
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('./interceptor/node/http-and-https').default.setup(mocker);
     return mocker;
   }
@@ -127,6 +129,7 @@ export default class Index {
 
     if (type === 'node' || type === 'node.http.request') {
       // use requre here to avoid static analysis
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 
@@ -135,6 +138,7 @@ export default class Index {
       InterceptorXhr.setupForUnitTest(mocker);
       InterceptorFetch.setupForUnitTest(mocker);
       // use requre here to avoid static analysis
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
 

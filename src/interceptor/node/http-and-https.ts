@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import http from 'http';
 import https from 'https';
 import urlUtil from 'url';
@@ -59,8 +60,9 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * Logic of intercepting http.request and https.request method.
    */
   private inteceptRequestMethod() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
-    http.request = function(...args: any[]) {
+    http.request = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpRequest, args);
@@ -68,7 +70,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       }
       return me.httpRequest(...args);
     };
-    https.request = function(...args: any[]) {
+    https.request = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpsRequest, args);
@@ -88,8 +90,9 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * for reasons stated in http.ClientRequest section.
    */
   private inteceptGetMethod() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
-    http.get = function(...args: any[]) {
+    http.get = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpGet, args);
@@ -99,7 +102,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       return me.httpGet(...args);
     };
 
-    https.get = function(...args: any[]) {
+    https.get = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
       if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpsGet, args);
@@ -114,7 +117,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * Get instance of ClientRequest.
    * @param args Arguments of http.get, https.get, http.request or https.request
    */
-  private getClientRequest(args: any[]) {
+  private getClientRequest(args: unknown[]) {
     const [url, options, callback] = this.getRequestArguments(args);
     if (options.useNativeModule) {
       delete options.useNativeModule; // not a standard option
@@ -127,6 +130,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
 
     if (!mockItem) return false;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);
     this.doMockRequest(clientRequest, mockItem);
@@ -164,6 +168,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * http.request(url[, options][, callback])
    * @param {any[]} args arguments of http.get, https.get, http.request or https.request
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getRequestArguments(args: any[]) {
     let url, options, callback;
 
@@ -183,7 +188,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       const protocol = options.protocol ? options.protocol : (isHttps ? 'https:' : 'http:');
 
       const host = options.hostname || options.host || 'localhost';
-      const path = options.path || '/'
+      const path = options.path || '/';
       const auth = options.auth ? options.auth+'@' : '';
 
       const base = `${protocol}//${auth}${host}${port}`;
@@ -195,9 +200,10 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     return [url, options || {}, callback];
   }
 
-  private isUrlObject(url: any) {
+  private isUrlObject(url: String | {[key: string]: string}) {
     return (Object.prototype.toString.call(url) === '[object URL]')
-      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore urlUtil.Url for a legacy compatibility
       || ((url instanceof URL) || (url instanceof urlUtil.Url))
       || (isObject(url) && ('href' in url) && ('hostname' in url) && !('method' in url));
   }

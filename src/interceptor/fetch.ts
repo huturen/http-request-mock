@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import Bypass from '../common/bypass';
 import { sleep } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { RequestInfo } from '../types';
+import { FetchRequest, Method, RequestInfo } from '../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
   private static instance: FetchInterceptor;
-  private fetch: any;
+  private fetch;
 
   constructor(mocker: Mocker) {
     super(mocker);
@@ -32,7 +33,8 @@ export default class FetchInterceptor extends Base{
     const global = Base.getGlobal();
     if (!global.fetch) {
       // use requre here to avoid static analysis
-      global.fetch = require('../faker/fetch').default;
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      global.fetch = require('../fallback/fetch').default;
     }
     return new FetchInterceptor(mocker);
   }
@@ -42,23 +44,23 @@ export default class FetchInterceptor extends Base{
    * Intercept fetch object.
    */
   private intercept() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
-    this.global.fetch = function() {
-      const args = [ ...(arguments as any) ];
+    this.global.fetch = function(input: string | FetchRequest, init: Record<string, string>) {
 
-      let url: any;
-      let params: any;
+      let url: string;
+      let params: Record<string, string | Record<string, string> | unknown>;
       // https://developer.mozilla.org/en-US/docs/Web/API/Request
       // Note: the first argument of fetch maybe a Request object.
-      if (typeof args[0] === 'object') {
-        url = args[0].url;
-        params = args[0];
+      if (typeof input === 'object') {
+        url = input.url;
+        params = input;
       } else {
-        url = args[0];
-        params = args[1];
+        url = input;
+        params = init || {};
       }
 
-      const method = params && params.method ? params.method : 'GET';
+      const method = (params && params.method ? params.method : 'GET') as unknown as Method;
 
       return new Promise((resolve, reject) => {
         const mockItem:MockItem | null  = me.matchMockRequest(url, method);
@@ -66,11 +68,11 @@ export default class FetchInterceptor extends Base{
           const requestInfo = me.getRequestInfo({ url, method, ...params });
           me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
             if (isBypassed) {
-              me.fetch(...args).then(resolve).catch(reject);
+              me.fetch(url, params).then(resolve).catch(reject);
             }
           });
         } else {
-          me.fetch(...args).then(resolve).catch(reject);
+          me.fetch(url, params).then(resolve).catch(reject);
         }
       });
     };
@@ -117,11 +119,11 @@ export default class FetchInterceptor extends Base{
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Response
    * Format mock data.
-   * @param {any} responseBody
+   * @param {unknown} responseBody
    * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    */
-  getFetchResponse(responseBody: any, mockItem: MockItem, requestInfo: RequestInfo) {
+  getFetchResponse(responseBody: unknown, mockItem: MockItem, requestInfo: RequestInfo) {
     const data = responseBody;
     const status = mockItem.status;
     const statusText = HTTPStatusCodes[status] || '';
@@ -135,7 +137,7 @@ export default class FetchInterceptor extends Base{
       : data;
 
     if (typeof Response === 'function') {
-      const response = new Response(body,{ status, statusText, headers });
+      const response = new Response(body as BodyInit,{ status, statusText, headers });
       Object.defineProperty(response, 'url', { value: requestInfo.url });
       return response;
     }
@@ -164,4 +166,3 @@ export default class FetchInterceptor extends Base{
     return response;
   }
 }
-

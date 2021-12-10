@@ -4,7 +4,6 @@ const HttpRequestMock = require('../dist/index');
 // const HttpRequestMock = require('http-request-mock');
 const mocker = HttpRequestMock.setupForNode(); // .enableLog();
 const https = require('https');
-const axios = require('axios');
 
 let times = 0;
 mocker.mock({

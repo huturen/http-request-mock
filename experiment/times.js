@@ -5,7 +5,7 @@ const HttpRequestMock = require('../dist/index');
 const mocker = HttpRequestMock.setupForNode();
 const axios = require('axios');
 
-const mockItem = mocker.mock({
+mocker.mock({
   url: 'https://jsonplaceholder.typicode.com/todos/1',
   method: 'any',
   times: 2,

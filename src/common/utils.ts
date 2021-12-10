@@ -20,17 +20,17 @@ export function getQuery(reqUrl: string) : Query{
 
 /**
  * Check whether or not this specified obj is an object.
- * @param {any} obj
+ * @param {unknown} obj
  */
-export function isObject(obj: any) {
+export function isObject(obj: unknown) {
   return Object.prototype.toString.call(obj) === '[object Object]';
-};
+}
 
 /**
  * Try to convert an object like string to an object.
- * @param {any} body
+ * @param {unknown} body
  */
-export function tryToParseObject(body: any) {
+export function tryToParseObject(body: unknown) {
   if (typeof body === 'string'  && body[0] === '{' && body[body.length-1] === '}') {
     try {
       return JSON.parse(body);
@@ -54,14 +54,14 @@ export function sleep(ms: number) {
  * Convert string to arraybuffer.
  * @param {string} str
  */
-export function str2arrayBuffer(str:string) {
+export function str2arrayBuffer(str: string) {
   if (typeof TextEncoder === 'function') {
     return new TextEncoder().encode(str);
   }
 
-  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i=0, strLen=str.length; i<strLen; i++) {
+  const buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+  const bufView = new Uint16Array(buf);
+  for (let i=0, strLen=str.length; i<strLen; i++) {
     bufView[i] = str.charCodeAt(i);
   }
   return buf;
@@ -69,9 +69,9 @@ export function str2arrayBuffer(str:string) {
 
 /**
  * Whether or not the specified data is arraybuffer.
- * @param {string} str
+ * @param {unknown} data
  */
-export function isArrayBuffer(data:any) {
+export function isArrayBuffer(data: unknown) {
   if (typeof ArrayBuffer === 'function' && data instanceof ArrayBuffer) {
     return true;
   }
@@ -138,4 +138,4 @@ export function isNodejs() {
   return (typeof process !== 'undefined')
     && (Object.prototype.toString.call(process) === '[object process]')
     && (!!(process.versions && process.versions.node));
-};
+}

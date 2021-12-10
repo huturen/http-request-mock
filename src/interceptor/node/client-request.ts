@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
@@ -6,7 +7,7 @@ import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
-import { ClientRequestType, RequestInfo } from '../../types';
+import { ClientRequestOptions, ClientRequestType, RequestInfo } from '../../types';
 
 /**
  * ClientRequest constructor
@@ -17,13 +18,14 @@ import { ClientRequestType, RequestInfo } from '../../types';
 function ClientRequest(
   this: ClientRequestType,
   url: string,
-  options: { [key: string]: any },
-  callback: undefined | ((...args: any[]) => any),
+  // options: { [key: string]: string },
+  options: ClientRequestOptions,
+  callback: undefined | ((...args: unknown[]) => unknown),
 ) {
 
   // http.OutgoingMessage serves as the parent class of http.ClientRequest and http.ServerResponse.
   // It is an abstract of outgoing message from the perspective of the participants of HTTP transaction.
-  http.OutgoingMessage.call(this as any);
+  http.OutgoingMessage.call(this as ClientRequestType);
 
   this.requestBody = Buffer.alloc(0);
   this.url = url;
@@ -47,8 +49,8 @@ function ClientRequest(
 
     // outgoingMessage.headersSent
     if (!this.headersSent && options.headers) {
-      for(let key in options.headers) {
-        this.setHeader(key, options.headers[key])
+      for(const key in options.headers) {
+        this.setHeader(key, options.headers[key]);
       }
     }
 
@@ -56,6 +58,7 @@ function ClientRequest(
     this.socket = new Socket();
     this.connection = this.socket; // for compatibility
     if (/^https/i.test(this.url)) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.socket.authorized = true;
     }
@@ -75,7 +78,7 @@ function ClientRequest(
     }
 
     this.response = new http.IncomingMessage(this.socket);
-  }
+  };
   this.init();
 
   /**
@@ -85,12 +88,12 @@ function ClientRequest(
   this.setMockItemResolver = (mockItemResolver: Function) => {
     this.mockItemResolver = mockItemResolver;
     return this;
-  }
+  };
 
-  this.setOriginalRequestInfo = (nativeReqestMethod: Function, nativeRequestArgs: any[]) => {
+  this.setOriginalRequestInfo = (nativeReqestMethod: Function, nativeRequestArgs: unknown[]) => {
     this.nativeReqestMethod = nativeReqestMethod;
     this.nativeRequestArgs = nativeRequestArgs;
-  }
+  };
 
   /**
    * Destroy the request. Optionally emit an 'error' event, and emit a 'close' event.
@@ -102,8 +105,7 @@ function ClientRequest(
     this.aborted = true;
     this.destroyed = true;
 
-    const error = new Error() as any;
-    error.code = 'aborted'
+    const error = { ...new Error(), code: 'aborted' };
 
     this.response.emit('close', error);
     // socket.destroy()
@@ -119,7 +121,7 @@ function ClientRequest(
   this.abort = () => {
     this.destroy();
     return this;
-  }
+  };
 
   /**
    * Send error event to the request.
@@ -129,15 +131,15 @@ function ClientRequest(
     process.nextTick(() => {
       this.emit('error', new Error(msg));
     });
-  }
+  };
 
   /**
    * Sends a chunk of the body. This method can be called multiple times.
    * Simulation: request.write(chunk[, encoding][, callback])
    * @param {string | Buffer} chunk
-   * @param {any[]} args
+   * @param {unknown[]} args
    */
-  this.write = (chunk: string | Buffer, ...args: any[]) => {
+  this.write = (chunk: string | Buffer, ...args: unknown[]) => {
     if (typeof chunk !== 'string' && !Buffer.isBuffer(chunk)) {
       this.sendError('The first argument must be of type string or an instance of Buffer.');
       return false;
@@ -153,22 +155,22 @@ function ClientRequest(
       // The callback argument is optional and will be called when this
       // chunk of data is flushed, but only if the chunk is non-empty.
       if (chunk.length && typeof callback === 'function') {
-        callback()
+        callback();
       }
     }
 
     setTimeout(() => this.emit('drain'), 1);
-    return false
-  }
+    return false;
+  };
 
   /**
    * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
    *
    * Finishes sending the request. If any parts of the body are unsent, it will flush them to the stream.
    * Simulation: request.end([data[, encoding]][, callback])
-   * @param {any[]} args
+   * @param {unknown[]} args
    */
-  this.end = (...args: any[]) => {
+  this.end = (...args: unknown[]) => {
     const [data, encoding, callback] = this.getEndArguments(args);
     // If data is specified, it is equivalent to calling
     // request.write(data, encoding) followed by request.end(callback).
@@ -185,12 +187,12 @@ function ClientRequest(
 
     this.sendEndingEvent(callback);
     return this;
-  }
+  };
 
   /**
    * It awaits mock item resolver & set response result.
    */
-  this.sendResponseResult = (endCallback: Function, ...endArgs: any[]) => {
+  this.sendResponseResult = (endCallback: Function, ...endArgs: unknown[]) => {
     const now = Date.now();
     this.mockItemResolver((mockItem: MockItem, mocker: Mocker) => {
       const requestInfo = <RequestInfo>{
@@ -209,9 +211,9 @@ function ClientRequest(
 
         this.response.statusCode = mockItem.status;
         this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
-        this.response.headers = { ...mockItem.header!, 'x-powered-by': 'http-request-mock' };
+        this.response.headers = { ...mockItem.header, 'x-powered-by': 'http-request-mock' };
         this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
-          return res.concat(item as any)
+          return res.concat(item as never);
         }, []);
 
         // push: The "chunk" argument must be of type string or an instance of Buffer or Uint8Array.
@@ -221,14 +223,14 @@ function ClientRequest(
           || (responseBody instanceof SharedArrayBuffer)
           || (responseBody instanceof Uint8Array)
         ) {
-          this.response.push(Buffer.from(responseBody as any));
+          this.response.push(Buffer.from(responseBody as string));
         } else {
           this.response.push(JSON.stringify(responseBody));
         }
         this.sendEndingEvent(endCallback);
       });
     });
-  }
+  };
 
   /**
    * Send completed event.
@@ -245,52 +247,42 @@ function ClientRequest(
     // The message.complete property will be true if a complete
     // HTTP message has been received and successfully parsed.
     this.response.push(null);
-    this.response.complete = true
+    this.response.complete = true;
 
     return this;
-  }
+  };
 
-  this.fallbackToNativeRequest = (...endArgs: any[]) => {
+  this.fallbackToNativeRequest = (...endArgs: never[]) => {
     this.nativeInstance = this.nativeReqestMethod(...this.nativeRequestArgs);
-    // @ts-ignore
     Object.entries(this.getHeaders()).forEach((entry) => {
       if (entry[1] !== null && entry[1] !== undefined) {
-        this.nativeInstance!.setHeader(entry[0], entry[1]);
+        this.nativeInstance && this.nativeInstance.setHeader(entry[0], entry[1]);
       }
     });
     if (this.requestBody.length) {
-      // @ts-ignore
-      this.nativeInstance.write(this.requestBody);
+      this.nativeInstance && this.nativeInstance.write(this.requestBody);
     }
-    // @ts-ignore
-    this.nativeInstance.on('connect', (...args) => this.emit('connect', ...args));
-    // @ts-ignore
-    this.nativeInstance.on('finish', (...args) => this.emit('finish', ...args));
-    // @ts-ignore
-    this.nativeInstance.on('abort', (...args) => this.emit('abort', ...args));
-    // @ts-ignore
-    this.nativeInstance.on('error', (error) => this.emit('error', error));
-    // @ts-ignore
-    this.nativeInstance.on('information', (...args) => this.emit('information', ...args));
-    // @ts-ignore
-    this.nativeInstance.on('response', (...args) => this.emit('response', ...args));
-    // @ts-ignore
-    this.nativeInstance.on('timeout', (...args) => this.emit('timeout', ...args));
-
-    // @ts-ignore
-    this.nativeInstance.end(...endArgs);
-
+    if (this.nativeInstance) {
+      this.nativeInstance.on('connect', (...args) => this.emit('connect', ...args));
+      this.nativeInstance.on('finish', (...args) => this.emit('finish', ...args));
+      this.nativeInstance.on('abort', (...args) => this.emit('abort', ...args));
+      this.nativeInstance.on('error', (error) => this.emit('error', error));
+      this.nativeInstance.on('information', (...args) => this.emit('information', ...args));
+      this.nativeInstance.on('response', (...args) => this.emit('response', ...args));
+      this.nativeInstance.on('timeout', (...args) => this.emit('timeout', ...args));
+      this.nativeInstance.end(...endArgs);
+    }
     return this.nativeInstance;
-  }
+  };
 
   /**
    * https://nodejs.org/api/http.html#http_request_end_data_encodingcallback
    *
    * Get arguments of end method.
-   * @param {any[]} args [data[, encoding]][, callback]
+   * @param {unknown[]} args [data[, encoding]][, callback]
    * @returns
    */
-  this.getEndArguments = (args: any[]) => {
+  this.getEndArguments = (args: unknown[]) => {
     let data;
     let encoding;
     let callback;
@@ -303,7 +295,7 @@ function ClientRequest(
       callback = typeof args[0] === 'function' ? args[0] : undefined;
     }
     return [data, encoding, callback];
-  }
+  };
 
   /**
    * Convert a buffer to a string.
@@ -312,7 +304,7 @@ function ClientRequest(
   this.bufferToString = (buffer: Buffer) => {
     const str = buffer.toString('utf8');
     return Buffer.from(str).equals(buffer) ? str : buffer.toString('hex');
-  }
+  };
 
   /**
    * Get request headers.
@@ -321,15 +313,15 @@ function ClientRequest(
     return Object.entries({
       ...this.getHeaders(),
       ...this.options.headers
-    }).reduce((res:any, [key, val]) => {
+    }).reduce((res:Record<string, string>, [key, val]) => {
       if (val !== undefined && val !== null) {
         res[key.toLowerCase()] = Array.isArray(val)
           ? val.join('; ')
           : (val+'');
       }
-      return res
+      return res;
     }, {});
-  }
+  };
 }
 
 // Note: 'class extends' is not work here.

@@ -1,3 +1,4 @@
+/* eslint-env node */
 const fs = require('fs');
 const path = require('path');
 const { createLoader } = require('simple-functional-loader');
@@ -79,7 +80,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
         const runtimeFile = this.getRuntimeConfigFile();
         module.loaders.push(createLoader(function(source) { // function is required here
-          return [`/* eslint-disable */`, `import '${runtimeFile}';`, `/* eslint-enable */`, source,].join('\n')
+          return ['/* eslint-disable */', `import '${runtimeFile}';`, '/* eslint-enable */', source,].join('\n');
         }));
 
         injected = true;
@@ -114,7 +115,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
       const files = changedFiles.filter(file => {
         const name = path.basename(file);
-        return file.indexOf(this.dir) === 0 && /^[\w][-\w]*\.js$/.test(name)
+        return file.indexOf(this.dir) === 0 && /^[\w][-\w]*\.js$/.test(name);
       });
       if (!files.length) return Promise.resolve();
 
@@ -201,7 +202,7 @@ module.exports = class HttpRequestMockMockPlugin {
       `${gap1}${gap2}const mocker = HttpRequestMock.default.setup();`,
       '', // mock-items-place-holder
       `${gap1}});`,
-      (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
+      (this.enviroment ? '}\n/* eslint-enable */' : '/* eslint-enable */'),
     ];
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
@@ -241,7 +242,7 @@ module.exports = class HttpRequestMockMockPlugin {
       `${gap}const HttpRequestMock = require('http-request-mock');`,
       `${gap}const mocker = HttpRequestMock.setup();`,
       '', // mock-items-place-holder
-      (this.enviroment ? `}\n/* eslint-enable */` : '/* eslint-enable */'),
+      (this.enviroment ? '}\n/* eslint-enable */' : '/* eslint-enable */'),
     ];
 
     const items = [];
@@ -279,7 +280,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const res = {};
     const header = {};
 
-    for(let {tag, info}  of tags) {
+    for(const {tag, info}  of tags) {
       if (!keys.includes(tag)) continue;
 
       if (tag === 'header') {
@@ -325,8 +326,8 @@ module.exports = class HttpRequestMockMockPlugin {
     const reg = /^[ \t]*\*[ \t]*@(\w+)(?:[ \t]+(.*))?$/mg;
     let tag = reg.exec(comment);
     while(tag) {
-        tags.push({ tag: tag[1], info: (tag[2] || '').trim() });
-        tag = reg.exec(comment);
+      tags.push({ tag: tag[1], info: (tag[2] || '').trim() });
+      tag = reg.exec(comment);
     }
     return tags;
   }
@@ -378,7 +379,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const keys = arr.map(val => `${val}`); // to string
 
     const result = keys.reduce((obj, key) => obj && obj[key], object);
-    return  result === undefined ? defaultValue : result
+    return  result === undefined ? defaultValue : result;
   }
 
   /**
@@ -398,4 +399,4 @@ module.exports = class HttpRequestMockMockPlugin {
   formatPath(path) {
     return process.platform === 'win32' ? (path+'').replace(/\\/g, '/') : path;
   }
-}
+};

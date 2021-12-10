@@ -3,5 +3,5 @@
  * @header content-type: application/text
  * @method any
  */
-module.exports = 'static string content'
+module.exports = 'static string content';
 

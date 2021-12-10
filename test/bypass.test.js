@@ -4,7 +4,7 @@ import xhrAdapter from 'axios/lib/adapters/xhr';
 import http from 'http';
 import https from 'https';
 import Bypass from '../src/common/bypass';
-import * as fallback from '../src/faker/fallback';
+import * as fallback from '../src/fallback/fallback';
 import HttpRequestMock from '../src/index';
 import XMLHttpRequestInterceptor from '../src/interceptor/xml-http-request';
 
@@ -14,6 +14,7 @@ axios.defaults.adapter = xhrAdapter;
 describe('test bypassing', () => {
   beforeEach(() => {
     console.error = jest.fn();
+    // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockResolvedValue({
       body: 'fake-body',
       response: {
@@ -103,7 +104,7 @@ describe('test bypassing', () => {
         return bypass;
       }
     });
-
+    /* global wx: true */
     wx.request({
       url: 'https://www.api.com/wxrequest-bypass',
       success() {

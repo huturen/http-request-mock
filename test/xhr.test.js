@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import FakeXMLHttpRequest from '../src/faker/xhr';
+import FakeXMLHttpRequest from '../src/fallback/xhr';
 import HttpRequestMock from '../src/index';
 
 global.XMLHttpRequest = undefined; // do not use XMLHttpRequest in jsdom
@@ -25,9 +25,11 @@ const request = (url, method = 'get', opts = {}) => {
           res[key.trim()] = val.trim();
           return res;
         }, {})
-      })
+      });
     };
-    xhr.onloadend = function(){};
+    xhr.onloadend = function(){
+      void(0);
+    };
     xhr.send(opts.body || null);
   });
 };
@@ -168,7 +170,9 @@ describe('mock xhr requests', () => {
     expect(res[5]).toBeInstanceOf(ArrayBuffer);
 
     // for document
-    global.Document = function(){};
+    global.Document = function(){
+      void(0);
+    };
     mocker.any(/^.*\/document-regexp$/, new Document());
     const res2 = await request('http://www.api.com/document-regexp', 'get', { responseType: 'document' });
     expect(res2.xhr.responseURL).toBe('http://www.api.com/document-regexp');

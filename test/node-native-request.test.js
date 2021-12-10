@@ -1,3 +1,4 @@
+/* global Buffer: true */
 import { expect } from '@jest/globals';
 import http from 'http';
 import https from 'https';
@@ -64,7 +65,7 @@ describe('test node native http module request ', () => {
       });
     });
 
-    req.on('error', (e) => {});
+    req.on('error', () => void(0));
 
     req.write(postData);
     req.end();
@@ -73,7 +74,7 @@ describe('test node native http module request ', () => {
   it('https.request should be mocked.', (done) => {
     mocker.post('https://www.google.com/https-upload', 'mock response');
 
-    const postData = Buffer.from(`{ 'msg': 'Hello World!' }`);
+    const postData = Buffer.from('{ \'msg\': \'Hello World!\' }');
     const req = https.request({
       protocol: 'https:',
       hostname: 'www.google.com',
@@ -97,7 +98,7 @@ describe('test node native http module request ', () => {
       });
     });
 
-    req.on('error', (e) => {});
+    req.on('error', () => void(0));
 
     req.write(postData, () => {
       expect(true).toBe(true); // to be called
@@ -121,7 +122,7 @@ describe('test node native http module request ', () => {
       expect(res.headers['x-powered-by']).toBe('http-request-mock');
 
       res.setEncoding('utf8');
-      res.on('data', () => { });
+      res.on('data', () => void(0));
       res.on('end', () => {
         done();
       });
@@ -153,7 +154,7 @@ describe('test node native http module request ', () => {
       expect(res.headers['x-powered-by']).toBe('http-request-mock');
 
       res.setEncoding('utf8');
-      res.on('data', () => { });
+      res.on('data', () => void(0));
       res.on('end', () => {
         done();
       });

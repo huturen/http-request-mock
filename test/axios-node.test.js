@@ -48,10 +48,6 @@ describe('mock axios requests which are based on node http adaptor for node envi
     await axios.get('http://www.api.com/regexp').then(res => {
       expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
     });
-    await axios.get('http://www.api.com/otherregexp').catch(err => {
-      // err is not a real instance of Error.
-      expect(err).toBeTruthy()
-    });
   });
 
   it('delay config item should support a delayed response', (done) => {
@@ -149,6 +145,7 @@ describe('mock axios requests which are based on node http adaptor for node envi
     ]);
     expect(res[0]).toBe('string');
     expect(res[1]).toMatchObject({obj: 'yes'});
+    // eslint-disable-next-line no-undef
     expect((res[2] instanceof ArrayBuffer) || (res[2] instanceof Buffer)).toBeTruthy();
   });
 

@@ -4,7 +4,8 @@ const mocker = HttpRequestMock.setupForUnitTest('wx');
 
 const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve) => {
-    wx.request({ url, method, ...opts, complete: () => {}, success: res => {
+    // eslint-disable-next-line no-undef
+    wx.request({ url, method, ...opts, complete: () => void(0), success: res => {
       resolve({
         data: res.data,
         status: res.statusCode,

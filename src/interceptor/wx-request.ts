@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import Bypass from '../common/bypass';
 import { isObject, sleep } from '../common/utils';
 import MockItem from '../mocker/mock-item';
@@ -7,7 +8,7 @@ import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
   private static instance: WxRequestInterceptor;
-  private wxRequest: any;
+  private wxRequest;
 
   constructor(mocker: Mocker) {
     super(mocker);
@@ -28,11 +29,13 @@ export default class WxRequestInterceptor extends Base {
    * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
-    const global = Base.getGlobal();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const global: any = Base.getGlobal();
     global.wx = global.wx || {};
     if (!global.wx.request) {
       // use requre here to avoid static analysis
-      global.wx.request = require('../faker/wx-request').default.bind(global.wx);
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      global.wx.request = require('../fallback/wx-request').default.bind(global.wx);
     }
 
     return new WxRequestInterceptor(mocker);
@@ -54,11 +57,11 @@ export default class WxRequestInterceptor extends Base {
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
         const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
-          if (/^get$/i.test(wxRequestOpts.method!) && isObject(wxRequestOpts.data)) {
-            requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
-          } else {
-            requestInfo.body = wxRequestOpts.data;
-          }
+        if (/^get$/i.test(wxRequestOpts.method) && isObject(wxRequestOpts.data)) {
+          requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
+        } else {
+          requestInfo.body = wxRequestOpts.data;
+        }
 
         if (mockItem) {
           this.doMockRequest(mockItem, requestInfo, wxRequestOpts).then(isBypassed => {
@@ -78,9 +81,9 @@ export default class WxRequestInterceptor extends Base {
   private getRequstTask() : WxRequestTask{
     return <WxRequestTask>{
       abort() {},
-      onHeadersReceived(callback: Function) {},
-      offHeadersReceived(callback: Function) {}
-    }
+      onHeadersReceived() {},
+      offHeadersReceived() {}
+    };
   }
 
   /**
@@ -122,13 +125,13 @@ export default class WxRequestInterceptor extends Base {
   }
 
   /**
-   * Format mock data to fit wx.request callbacks.
+   * Get WX mock response data.
+   * @param {unknown} responseBody
    * @param {MockItem} mockItem
-   * @param {RequestInfo} requestInfo
    */
-  getWxResponse(responseBody: any, mockItem: MockItem) {
+  getWxResponse(responseBody: unknown, mockItem: MockItem) {
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
-    const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as any);
+    const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as never[]);
     return {
       data: responseBody,
       statusCode: mockItem.status || 200,
@@ -146,7 +149,7 @@ export default class WxRequestInterceptor extends Base {
    * @param {WxRequestOpts} wxRequestOpts
    * @param {WxRequestOpts} response
    */
-  private sendResult(wxRequestOpts: WxRequestOpts, wxResponse: any) {
+  private sendResult(wxRequestOpts: WxRequestOpts, wxResponse: unknown) {
     if (typeof wxRequestOpts.success === 'function') {
       wxRequestOpts.success(wxResponse);
     }

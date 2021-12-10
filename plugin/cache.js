@@ -45,4 +45,4 @@ module.exports = function cacheWrapper(cacheKey, mockData) {
   const cache = (cacheKey in localStorage);
   const result = wrap(cache ? JSON.parse(localStorage.getItem(cacheKey)) : mockData, handler);
   return result;
-}
+};

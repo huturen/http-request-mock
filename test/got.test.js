@@ -6,17 +6,17 @@ const mocker = HttpRequestMock.setupForNode();
 const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve, reject) => {
     got(url, { method, retry: 0,  ...opts }).then(res => {
-        let data;
-        try {
-          data = JSON.parse(res.body)
-        } catch(e) {
-          data = res.body;
-        }
-        resolve({
-          data,
-          status: res.statusCode,
-          headers: res.headers
-        });
+      let data;
+      try {
+        data = JSON.parse(res.body);
+      } catch(e) {
+        data = res.body;
+      }
+      resolve({
+        data,
+        status: res.statusCode,
+        headers: res.headers
+      });
     }).catch(reject);
   });
 };

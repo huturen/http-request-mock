@@ -4,7 +4,7 @@ module.exports = {
     'js', 'ts'
   ],
   transform : {
-    "^.+\\.[t|j]sx?$": "babel-jest",  // do not change this line
+    '^.+\\.[t|j]sx?$': 'babel-jest',  // do not change this line
     '^.+\\.ts?$': 'ts-jest',
   },
   transformIgnorePatterns: [

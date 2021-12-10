@@ -36,6 +36,7 @@ describe('node enviroment test', function() {
 
   it('the response of wx.request should match expected result', function(done) {
     const url = 'https://www.api.com/node?type=wx';
+    /* global wx: true */
     wx.request({
       url,
       success: (res) => {

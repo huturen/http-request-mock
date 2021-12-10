@@ -11,5 +11,5 @@ module.exports = () => {
     msg: 'should support to export function which could do some dynamic logic',
     data: 'times: ' + times,
   };
-}
+};
 

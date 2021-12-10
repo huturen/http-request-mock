@@ -8,7 +8,7 @@ import Base from './base';
 
 export default class XMLHttpRequestInterceptor extends Base {
   private static instance: XMLHttpRequestInterceptor;
-  private xhr: any;
+  private xhr: XMLHttpRequest;
 
   constructor(mocker: Mocker) {
     super(mocker);
@@ -31,7 +31,8 @@ export default class XMLHttpRequestInterceptor extends Base {
    */
   static setupForUnitTest(mocker: Mocker) {
     // use requre here to avoid static analysis
-    global.XMLHttpRequest = global.XMLHttpRequest || require('../faker/xhr').default;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    global.XMLHttpRequest = global.XMLHttpRequest || require('../fallback/xhr').default;
     return new XMLHttpRequestInterceptor(mocker);
   }
 
@@ -63,6 +64,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * Logic of intercepting XMLHttpRequest.open method.
    */
   private interceptOpen() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
     const original = this.xhr.open;
     Object.defineProperty(this.xhr, 'open', {
@@ -70,7 +72,7 @@ export default class XMLHttpRequestInterceptor extends Base {
         return (
           method: Method,
           url: string,
-          async: boolean = true,
+          async = true,
           user: string | null = null,
           password: string | null = null
         ) => {
@@ -97,11 +99,12 @@ export default class XMLHttpRequestInterceptor extends Base {
    * Logic of intercepting XMLHttpRequest.send method.
    */
   private interceptSend() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
     const original = this.xhr.send;
     Object.defineProperty(this.xhr, 'send', {
       get: function() {
-        return (body: any) => {
+        return (body: unknown) => {
           if (this.isMockRequest) {
             if (body !== null && body !== undefined) {
               this.requestInfo.body = tryToParseObject(body);
@@ -111,11 +114,11 @@ export default class XMLHttpRequestInterceptor extends Base {
                 this.isMockRequest = false;
                 this.bypassMock = true;
                 this.open(...this.requestArgs);
-                return original.call(this, body);
+                return original.call(this, body as Document);
               }
             });
           }
-          return original.call(this, body);
+          return original.call(this, body as Document);
         };
       }
     });
@@ -176,22 +179,53 @@ export default class XMLHttpRequestInterceptor extends Base {
     const isEventReady = typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function';
 
     if (typeof xhr.onreadystatechange === 'function') {
-      xhr.onreadystatechange(undefined as any)
+      xhr.onreadystatechange(this.event('readystatechange'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('readystatechange'));
     }
 
     if (typeof xhr.onload === 'function') {
-      xhr.onload(undefined as any)
+      xhr.onload(this.event('load'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('load'));
     }
 
     if (typeof xhr.onloadend === 'function') {
-      xhr.onloadend(undefined as any)
+      xhr.onloadend(this.event('loadend'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('loadend'));
     }
+  }
+
+  private event(type: string) {
+    return {
+      type,
+      target: null,
+      currentTarget: null,
+      eventPhase: 0,
+      bubbles: false,
+      cancelable: false,
+      defaultPrevented: false,
+      composed: false,
+      timeStamp: 294973.8000000119,
+      srcElement: null,
+      returnValue: true,
+      cancelBubble: false,
+      path: [],
+      NONE: 0,
+      CAPTURING_PHASE: 0,
+      AT_TARGET: 0,
+      BUBBLING_PHASE: 0,
+      composedPath: () => [],
+      initEvent: () => void(0),
+      preventDefault: () => void(0),
+      stopImmediatePropagation: () => void(0),
+      stopPropagation: () => void(0),
+      isTrusted: false,
+      lengthComputable: false,
+      loaded: 1,
+      total: 1
+    };
   }
 
   /**
@@ -202,13 +236,13 @@ export default class XMLHttpRequestInterceptor extends Base {
     const original = this.xhr.getAllResponseHeaders;
     Object.defineProperty(this.xhr, 'getAllResponseHeaders', {
       get: function() {
-        return (body: any) => {
+        return () => {
           if (this.isMockRequest) {
             return Object.entries({...this.mockItem.header, 'x-powered-by': 'http-request-mock'})
               .map(([key, val]) => key.toLowerCase()+': '+val)
               .join('\r\n');
           }
-          return original.call(this, body);
+          return original.call(this);
         };
       }
     });
@@ -245,14 +279,14 @@ export default class XMLHttpRequestInterceptor extends Base {
     const original = this.xhr.setRequestHeader;
     Object.defineProperty(this.xhr, 'setRequestHeader', {
       get: function() {
-        return (header:any, value:any) => {
+        return (header: string, value: string) => {
           if (this.isMockRequest) {
             this.requestInfo.headers = this.requestInfo.headers || {};
             this.requestInfo.headers[header] = value;
             return;
           }
           return original.call(this, header, value);
-        }
+        };
       }
     });
     return this;
@@ -268,6 +302,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       return descriptor.get;
     }
     // when XMLHttpRequest is not a standard implement.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return this.xhr[key];
   }
 

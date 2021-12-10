@@ -54,7 +54,9 @@ describe('mock fetch requests for browser envrioment', () => {
     global.Headers = originalHeaders;
     global.Blob = originalBlob;
 
-    global.Response = function(){};
+    global.Response = function(){
+      // fake it, not use it.
+    };
     const res2 = await fetch('http://www.api.com/partial');
     expect(res2 instanceof global.Response).toBe(true);
     global.Response = undefined;

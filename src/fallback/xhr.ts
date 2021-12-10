@@ -1,26 +1,30 @@
+import { IncomingMessage } from 'http';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import fallback from './fallback';
 
 export default class FakeXMLHttpRequest {
   'http-request-mock': true; // make a flag to distinguish
-  requestArgs: any[] = [];
-  reqHeaders: any = {};
-  _responseHeaders: any = {};
-  _responseBody: any = '';
-  responseType: string = '';
-  // 0	UNSENT	Client has been created. open() not called yet.
-  // 1	OPENED	open() has been called.
-  // 2	HEADERS_RECEIVED	send() has been called, and headers and status are available.
-  // 3	LOADING	Downloading; responseText holds partial data.
-  // 4	DONE	The operation is complete.
-  _readyState: number = 0;
-  _status: number = 0;
-  _statusText: string = '';
+  requestArgs: (string | boolean | null)[] = [];
+  reqHeaders: Record<string, string> = {};
+  _responseHeaders: Record<string, string | string[] | undefined> = {};
+  _responseBody: unknown = '';
+  onerror: unknown;
+
+  responseType = '';
+
+  // 0 UNSENT Client has been created. open() not called yet.
+  // 1 OPENED open() has been called.
+  // 2 HEADERS_RECEIVED send() has been called, and headers and status are available.
+  // 3 LOADING Downloading; responseText holds partial data.
+  // 4 DONE The operation is complete.
+  _readyState = 0;
+  _status = 0;
+  _statusText = '';
 
   open(
     method: string,
     url: string,
-    async: boolean = true,
+    async = true,
     user: string | null = null,
     password: string | null = null
   ) {
@@ -28,30 +32,29 @@ export default class FakeXMLHttpRequest {
     this._readyState = 1;
   }
 
-  send(body: any) {
-    const [method, url, async, user, password] = this.requestArgs;
-    let opts = user && password ? {
+  send(body: unknown) {
+    const [method, url, user, password] = this.requestArgs;
+    const opts: Record<string, string> = user && password ? {
       auth: `${user}:${password}`,
     } : {};
-    // @ts-ignore
-    fallback(url, method, this.reqHeaders, body, opts)
-      .then((res: any) => {
+    fallback(url as string, method as string, this.reqHeaders, body, opts)
+      .then((res: {body: string, response: IncomingMessage}) => {
         this._responseBody = res.body;
         this._readyState = 4;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._status = res.response.statusCode!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._statusText = res.response.statusMessage!;
 
         this._responseHeaders = res.response.headers || {};
-        this.sendResult(this as any);
+        this.sendResult(this as unknown as XMLHttpRequest);
       })
       .catch((err: Error) => {
         // Before the request completes, the value of status is 0.
         // Browsers also report a status of 0 in case of XMLHttpRequest errors.
         this._status = 0;
 
-        // @ts-ignore
         if (typeof this.onerror === 'function') {
-          // @ts-ignore
           this.onerror(err);
         } else {
           throw err;
@@ -70,7 +73,7 @@ export default class FakeXMLHttpRequest {
     this._responseBody = '';
   }
 
-  setRequestHeader(header:any, value:any) {
+  setRequestHeader(header: string, value: string) {
     this.reqHeaders[header] = value;
   }
 
@@ -78,21 +81,52 @@ export default class FakeXMLHttpRequest {
     const isEventReady = typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function';
 
     if (typeof xhr.onreadystatechange === 'function') {
-      xhr.onreadystatechange(undefined as any);
+      xhr.onreadystatechange(this.event('readystatechange'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('readystatechange'));
     }
 
     if (typeof xhr.onload === 'function') {
-      xhr.onload(undefined as any);
+      xhr.onload(this.event('load'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('load'));
     }
     if (typeof xhr.onloadend === 'function') {
-      xhr.onloadend(undefined as any);
+      xhr.onloadend(this.event('loadend'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('loadend'));
     }
+  }
+
+  private event(type: string) {
+    return {
+      type,
+      target: null,
+      currentTarget: null,
+      eventPhase: 0,
+      bubbles: false,
+      cancelable: false,
+      defaultPrevented: false,
+      composed: false,
+      timeStamp: 294973.8000000119,
+      srcElement: null,
+      returnValue: true,
+      cancelBubble: false,
+      path: [],
+      NONE: 0,
+      CAPTURING_PHASE: 0,
+      AT_TARGET: 0,
+      BUBBLING_PHASE: 0,
+      composedPath: () => [],
+      initEvent: () => void(0),
+      preventDefault: () => void(0),
+      stopImmediatePropagation: () => void(0),
+      stopPropagation: () => void(0),
+      isTrusted: false,
+      lengthComputable: false,
+      loaded: 1,
+      total: 1
+    };
   }
 
   getAllResponseHeaders() {
@@ -157,4 +191,4 @@ export default class FakeXMLHttpRequest {
   get responseXML() {
     return null;
   }
-};
+}

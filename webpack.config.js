@@ -1,5 +1,6 @@
+/* eslint-env node */
+// This file is used to generate UMD bundles.
 const path = require('path');
-
 const externals = {
   http: 'http',
   https: 'https',
@@ -23,7 +24,6 @@ if (env === 'pure') {
   bundle = 'http-request-mock.pure.js';
   externals['faker/locale/en'] = 'commonjs faker/locale/en';
 }
-
 
 module.exports = {
   mode: 'production',  // development, production

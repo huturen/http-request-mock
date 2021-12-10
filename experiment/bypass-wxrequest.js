@@ -18,15 +18,16 @@ mocker.mock({
 });
 
 (async () => {
+  /* global wx: true */
   wx.request({
     url: 'https://jsonplaceholder.typicode.com/todos/1?a=1',
     success: res => {
       console.log('res1:', res.data);
     },
     fail: err => {
-      console.log('err:', err.message)
+      console.log('err:', err.message);
     }
-  })
+  });
 
   // await new Promise(resolve => setTimeout(resolve, 1000));
   console.log('----');
@@ -36,8 +37,8 @@ mocker.mock({
       console.log('res2:', res.data);
     },
     fail: err => {
-      console.log('err:', err.message)
+      console.log('err:', err.message);
     }
-  })
+  });
 })();
 

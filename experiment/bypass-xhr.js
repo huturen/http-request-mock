@@ -26,7 +26,7 @@ mocker.mock({
       console.log('res1:', res1.data);
     })
     .catch(err => {
-      console.log('err:', err.message)
+      console.log('err:', err.message);
     });
 
 
@@ -36,7 +36,7 @@ mocker.mock({
       console.log('res2:', res2.data);
     })
     .catch(err => {
-      console.log('err:', err.message)
+      console.log('err:', err.message);
     });
 })();
 

@@ -1,4 +1,7 @@
 ### Changelog
+[2021-12-13]
+1. add a new capability of using the proto file to generate mock files.
+
 [2021-10-30]
 1. add cache plugin: set the specified data into localeStorage cache when it changes.
 2. whole matching takes precedence over partial matching

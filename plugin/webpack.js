@@ -45,7 +45,7 @@ module.exports = class HttpRequestMockMockPlugin {
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
     this.monitor = monitor;
     this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
-    this.type = ['es6', 'commonjs', 'cjs'].includes(type) ? type : 'es6';
+    this.type = ['es6', 'module', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
   }
 
   /**

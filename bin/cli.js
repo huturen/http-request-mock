@@ -56,7 +56,7 @@ program
     '-t, --type [module-type]',
     'The module type of .runtime.js.\n'+spaces+
     ' Valid values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
-    'es6'
+    'cjs'
   )
   .option(
     '-p, --proto',

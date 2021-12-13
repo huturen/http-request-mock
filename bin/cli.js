@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-env node */
+
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -7,6 +8,7 @@ const program = require('commander');
 const pkg = require('../package.json');
 const readline = require('readline');
 const chokidar = require('chokidar');
+const protoParser = require('./proto/parser');
 const WebpackPlugin = require('../plugin/webpack');
 
 const appRoot = (() => {
@@ -56,21 +58,33 @@ program
     ' Valid values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
     'es6'
   )
+  .option(
+    '-p, --proto',
+    'Generate mock files from a .protorc config file.'
+  )
   .parse(process.argv);
 
 program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
   ? program.enviroment
   : '';
 
-if (program.init) {
-  init();
-} else if (program.inject) {
-  inject();
-} else if (program.watch) {
-  watch();
-} else {
+(function main() {
+  if (program.init) {
+    return init();
+  }
+  if (program.inject) {
+    return inject();
+  }
+  if (program.watch) {
+    return watch();
+  }
+  if (program.proto) {
+    return proto();
+  }
   program.help();
-}
+})();
+
+
 
 async function init() {
   const dir = path.resolve(appRoot, program.directory);
@@ -183,6 +197,41 @@ function watch() {
       detached: false,
       shell: true
     });
+  }
+}
+
+function proto() {
+  const configFile = path.resolve(appRoot, program.directory, '.protorc.js');
+  generateProtorcFile(configFile);
+
+  const protorcConfig = require(configFile);
+  if (!protorcConfig.protoEntry) {
+    console.log('Please set [protoEntry] option in the file below and run this command again.');
+    return console.log('.protorc config file: ' + configFile);
+  }
+  if (!fs.existsSync(protorcConfig.protoEntry)) {
+    return console.log(`file: ${protorcConfig.protoEntry} does not exist.`);
+  }
+
+  const outputDir = path.resolve(appRoot, program.directory, 'proto');
+  fs.mkdirSync(outputDir, { recursive: true});
+  protoParser.generateMockFiles({ protorcConfig, outputDir });
+}
+
+function generateProtorcFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    return;
+  }
+
+  try {
+    const tpl = path.resolve(__dirname, './proto/.protorc.js');
+    const content = fs.readFileSync(tpl).toString().split('\n');
+    content.splice(0, 1, 'const faker = require(\'http-request-mock/plugin/faker.js\');');
+    // content.splice(0, 1, 'const faker = require(\'../plugin/faker.js\');');
+
+    fs.writeFileSync(filePath, content.join('\n'));
+  } catch(err) {
+    console.log('Failed to generate proto config file: ' + err.message);
   }
 }
 

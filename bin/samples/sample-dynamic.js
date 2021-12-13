@@ -1,7 +1,7 @@
 /**
  * @url https://some.api.com/dynamic
  * @header content-type: application/json
- * @method post
+ * @method get
  */
 /* eslint-disable */
 const faker = require('http-request-mock/plugin/faker.js');

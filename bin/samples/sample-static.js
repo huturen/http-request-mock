@@ -2,7 +2,7 @@
  * Please refer to https://github.com/huturen/http-request-mock for more at tags.
  *
  * @url https://some.api.com/static
- * @delay 1000
+ * @delay 100
  * @method get
  */
 /* eslint-disable */
@@ -12,5 +12,5 @@ module.exports = {
   msg: 'ok',
   ip: faker.ip(),
   url: faker.url(),
-  data: 'The request will be resolved after 1000 milliseconds.',
+  data: 'The request will be resolved after 100 milliseconds.',
 };

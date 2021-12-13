@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "bin": {
@@ -134,7 +134,10 @@
     "node": ">=14.13.1"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.4.4",
+    "@grpc/proto-loader": "^0.6.7",
     "@types/faker": "^5.5.8",
+    "chance": "^1.1.8",
     "chokidar": "^3.5.2",
     "commander": "^2.20.3",
     "faker": "^5.5.3"

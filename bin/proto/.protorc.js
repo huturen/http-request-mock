@@ -1,7 +1,7 @@
 const faker = require('../../plugin/faker.js');
 
 module.exports = {
-  overwrite: false,
+  overwrite: true,
 
   apiPrefix: '',
 

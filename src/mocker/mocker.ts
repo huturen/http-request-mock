@@ -278,6 +278,8 @@ export default class Mocker {
     const items = Object.values(this.mockConfigData).filter(({disable, times, method}: MockItem) => {
       const verb = String(method).toUpperCase();
       return disable !== 'YES' && (times === undefined || times > 0) && (verb === 'ANY' || verb === requestMethod);
+    }).sort((mockItem1: MockItem, mockItem2: MockItem) => {
+      return String(mockItem2.url).length - String(mockItem1.url).length;
     });
 
     for(let i = 0; i < 2; i++) {
@@ -286,12 +288,18 @@ export default class Mocker {
           if ((info.url instanceof RegExp) && info.url.test(reqUrl)) {
             return info;
           }
+          const infoUrl = reqUrl.indexOf('//') === 0
+            // for request urls which without http protocol
+            ? String(info.url).replace(/^https?:/ig, '')
+            : String(info.url);
+
           // [whole matching] takes precedence over partial matching
-          if (i === 0 && reqUrl === info.url) {
+          if (i === 0 && reqUrl === infoUrl) {
             return info;
           }
+
           // whole matching takes precedence over [partial matching]
-          if (i === 1 && reqUrl.indexOf(info.url as string) !== -1) {
+          if (i === 1 && reqUrl.indexOf(infoUrl) !== -1) {
             return info;
           }
         } catch(e) {

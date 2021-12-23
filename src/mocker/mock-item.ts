@@ -44,10 +44,6 @@ export default class MockItem {
     this.key = `${this.url}-${this.method}`;
   }
 
-  get faker(): Faker.FakerStatic {
-    return require('faker/locale/en');
-  }
-
   public bypass() {
     return new Bypass;
   }

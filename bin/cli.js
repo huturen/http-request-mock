@@ -215,7 +215,7 @@ function proto() {
 
   const outputDir = path.resolve(appRoot, program.directory, 'proto');
   fs.mkdirSync(outputDir, { recursive: true});
-  protoParser.generateMockFiles({ protorcConfig, outputDir });
+  protoParser.generateMockFiles(protorcConfig, outputDir);
 }
 
 function generateProtorcFile(filePath) {
@@ -223,11 +223,12 @@ function generateProtorcFile(filePath) {
     return;
   }
 
+  fs.mkdirSync(path.dirname(filePath), { recursive: true});
   try {
     const tpl = path.resolve(__dirname, './proto/.protorc.js');
     const content = fs.readFileSync(tpl).toString().split('\n');
-    content.splice(0, 1, 'const faker = require(\'http-request-mock/plugin/faker.js\');');
-    // content.splice(0, 1, 'const faker = require(\'../plugin/faker.js\');');
+    content.splice(0, 1, 'const faker = require(\'http-request-mock/plugin/faker.js\').shadow;');
+    // content.splice(0, 1, 'const faker = require(\'../plugin/faker.js\').shadow;');
 
     fs.writeFileSync(filePath, content.join('\n'));
   } catch(err) {

@@ -1,9 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const protoLoader = require('@grpc/proto-loader');
-const grpc = require('@grpc/grpc-js');
-const defaultProtorc = require('./.protorc.js');
+const pbjs = require('protobufjs/cli/pbjs');
 const faker = require('../../plugin/faker');
+const defaultProtorc = require('./.protorc');
 
 module.exports = {
   getProtoService,
@@ -17,39 +16,33 @@ let protorc = defaultProtorc;
  * @param {string} protorcConfig Configs defined in .protorc
  * @param {string} outputDir A directory in which the genrated files are stored.
  */
-function generateMockFiles({ protorcConfig, outputDir }) {
+async function generateMockFiles(protorcConfig, outputDir) {
   protorc = protorcConfig;
+  const protoPaths = Array.isArray(protorc.protoPaths) ? protorc.protoPaths : [];
+  protoPaths.push(path.dirname(protorc.protoEntry)); // To avoid include paths warnings.
 
-  const protoPaths = Array.isArray(protorc.protoPaths) && protorc.protoPaths.length
-    ? protorc.protoPaths
-    : path.dirname(protorc.protoEntry); // To avoid include paths warnings.
+  const protoService = await getProtoService(protorc.protoEntry, protoPaths).catch(err => {throw err;});
 
-  const protoService = getProtoService(protorc.protoEntry, protoPaths);
-  if (Object.keys(protoService).length === 0) {
-    return console.log('No service methods were found.');
-  }
+  const { includeMethods, excludeMethods, overwrite } = protorc;
 
-  for(const [method, {request, requestTypeName, response}] of Object.entries(protoService)) {
-    const req = generateRequestFields(request);
-    const res = generateResponseFields(response).join('\n');
+  for(const [method, {request, requestType, response}] of Object.entries(protoService)) {
+    const isIgnored = (Array.isArray(includeMethods) && includeMethods.length && !includeMethods.includes(method))
+      || (Array.isArray(excludeMethods) && excludeMethods.length && excludeMethods.includes(method));
 
-    const isIgnored = (
-      protorc.includeMethods && protorc.includeMethods.length && !protorc.includeMethods.includes(method)
-    ) || (
-      protorc.excludeMethods && protorc.excludeMethods.length && protorc.excludeMethods.includes(method)
-    );
     if (isIgnored) {
       console.log(`Method [${method}] was ignored.`);
       continue;
     }
 
     const file = path.resolve(outputDir, `${method}.js`);
-    if (!protorc.overwrite && fs.existsSync(file)) {
+    if (!overwrite && fs.existsSync(file)) {
       console.log(`Skipped mock file: ${file}`);
       continue;
     }
 
-    const content = getMockFileTemplate(method, requestTypeName, req, res);
+    const req = generateRequestFields(request);
+    const res = generateResponseFields(response).join('\n');
+    const content = getMockFileTemplate(method, requestType, req, res);
     fs.writeFileSync(file, content);
     console.log(`Generated mock file: ${file}`);
   }
@@ -62,14 +55,22 @@ function generateMockFiles({ protorcConfig, outputDir }) {
  */
 function generateRequestFields(formatedFields) {
   const res = {};
-  for(const [key, info] of Object.entries(formatedFields)) {
-    const [label, type, field, isComplex, isEnum] = key.split(':');
+  for(const [key, type] of Object.entries(formatedFields)) {
+    // eslint-disable-next-line
+    const [rule, _, field, defaultVal, mapKeyVal] = key.split(':');
+    const isEnum = Array.isArray(type);
+    const isMap = mapKeyVal;
+    const defaultStr = defaultVal ? ` // default=${defaultVal}` : '';
     if (isEnum) {
-      res[`enum:${field}`] = `[${info.values}]`;
+      res[`enum:${field}`] = `[${type.join(', ')}]${defaultStr}`;
       continue;
     }
-    const name = label === 'repeated' ? ('repeated:'+field) : field;
-    res[name] = isComplex ? generateRequestFields(info) : type;
+    if (isMap) {
+      res[`${field}`] = `map${mapKeyVal}${defaultStr}`;
+      continue;
+    }
+    const name = rule === 'repeated' ? `repeated:${field}` : field;
+    res[name] = isObject(type) ? generateRequestFields(type) : `${type}${defaultStr}`;
   }
   return res;
 }
@@ -80,33 +81,42 @@ function generateRequestFields(formatedFields) {
  */
 function generateResponseFields(formatedFields, indent = '  ') {
   const res = ['{'];
-  for(const [key, info] of Object.entries(formatedFields)) {
-    const [label, type, field, isComplex, isEnum, isMap] = key.split(':');
+  for(const [key, type] of Object.entries(formatedFields)) {
+    const [rule, messageType, field, defaultVal, mapKeyVal] = key.split(':');
+    const isEnum = Array.isArray(type);
+    const isMap = mapKeyVal;
     const repeat = typeof protorc.repeatedLength === 'function' ? protorc.repeatedLength() : protorc.repeatedLength;
-    const isRepeated = label === 'repeated';
+    const isRepeated = rule === 'repeated';
     const prefix = `${indent}${/^\w+$/.test(field) ? field : ('\''+field+'\'')}`;
+
+    const globalField = getProtorcType('', field, messageType);
+    if (globalField) {
+      res.push(`${prefix}: ${globalField},`);
+      continue;
+    }
+
     // for map types
     if (isMap) {
-      res.push(`${indent}// map: <${field}, ${info.type}>`);
-      const mapKey = getProtorcType(field).includes('string') ? 'string' : '123';
-      if (isObject(info.value)) {
-        const sub = generateResponseFields(info.value);
+      res.push(`${indent}// map: ${mapKeyVal}, please set your map values like below.`);
+      const mapKey = mapKeyVal.includes('<string') ? 'string1' : '\'123\'';
+      if (isObject(type)) {
+        const sub = generateResponseFields(type);
         res.push(`${indent}${mapKey}: ${sub.join('\n'+indent)},`);
       } else {
-        res.push(`${indent}${mapKey}: ${getProtorcType(info.type)},`);
+        res.push(`${indent}${mapKey}: ${getProtorcType(type)},`);
       }
       continue;
     }
     // for enum types
     if (isEnum) {
-      const defaultIndex = info.defaultValue ? info.values.findIndex(v => v === info.defaultValue) : -1;
-      const defaultVal = defaultIndex !== -1 ? `, default: ${info.defaultValue}` : '';
-      const value = defaultIndex !== -1 ? defaultIndex : faker.pick(Object.keys(info.values));
-      res.push(`${prefix}: ${value}, // enum: [${info.values}]${defaultVal}`);
+      const defaultIndex = defaultVal ? type.findIndex(v => v === defaultVal) : -1;
+      const defaultStr = defaultIndex !== -1 ? `, default: ${defaultVal}` : '';
+      const value = defaultIndex !== -1 ? defaultIndex : faker.pick(Object.keys(type));
+      res.push(`${prefix}: ${value}, // enum: [${type.join(', ')}]${defaultStr}`);
       continue;
     }
-    if (isComplex) {
-      const sub = generateResponseFields(info, indent + '  ');
+    if (isObject(type)) {
+      const sub = generateResponseFields(type, indent + '  ');
       const [leftBracket, rightBracket] = [sub.shift(), sub.pop()];
       if (sub.length === 0) {
         // for empty complex fields
@@ -123,10 +133,10 @@ function generateResponseFields(formatedFields, indent = '  ') {
 
     if (isRepeated) {
       // for repeated primitive fields
-      res.push(`${prefix}: [...Array(${repeat})].map(() => ${getProtorcType(type, field)}),`);
+      res.push(`${prefix}: [...Array(${repeat})].map(() => ${getProtorcType(type, field, messageType)}),`);
     } else {
       // for primitive fields
-      res.push(`${prefix}: ${getProtorcType(type, field)},`);
+      res.push(`${prefix}: ${getProtorcType(type, field, messageType)},`);
     }
   }
   res.push('}');
@@ -137,17 +147,16 @@ function generateResponseFields(formatedFields, indent = '  ') {
  * Get a default value for the specified type(such as: int32, string, ...).
  * @param {string} type
  * @param {string} field
+ * @param {string} responseType
  * @returns
  */
-function getProtorcType(type, field = '') {
-  if (protorc.globalTypes[type] === undefined) {
-    return type;
-  }
-  let res = undefined;
+function getProtorcType(type, field = '', typeName = '') {
+  let res = type;
 
   if (type && isObject(protorc.globalTypes) && (type in protorc.globalTypes)) {
     const typeInfo = protorc.globalTypes[type];
-    res = typeof typeInfo === 'function' ? typeInfo() : typeInfo;
+    res = typeof typeInfo === 'function' ? typeInfo(typeName) : typeInfo;
+    res = /^faker.\w+\(/.test(res) ? res : JSON.stringify(res);
     if (String(res).indexOf('\n') !== -1) {
       throw new Error('type:['+type + '] should not contain a `\n` character.');
     }
@@ -155,7 +164,8 @@ function getProtorcType(type, field = '') {
 
   if (field && isObject(protorc.globalFields) && (field in protorc.globalFields)) {
     const fieldInfo = protorc.globalFields[field];
-    res = JSON.stringify(typeof fieldInfo === 'function' ? fieldInfo() : fieldInfo);
+    res = typeof fieldInfo === 'function' ? fieldInfo(typeName) : fieldInfo;
+    res = /^faker.\w+\(/.test(res) ? res : JSON.stringify(res);
     if (String(res).indexOf('\n') !== -1) {
       throw new Error('field:['+field + '] should not contain a `\n` character.');
     }
@@ -166,195 +176,216 @@ function getProtorcType(type, field = '') {
 /**
  * Load and get service definition from the specified proto file.
  * @param {string} protoFileEntry A proto entry file
- * @param {string|string[]} protoPaths A list of search paths for imported .proto files.
+ * @param {string[]} protoPaths A list of search paths for imported .proto files.
  */
-function getProtoService(protoFileEntry, protoPaths) {
-  const args = {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true,
-    includeDirs: [],
-  };
-  if (protoPaths) {
-    args.includeDirs = Array.isArray(protoPaths) ? protoPaths : [protoPaths];
-  }
-  const packageDefinition = protoLoader.loadSync(protoFileEntry, args);
-  const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
+function getProtoService(protoFileEntry, protoPaths = []) {
+  const paths = protoPaths.concat(path.dirname(protoFileEntry)).map(dir => {
+    return ['--path', dir];
+  });
+  return new Promise((resolve, reject) => {
+    pbjs.main(['--target', 'json', protoFileEntry, ...paths.flat()], function(err, output) {
+      if (err) return reject(err);
 
-  const methods = getServiceMethods(protoDescriptor);
-  if (!methods || Object.keys(methods).length === 0) {
-    return {};
-  }
+      const formatedTree = formatTree(JSON.parse(output));
+      // console.log('formatedTree:', JSON.stringify(formatedTree, null, 2));
 
-  const messages = getMessages(protoDescriptor);
+      const { methods, packagePath } = getService(formatedTree) || {};
+      if (!methods || !Object.keys(methods).length) {
+        return reject(new Error('No service methods were found.'));
+      }
+
+      for(const key in methods) {
+        const item = methods[key];
+        const { requestType, responseType } = item;
+        item.request = getTypes(formatedTree, packagePath, requestType);
+        item.response = getTypes(formatedTree, packagePath, responseType);
+      }
+      // console.log('methods:', JSON.stringify(methods, null, 2));
+      resolve(methods);
+    });
+  });
+}
+
+/**
+ * Get all scalar types from the specified typeTree.
+ * @param {object} formatedTree
+ * @param {string | string[]} packagePath
+ * @param {string | object} typeTree
+ * @returns
+ */
+function getTypes(formatedTree, packagePath, typeTree) {
+  if (isScalarType(typeTree)) return typeTree;
+
+  if (!isObject(typeTree)) {
+    // It's an absolute namespace searching if [typeTree] contains a dot.
+    const path = String(typeTree).includes('.') ? typeTree : packagePath.concat(typeTree);
+    const subType = pick(formatedTree, path);
+    if (!subType) return typeTree;
+    return isScalarType(subType) ? subType : getTypes(formatedTree, packagePath, subType);
+  }
+  if (typeTree['.enum']) {
+    return Object.keys(typeTree).filter(i => i !== '.enum');
+  }
   const res = {};
-  for(let method in methods) {
-    const { request, response } = methods[method];
-    res[method] = {
-      request: getFormatedFields(request, messages),
-      response: getFormatedFields(response, messages),
-      requestTypeName: request.name,
-    };
-  }
+  for(const [field, type] of Object.entries(typeTree['.fields'] || typeTree)) {
+    if (/^\./.test(field)) continue;
 
+    if (isScalarType(type) || isObject(type)) {
+      res[field] = isScalarType(type) ? type : getTypes(formatedTree, packagePath, type);
+      continue;
+    }
+
+    const typeInNested = pick(typeTree, type);
+    if (typeTree['.fields'] && typeInNested) {
+      if (isObject(typeInNested) && typeInNested['.enum']) {
+        res[field] = Object.keys(typeInNested).filter(i => i !== '.enum');
+      } else if (isScalarType(typeInNested)) {
+        res[field] = typeInNested;
+      } else if (isObject(typeInNested)) {
+        res[field] = getTypes(formatedTree, packagePath, typeInNested);
+      }
+      continue;
+    }
+    res[field] = getTypes(formatedTree, packagePath, type);
+  }
   return res;
 }
 
 /**
- * Parse & format fields from a formated type node.
- * @param {object} formatedTypeNode
- * @param {object} messages
+ * Parse & format fields from a raw tree which is generated from pbjs.
+ * @param {object} tree
  */
-function getFormatedFields(formatedTypeNode, messages) {
+function formatTree(tree) {
+  if (!isObject(tree) || !isObject(tree.nested)) return {};
+
   const res = {};
-  const { fields, nested } = formatedTypeNode;
-  const types = {...messages, ...nested};
-
-  for(const [field, info] of Object.entries(fields)) {
-    const {type, label, typeName, number, defaultValue, isMapEntry} = info;
-    const isComplex = typeName ? '1' : '';
-    const isEnum = type === 'enum' ? '1' : '';
-    const isMap = isMapEntry ? '1' : '';
-    const key = `${label}:${typeName || type}:${field}:${isComplex}:${isEnum}:${isMap}`;
-    if (isMap) {
-      res[key] = typeName
-        ? { type: typeName, value: getFormatedFields(types[typeName], messages) }
-        : { type, value: type };
-      continue;
-    }
-    if (type === 'message' && types[typeName]) {
-      res[key] = getFormatedFields(types[typeName], messages);
-      continue;
-    }
-    if (type === 'enum' && types[typeName]) {
-      res[key] = { type, values: types[typeName], defaultValue };
-      continue;
-    }
-
-    res[key] = { number, defaultValue };
-  }
-  return res;
-}
-
-/**
- * Get all methods from proto descriptor.
- * @param {object} descriptor
- */
-function getServiceMethods(descriptor) {
-  if (!isObject(descriptor)) {
-    return false;
-  }
-
-  for(const item of Object.values(descriptor)) {
+  for(const key in tree.nested) {
+    res[key] = {};
+    const item = tree.nested[key];
     if (isService(item)) {
-      return Object.entries(item.service).reduce((methods, [key, info]) => {
-        methods[key] = {
-          request: formatTypeNode(info.requestType.type),
-          response: formatTypeNode(info.responseType.type),
-        };
-        return methods;
-      }, {});
+      res[key] = item.methods;
+      res[key]['.service'] = true;
+    } else if (isEnumNode(item)) {
+      res[key] = item.values;
+      res[key]['.enum'] = true;
+    } else if (isLeafNode(item)) {
+      res[key] = formatFields(item.fields, key);
+      res[key]['.leaf'] = true;
+    } else {
+      res[key] = formatTree(item);
+      if (isObject(item.fields)) {
+        res[key]['.fields'] = formatFields(item.fields, key);
+      }
     }
+  }
+  return res;
+}
 
-    const res = getServiceMethods(item);
-    if (res) {
-      return res;
+/**
+ * Format fields.
+ * @param {object} fields
+ */
+function formatFields(fields, messageType) {
+  const res = {};
+  for(const key in fields) {
+    const {rule = 'optional', keyType, type, options} = fields[key];
+    const defaultVal = isObject(options) && ('default' in options) ? options.default : '';
+    const field = keyType
+      ? `${rule}:${messageType}:${key}:${defaultVal}:<${keyType},${type}>`
+      : `${rule}:${messageType}:${key}:${defaultVal}`;
+    res[field] = type;
+  }
+  return res;
+}
+
+/**
+ * Get service node from the specified tree.
+ * @param {object} formatedTree
+ * @param {string[]} path
+ */
+function getService(formatedTree, path = []) {
+  for(const key in formatedTree) {
+    const node = formatedTree[key];
+    if (!isObject(node)) continue;
+
+    if (node['.service'] === true) {
+      const methods = { ...node };
+      delete methods['.service'];
+      return { methods, packagePath: path };
     }
+    const res = getService(node, [...path, key]);
+    if (res) return res;
   }
   return false;
 }
 
 /**
- * Get all messages from proto descriptor.
- * @param {object} descriptor
- * @param {number} level
- */
-function getMessages(descriptor, level = 0) {
-  if (!isObject(descriptor) || level > 30) {
-    return {};
-  }
-
-  let messages = {};
-  for(const key in descriptor) {
-    if (isMessage(descriptor[key])) {
-      messages[key] = formatTypeNode(descriptor[key].type);
-      continue;
-    }
-    if (isObject(descriptor[key])) {
-      messages = {...getMessages(descriptor[key], level + 1), ...messages};
-    }
-  }
-  return messages;
-}
-
-/**
- * Parse and format a type node from `@grpc/grpc-js`
- * @param {object} typeNode
- */
-function formatTypeNode(typeNode) {
-  const fields = {};
-  // type of enum
-  if (typeof typeNode.name === 'string' && Array.isArray(typeNode.value) && ('options' in typeNode)) {
-    return typeNode.value.map(i => i.name);
-  }
-  // type of map
-  if (isObject(typeNode.options) && typeNode.options.mapEntry) {
-    const [keyItem, valueItem] = [typeNode.field[0], typeNode.field[1]];
-    const key = keyItem.type.replace(/^TYPE_/i, '').toLowerCase();
-
-    valueItem.label = valueItem.label.replace(/^LABEL_/i, '').toLowerCase();
-    valueItem.type = valueItem.type.replace(/^TYPE_/i, '').toLowerCase();
-    valueItem.isMapEntry = true;
-
-    fields[key] = valueItem;
-    return { fields, nested: {}, name: '' };
-  }
-  for(const item of typeNode.field) {
-    // ignore extended fields
-    if (/^\./.test(item.name) || item.extendee) continue;
-
-    item.label = item.label.replace(/^LABEL_/i, '').toLowerCase();
-    item.type = item.type.replace(/^TYPE_/i, '').toLowerCase();
-    fields[item.name] = item;
-  }
-
-  const nested = {};
-  for(const item of typeNode.nestedType) {
-    nested[item.name] = formatTypeNode(item);
-  }
-  for(const item of typeNode.enumType) {
-    nested[item.name] = item.value.map(i => i.name);
-  }
-  return { fields, nested, name: typeNode.name };
-}
-
-/**
- * Check whether a node is service.
- * @param {object} item
- */
-function isService(item) {
-  return typeof item === 'function' && (item.name === 'ServiceClientImpl') && item.service;
-}
-
-/**
- * Check whether a node is a message definition.
- * @param {object} item
- */
-function isMessage(item) {
-  if (isObject(item.fileDescriptorProtos)) {
-    item.fileDescriptorProtos = 1;
-  }
-  return isObject(item) && item.format && item.type && item.fileDescriptorProtos && typeof item.type.name === 'string';
-}
-
-/**
  * Check whether the specifed `obj` is an object.
- * @param {any} obj
+ * @param {unknown} obj
  */
 function isObject(obj) {
   return {}.toString.call(obj) === '[object Object]';
+}
+
+/**
+ * Check whether the specifed `node` is a leaf node.
+ * @param {object} node
+ */
+function isLeafNode(node) {
+  return isObject(node) && isObject(node.fields) && !isObject(node.nested);
+}
+
+/**
+ * Check whether the specifed `node` is a enum node.
+ * @param {object} node
+ */
+function isEnumNode(node) {
+  return isObject(node) && (Object.keys(node).length === 1) && isObject(node.values);
+}
+
+/**
+ * Check whether the specifed `node` is a service node.
+ * @param {object} node
+ */
+function isService(node) {
+  const isOnly = isObject(node) && Object.values(node).length === 1;
+  const hasMethods = isObject(node.methods);
+  if (!isOnly || !hasMethods) {
+    return false;
+  }
+  const isEmpty = Object.values(node.methods).length === 0;
+  const hasRequestType = !isEmpty && Object.values(node.methods).every(i => i.requestType);
+  const hasResponseType = !isEmpty && Object.values(node.methods).every(i => i.responseType);
+
+  return isEmpty || (hasRequestType && hasResponseType);
+}
+
+/**
+ * Check whether the specifed `type` is a scalar type.
+ * @param {object} node
+ */
+function isScalarType(type) {
+  return isObject(type) ? false : [
+    'int32', 'int64', 'string', 'bool', 'double', 'float', 'uint32', 'bytes',
+    'uint64', 'sint32', 'sint64', 'fixed32', 'fixed64', 'sfixed32', 'sfixed64',
+  ].includes(type);
+}
+
+/**
+ * Gets the value at path of object. If the resolved value is undefined,
+ * the defaultValue is returned in its place.
+ * @param {object} object
+ * @param {string|string[]} path
+ * @param {any} defaultValue
+ */
+function pick(object, path, defaultValue) {
+  if (!isObject(object)) return defaultValue;
+  const arr = Array.isArray(path) ? path : String(path).split('.').filter(key => key);
+  const keys = arr.map(val => `${val}`); // to string
+
+  const result = keys.reduce((obj, key) => obj && obj[key], object);
+
+  return result === undefined ? defaultValue : result;
 }
 
 /**
@@ -367,15 +398,15 @@ function isObject(obj) {
 function getMockFileTemplate(method, requestTypeName, request, response) {
   const apiPrefix = String(protorc.apiPrefix).trim().replace(/\/+$/g, '');
   const requestField = requestTypeName ? `message ${requestTypeName}` : '';
+  const requestStr = JSON.stringify(request, null, 2).replace(/\n/g, '\n * ').replace(/(?<=": )"(.*)"(,?)/g, '$1$2');
   const protoRequestFields = protorc.generateProtoRequestFields ? [
     '\n',
     '/**',
-    ` * ${requestField || 'Proto Request Fields'}: ${JSON.stringify(request, null, 2).replace(/\n/g, '\n * ')}`,
+    ` * ${requestField || 'Proto Request Fields'}: ${requestStr}`,
     ' */'
   ].join('\n') : '';
   /* eslint-disable */
   return `
-
 /**
  * @url ${apiPrefix}/${method}
  * @delay 10
@@ -389,3 +420,4 @@ module.exports = (request) => {
 `;
   /* eslint-enable */
 }
+

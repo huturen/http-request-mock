@@ -1,4 +1,5 @@
 const chance = require('chance').Chance();
+const faker = require('faker/locale/en');
 const cache = {};
 const chinese = getChineseInfo();
 
@@ -8,6 +9,7 @@ const chinese = getChineseInfo();
 module.exports = {
   chance,
   chinese,
+  faker,
 
   /**
    * Return a random integer.
@@ -16,19 +18,6 @@ module.exports = {
    */
   rand(min = 0, max = 1000000000) {
     return rand(min, max);
-  },
-
-  /**
-   * Return an array with the values returned from the specifeid callback.
-   * @param {function} callback
-   * @param {number} times
-   */
-  repeat(callback, times = rand(5, 10)) {
-    const res = [];
-    for(let i = 0; i < times; i += 1) {
-      res.push(callback());
-    }
-    return res;
   },
 
   /**
@@ -194,7 +183,7 @@ module.exports = {
   },
 
   /**
-   * Return a URL to a random avatar from Gravatar.
+   * Return a random avatar.
    * @param {string} fileExtension
    */
   avatar(fileExtension = 'jpg') {
@@ -202,10 +191,17 @@ module.exports = {
   },
 
   /**
-   * Return a random email with a random domain.
-   * @param {string} domain
+   * Return a random image.
    */
-  email(domain) {
+  image() {
+    return faker.image.image();
+  },
+
+  /**
+   * Return a random email with a random domain.
+   * @param {string | undefined} domain
+   */
+  email(domain = undefined) {
     return domain ? chance.email({ domain }) : chance.email();
   },
 
@@ -218,7 +214,7 @@ module.exports = {
 
   /**
    * Generate a random phone.
-   * @param {string} format (Such as:
+   * @param {string} format
    */
   phone(format = '1##########') {
     return format.replace(/#/g, () => rand(0, 9));
@@ -226,10 +222,10 @@ module.exports = {
 
   /**
    * Return a random url.
-   * @param {string} domain
+   * @param {string | undefined} domain
    * @param {string} protocol
    */
-  url(domain, protocol = 'https'){
+  url(domain = undefined, protocol = 'https'){
     return chance.url({protocol, domain });
   },
 
@@ -243,30 +239,37 @@ module.exports = {
 
   /**
    * Return a random datetime.
-   * @param {number} version
+   * @param {string} dateFormat
+   * @param {string} timeFormat
    */
-  datetime() {
-    return this.date() + ' ' + this.time();
+  datetime(dateFormat = 'YYYY-MM-DD', timeFormat = 'HH:mm:ss') {
+    return this.date(dateFormat) + ' ' + this.time(timeFormat);
   },
 
   /**
    * Return a random date.
-   * @param {number} version
+   * @param {string} format default YYY-MM-DD
    */
-  date() {
+  date(format = 'YYYY-MM-DD') {
     const time = new Date(Date.now() - rand(0, 1000) * 86400000);
     const two = num => num >= 10 ? num : `0${num}`;
-    return [ time.getFullYear(), two(time.getMonth()+1), two(time.getDate()) ].join('-');
+    return format
+      .replace(/YYYY/g, time.getFullYear())
+      .replace(/MM/g, two(time.getMonth()+1))
+      .replace(/DD/g, two(time.getDate()));
   },
 
   /**
    * Return a random time.
-   * @param {number} version
+   * @param {string} format default HH:mm:ss
    */
-  time() {
+  time(format = 'HH:mm:ss') {
     const time = new Date(Date.now() - rand(0, 86400000));
     const two = num => num >= 10 ? num : `0${num}`;
-    return [ two(time.getHours()), two(time.getMinutes()), two(time.getSeconds()) ].join(':');
+    return format
+      .replace(/HH/g, two(time.getHours()))
+      .replace(/mm/g, two(time.getMinutes()))
+      .replace(/ss/g, two(time.getSeconds()));
   },
 
   /**
@@ -310,26 +313,50 @@ module.exports = {
   /**
    * Return an auto-incremented id.
    * @param {number} base
+   * @param {string} group
    */
-  incrementId(base = 1) {
-    if (cache.incrementId === undefined) {
-      cache.incrementId = base;
-    }
-    return cache.incrementId++;
+  incrementId(base = 1, group = 'default') {
+    cache.incrementId = cache.incrementId || {};
+    cache.incrementId[group || 'default'] = cache.incrementId[group] || base;
+    return cache.incrementId[group]++;
   },
 
   /**
    * Given an array, returns a value from it in turn
    * @param {any[]} arr
+   * @param {string} group
    */
-  rotate(arr) {
+  rotate(arr, group = 'default') {
     if (!arr.length) {
       throw new Error('`arr` can not be empty.');
     }
-    if (cache.rotate === undefined) {
-      cache.rotate = 0;
-    }
-    return arr[(cache.rotate++)%arr.length];
+    cache.rotate = cache.rotate || {};
+    cache.rotate[group || 'default'] = cache.rotate[group] || 0;
+
+    return arr[(cache.rotate[group]++)%arr.length];
+  },
+
+  /**
+   * The shadow of 'faker' which returns a representation of a faker method invocation.
+   * Example:
+   *    const faker = require('http-request-mock/plugin/faker.js').shadow;
+   *    console.log(faker.integer(1, 10));
+   *    The codes above will output: "faker.integer(1, 10)";
+   */
+  get shadow() {
+    return new Proxy(this, {
+      get(target, key) {
+        if (typeof target[key] === 'function') {
+          return new Proxy(target[key], {
+            apply: function(target, _, argumentsList) {
+              const args = argumentsList.map(arg => JSON.stringify(arg)).join(', ');
+              return `faker.${target.name}(${args})`;
+            }
+          });
+        }
+        return target[key];
+      },
+    });
   }
 };
 

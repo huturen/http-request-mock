@@ -79,9 +79,9 @@
 * **动态响应模拟**: 基于请求信息，如url，查询参数，post请求包体，来动态模拟返回内容。
 * **灵活的路由匹配**: 支持URL局部匹配及RegExp正则匹配。
 * **网络延迟模拟**: 支持模拟网络请求的时延，精确到毫秒级别。
-* **整合faker库**: 支持海量的假数据生成, 假数据生成具备可编程性。
+* **假数据生成**: 支持海量的假数据生成, 假数据生成具备可编程性。
 * **完备的单元测试**: 本库具有完整的单元测试，甚至对第3方请求库也做了完整的单元测试。
-
+* **自动生成proto mock数据**: 支持通过proto文件自动生成mock数据.。
 
 ## 安装
 
@@ -105,19 +105,13 @@ const HttpRequestMock = require('http-request-mock');
 ```html
 <!-- unpkg -->
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
-<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
 
 <!-- cdnjs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.pure.js"></script>
 ```
 
 
-配置对象可以在 window.HttpRequestMock 中找到.
-
-
-`http-request-mock.pure.js`: 纯净版，无faker.js整合, 只有48K.
-
+配置对象可以在 window.HttpRequestMock 中找到。
 
 
 ## 例子

@@ -90,8 +90,9 @@ There are some problems you may encounter when using the other mocking libraries
 * **Dynamic mocking**: Dynamically resolve response based on request query, payloads...
 * **Flexible route matching**: Supports RegExp matching and partial string matching.
 * **Delaying mocking**: Supports to simulate network latency.
-* **Integrate with faker.js**: Easy to generate massive amounts of fake data, automatically and programmatically.
+* **Fake data**: Easy to generate massive amounts of fake data, automatically and programmatically.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
+* **`proto` mock data**: Support for generating mock data by proto files.
 
 
 ## Installation
@@ -116,18 +117,13 @@ The UMD build is also available on `unpkg` and `cdnjs`:
 ```html
 <!-- unpkg -->
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
-<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.pure.js"></script>
 
 <!-- cdnjs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.pure.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.4.7/http-request-mock.js"></script>
 ```
 
 
 You can find the library on window.HttpRequestMock.
-
-
-`http-request-mock.pure.js`: An alternative version, without `faker` , only 48K.
 
 
 ## Examples

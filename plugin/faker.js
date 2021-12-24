@@ -1,15 +1,13 @@
 const chance = require('chance').Chance();
-const faker = require('faker/locale/en');
 const cache = {};
 const chinese = getChineseInfo();
 
 /**
  * Export some frequently-used methods.
  */
-module.exports = {
+module.exports =  {
   chance,
   chinese,
-  faker,
 
   /**
    * Return a random integer.
@@ -102,11 +100,11 @@ module.exports = {
 
   /**
    * Return a random text words.
-   * Default is a sentence with a random number of words from 12 to 18.
+   * Default is a sentence with a random number of words from 2 to 8.
    * @param {number} length
    * @param {number} words
    */
-  text(length = rand(12, 18), cn = false) {
+  text(length = rand(3, 8), cn = false) {
     return cn ? chance.pickset(chinese.words, length).join('') : chance.sentence({ words: length });
   },
 
@@ -192,9 +190,17 @@ module.exports = {
 
   /**
    * Return a random image.
+   * @param {string} size default to 640x480
+   * @param {string} type default to any
    */
-  image() {
-    return faker.image.image();
+  image(size = '640x480', type = 'any') {
+    if (!/^\w+x\d+$/i.test(size)) {
+      throw new Error('Invalid size format.');
+    }
+    const category = ['animals', 'arch', 'nature', 'people', 'tech', 'any'].includes(type) ? type : 'any';
+
+    const [width, height] = size.toLowerCase().split('x');
+    return `https://placeimg.com/${width}/${height}/${category}`;
   },
 
   /**
@@ -218,6 +224,44 @@ module.exports = {
    */
   phone(format = '1##########') {
     return format.replace(/#/g, () => rand(0, 9));
+  },
+
+  /**
+   * Generate a random string with specified format.
+   * Meta chars:
+   *    '#' for [0-9]
+   *    '!' for [1-9]
+   *    '@' for [a-zA-Z]
+   *    '$' for [~!@#$%^&*()_+;'",<>/?\\-]
+   *    '%' for [a-zA-Z~!@#$%^&*()_+;'",<>/?\\-]
+   * Quantity chars:
+   *    '*' for a random number from 0 to 10
+   *    '+' for a random number from 1 to 10
+   *    '?' for a random number from 0 to 1
+   * @param {string} format
+   */
+  format(format) {
+    if (typeof format !== 'string') {
+      throw new Error('Expect [format] to be a string.');
+    }
+    const replacer = (match) => {
+      const [char, quantity = ''] = [match[0], match.slice(1)];
+      const fun = {
+        '#': () => rand(0, 9),
+        '!': () => rand(1, 9),
+        '@': () => this.string(1, 1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+        '$': () => this.string(1, 1, '~!@#$%^&*()_-+;\'",<>/?\\'),
+        '%': () => this.string(1, 1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_-+;\'",<>/?\\'),
+      }[char];
+      const len = /^\d+$/.test(quantity) ? +quantity : {
+        '*': rand(0, 10),
+        '+': rand(1, 10),
+        '?': rand(0, 1),
+        '': 1,
+      }[quantity];
+      return [...Array(len)].map(() => fun()).join('');
+    };
+    return format.replace(/[#!@]([+*?]|\d+)?/g, replacer);
   },
 
   /**
@@ -344,19 +388,26 @@ module.exports = {
    *    The codes above will output: "faker.integer(1, 10)";
    */
   get shadow() {
-    return new Proxy(this, {
+    const inteceptor = (instance, key, isChance) => new Proxy(instance, {
+      // eslint-disable-next-line
+      apply: function(_, __, argumentsList) {
+        const args = argumentsList.map(arg => JSON.stringify(arg)).join(', ');
+        return isChance ? `faker.chance.${key}(${args})` : `faker.${key}(${args})`;
+      }
+    });
+    const shadow = new Proxy(this, {
       get(target, key) {
-        if (typeof target[key] === 'function') {
-          return new Proxy(target[key], {
-            apply: function(target, _, argumentsList) {
-              const args = argumentsList.map(arg => JSON.stringify(arg)).join(', ');
-              return `faker.${target.name}(${args})`;
-            }
+        if (key === 'chance') {
+          return new Proxy(chance, {
+            get(target, key) {
+              return typeof target[key] === 'function' ? inteceptor(target[key], key, 1) :target[key];
+            },
           });
         }
-        return target[key];
+        return typeof target[key] === 'function' ? inteceptor(target[key], key) :target[key];
       },
     });
+    return shadow;
   }
 };
 

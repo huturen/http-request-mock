@@ -1,4 +1,14 @@
+// see this issue: https://github.com/chancejs/chancejs/issues/51
+const isWindowPresent = typeof window !== 'undefined' && Object.prototype.toString.call(window) === '[object Window]';
+if (isWindowPresent) {
+  window.global = window;
+}
+// remove the global chance instance
 const chance = require('chance').Chance();
+if (isWindowPresent && ('chance' in window.global)) {
+  delete window.global.chance;
+}
+
 const cache = {};
 const chinese = getChineseInfo();
 
@@ -321,10 +331,6 @@ module.exports =  {
    * @param {string} str
    */
   bytes(str = '') {
-    if (typeof Buffer === 'function') {
-      /* global Buffer: true*/
-      return Buffer.from(str || this.string(5, 10));
-    }
     if (typeof ArrayBuffer === 'function' && typeof Uint8Array === 'function') {
       const chars = str || this.string(5, 10);
       const buf = new ArrayBuffer(chars.length);

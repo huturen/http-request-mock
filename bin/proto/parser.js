@@ -2,14 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const pbjs = require('protobufjs/cli/pbjs');
 const faker = require('../../plugin/faker');
-const defaultProtorc = require('./.protorc');
 
 module.exports = {
   getProtoService,
   generateMockFiles
 };
 
-let protorc = defaultProtorc;
+let protorc = null;
 
 /**
  * Generate mock files for the specified proto file.

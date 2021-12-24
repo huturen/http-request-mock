@@ -1,5 +1,5 @@
 import Bypass from '../common/bypass';
-import { sleep, tryToParseObject } from '../common/utils';
+import { getFullRequestUrl, sleep, tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
@@ -77,13 +77,14 @@ export default class XMLHttpRequestInterceptor extends Base {
           password: string | null = null
         ) => {
           if (!this.bypassMock) {
-            const mockItem: MockItem | null = me.matchMockRequest(url, method);
+            const requestUrl = getFullRequestUrl(url);
+            const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
             if (mockItem) {
               // 'this' points XMLHttpRequest instance.
               this.isMockRequest = true;
               this.mockItem = mockItem;
               this.mockResponse = new NotResolved();
-              this.requestInfo = me.getRequestInfo({ url, method, });
+              this.requestInfo = me.getRequestInfo({ url: requestUrl, method, });
               this.requestArgs = [method, url, async, user, password];
               return;
             }

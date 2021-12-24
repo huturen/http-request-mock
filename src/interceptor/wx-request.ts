@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import Bypass from '../common/bypass';
-import { isObject, sleep } from '../common/utils';
+import { getFullRequestUrl, isObject, sleep } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
@@ -54,6 +54,7 @@ export default class WxRequestInterceptor extends Base {
         if (!wxRequestOpts || !wxRequestOpts.url) {
           return;
         }
+        wxRequestOpts.url = getFullRequestUrl(wxRequestOpts.url);
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
         const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);

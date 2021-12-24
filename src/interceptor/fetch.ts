@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import Bypass from '../common/bypass';
-import { sleep } from '../common/utils';
+import { getFullRequestUrl, sleep } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
@@ -59,13 +59,13 @@ export default class FetchInterceptor extends Base{
         url = input;
         params = init || {};
       }
-
+      const requestUrl = getFullRequestUrl(url);
       const method = (params && params.method ? params.method : 'GET') as unknown as Method;
 
       return new Promise((resolve, reject) => {
-        const mockItem:MockItem | null  = me.matchMockRequest(url, method);
+        const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);
         if (mockItem) {
-          const requestInfo = me.getRequestInfo({ url, method, ...params });
+          const requestInfo = me.getRequestInfo({ url: requestUrl, method, ...params });
           me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
             if (isBypassed) {
               me.fetch(url, params).then(resolve).catch(reject);

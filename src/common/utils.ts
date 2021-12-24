@@ -19,7 +19,7 @@ export function getQuery(reqUrl: string) : Query{
 }
 
 /**
- * Check whether or not this specified obj is an object.
+ * Check whether or not the specified obj is an object.
  * @param {unknown} obj
  */
 export function isObject(obj: unknown) {
@@ -138,4 +138,24 @@ export function isNodejs() {
   return (typeof process !== 'undefined')
     && (Object.prototype.toString.call(process) === '[object process]')
     && (!!(process.versions && process.versions.node));
+}
+
+/**
+ * Get full request url.
+ * @param {string} url
+ */
+export function getFullRequestUrl(url: string) {
+  if ((/^https?:\/\//i.test(url) || /^\/\//.test(url))) {
+    return url;
+  }
+  if (typeof URL === 'function' && typeof window === 'object' && window) {
+    return new URL(url, window.location.href).href;
+  }
+
+  if (typeof document === 'object' && document && typeof document.createElement === 'function') {
+    const elemA = document.createElement('a');
+    elemA.href = url;
+    return elemA.href;
+  }
+  return url;
 }

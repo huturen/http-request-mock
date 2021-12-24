@@ -97,7 +97,7 @@ function generateResponseFields(formatedFields, indent = '  ') {
 
     // for map types
     if (isMap) {
-      res.push(`${indent}// map: ${mapKeyVal}, please set your map values like below.`);
+      res.push(`${indent}// map: ${mapKeyVal}, set map values like below.`);
       const mapKey = mapKeyVal.includes('<string') ? 'string1' : '\'123\'';
       if (isObject(type)) {
         const sub = generateResponseFields(type);

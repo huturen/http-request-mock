@@ -49,8 +49,8 @@ module.exports = {
   globalFields: {
     code: 0,
     msg: 'ok',
-    id: (responseType) => {
-      return faker.incrementId(1, responseType);
+    id: (messageType) => {
+      return faker.incrementId(1, messageType);
     },
     title: faker.text(),
     name: faker.name(),

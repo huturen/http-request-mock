@@ -1,6 +1,5 @@
 import HttpRequestMock from '../src/index';
 import FetchInterceptor from '../src/interceptor/fetch';
-import MockItem from '../src/mocker/mock-item';
 import Mocker from '../src/mocker/mocker';
 
 describe('test HttpRequestMock necessary methods', () => {
@@ -104,18 +103,6 @@ describe('test HttpRequestMock necessary methods', () => {
     console.groupCollapsed = undefined;
     expect(mocker.groupLog([123, 'abc'])).toBe(undefined);
     [console.groupCollapsed, console.groupEnd, console.log] = [log1, log2, log3];
-  });
-
-  it('MockItem.faker should be an instance of Faker.FakerStatic', () => {
-    const mockItem = new MockItem({
-      url: 'https://www.api.com/abc',
-      response: '<html>xxx</html>',
-      disable: 'true',
-    });
-    expect(mockItem.disable).toBe('YES');
-    expect(mockItem.faker).toBeTruthy();
-    expect(mockItem.faker.name).toBeTruthy();
-    expect(typeof mockItem.faker.name.findName()).toBe('string');
   });
 });
 

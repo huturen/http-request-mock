@@ -9,26 +9,26 @@ export default class Index {
    * Auto detect request enviroment and setup request mock.
    * @param {string} type
    */
-  static setup() : Mocker {
-    const mocker = new Mocker();
+  static setup(proxyServer = '') : Mocker {
+    const mocker = new Mocker(proxyServer);
 
     if (typeof wx !== 'undefined' && typeof wx.request === 'function') {
-      InterceptorWxRequest.setup(mocker);
+      InterceptorWxRequest.setup(mocker, proxyServer);
     }
 
     if (typeof window !== 'undefined' && typeof window.XMLHttpRequest === 'function') {
-      InterceptorXhr.setup(mocker);
+      InterceptorXhr.setup(mocker, proxyServer);
     }
 
     if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-      InterceptorFetch.setup(mocker);
+      InterceptorFetch.setup(mocker, proxyServer);
     }
 
     // for http.get, https.get, http.request, https.request in node enviroment
     if (isNodejs()) {
       // use requre here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./interceptor/node/http-and-https').default.setup(mocker);
+      require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
     }
 
     return mocker;
@@ -38,9 +38,9 @@ export default class Index {
    * Setup request mock for wx.request.
    * @param {string} type
    */
-  static setupForWx() : Mocker {
-    const mocker = new Mocker();
-    InterceptorWxRequest.setup(mocker);
+  static setupForWx(proxyServer = '') : Mocker {
+    const mocker = new Mocker(proxyServer);
+    InterceptorWxRequest.setup(mocker, proxyServer);
     return mocker;
   }
 
@@ -48,9 +48,9 @@ export default class Index {
    * Setup request mock for XMLHttpRequest.
    * @param {string} type
    */
-  static setupForXhr() : Mocker {
-    const mocker = new Mocker();
-    InterceptorXhr.setup(mocker);
+  static setupForXhr(proxyServer = '') : Mocker {
+    const mocker = new Mocker(proxyServer);
+    InterceptorXhr.setup(mocker, proxyServer);
     return mocker;
   }
 
@@ -58,9 +58,9 @@ export default class Index {
    * Setup request mock for fetch.
    * @param {string} type
    */
-  static setupForFetch() : Mocker {
-    const mocker = new Mocker();
-    InterceptorFetch.setup(mocker);
+  static setupForFetch(proxyServer = '') : Mocker {
+    const mocker = new Mocker(proxyServer);
+    InterceptorFetch.setup(mocker, proxyServer);
     return mocker;
   }
 
@@ -68,16 +68,17 @@ export default class Index {
    * Setup request mock for node http/https request.
    * @param {string} type
    */
-  static setupForNode() : Mocker {
-    const mocker = new Mocker();
+  static setupForNode(proxyServer = '') : Mocker {
+    const mocker = new Mocker(proxyServer);
     // use requre here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('./interceptor/node/http-and-https').default.setup(mocker);
+    require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
     return mocker;
   }
 
   /**
    * Enable mock function temporarily.
+   * Not available in proxy mode.
    */
   static enable() : Mocker {
     return Mocker.getInstance().enable();
@@ -85,6 +86,7 @@ export default class Index {
 
   /**
    * Disable mock function temporarily.
+   * Not available in proxy mode.
    */
   static disable() : Mocker {
     return Mocker.getInstance().disable();
@@ -92,6 +94,7 @@ export default class Index {
 
   /**
    * Enable verbose log.
+   * Not available in proxy mode.
    */
   static enableLog() : Mocker {
     return Mocker.getInstance().enableLog();
@@ -99,6 +102,7 @@ export default class Index {
 
   /**
    * Disable verbose log.
+   * Not available in proxy mode.
    */
   static disableLog() : Mocker {
     return Mocker.getInstance().disableLog();

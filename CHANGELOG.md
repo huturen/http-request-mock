@@ -1,4 +1,7 @@
 ### Changelog
+[2021-12-26]
+1. add proxy mode
+
 [2021-12-13]
 1. add a new capability of using the proto file to generate mock files.
 

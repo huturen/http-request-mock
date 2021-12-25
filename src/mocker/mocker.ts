@@ -8,11 +8,16 @@ export default class Mocker {
   private mockConfigData: MockConfigData;
   private disabled = false;
   private log = false;
+  private proxyServer = '';
 
-  constructor() {
+  constructor(proxyServer = '') {
     if (Mocker.instance) {
       return Mocker.instance;
     }
+    if (/^localhost:\d+$/.test(proxyServer)) {
+      this.proxyServer = proxyServer;
+    }
+
     Mocker.instance = this;
     this.log = !isNodejs();
     this.mockConfigData = {};
@@ -49,40 +54,68 @@ export default class Mocker {
    */
   public reset() {
     this.setMockData({});
+    this.sendMsgToProxyServer('reset');
     return this;
   }
 
   /**
    * Enable mock function temporarily.
+   * Not available in proxy mode.
    */
   public enable() {
     this.disabled = false;
+    this.sendMsgToProxyServer('enable');
     this.groupLog([['[http-request-mock] is %cenabled.', 'color:green;font-weight:bold;']]);
     return this;
   }
 
   /**
    * Disable mock function temporarily.
+   * Not available in proxy mode.
    */
   public disable() {
     this.disabled = true;
+    this.sendMsgToProxyServer('disable');
     this.groupLog([['[http-request-mock] is %cdisabled.', 'color:red;font-weight:bold;']]);
     return this;
   }
 
   /**
+   * Send a message to proxy server if in a proxy mode.
+   * @param {string} msg
+   */
+  private sendMsgToProxyServer(msg = '') {
+    if (!this.proxyServer) {
+      return;
+    }
+    if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
+      return;
+    }
+    if (typeof window !== 'undefined' &&
+      Object.prototype.toString.call(window) === '[object Window]' &&
+      typeof window.fetch === 'function'
+    ) {
+      window.fetch(`http://${this.proxyServer}/__hrm_msg__/`+encodeURIComponent(msg));
+    }
+  }
+
+  /**
    * Disable logs function temporarily.
+   * Not available in proxy mode.
    */
   public disableLog() {
     this.log = false;
+    this.sendMsgToProxyServer('disableLog');
     return this;
   }
 
   /**
    * Disable logs function temporarily.
+   * Not available in proxy mode.
    */
   public enableLog() {
     this.log = true;
+    this.sendMsgToProxyServer('enableLog');
     return this;
   }
 
@@ -303,7 +336,7 @@ export default class Mocker {
             return info;
           }
         } catch(e) {
-          // ignore match error, normally, user doesn't case it.
+          // ignore match error, normally, user doesn't care it.
         }
       }
     }

@@ -10,6 +10,7 @@ const readline = require('readline');
 const chokidar = require('chokidar');
 const protoParser = require('./proto/parser');
 const WebpackPlugin = require('../plugin/webpack');
+const server = require('./server');
 
 const appRoot = (() => {
   if (!/\bnode_modules\b/.test(__dirname)) return process.cwd();
@@ -59,7 +60,15 @@ program
     'cjs'
   )
   .option(
-    '-p, --proto',
+    '-p, --proxy',
+    'Proxy mode. In proxy mode, http-request-mock will start\n'+spaces+
+    ' a proxy server which recives incoming requests on localhost.\n'+spaces+
+    ' The module type of .runtime.js will be changed to cjs and\n'+spaces+
+    ' mock files will be run in a node enviroment.\n'+spaces+
+    ' Note: proxy mode is still under experimental stage, only for experts.'
+  )
+  .option(
+    '--proto',
     'Generate mock files from a .protorc config file.'
   )
   .parse(process.argv);
@@ -83,8 +92,6 @@ program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
   }
   program.help();
 })();
-
-
 
 async function init() {
   const dir = path.resolve(appRoot, program.directory);
@@ -150,7 +157,7 @@ async function inject() {
   log('Please check out your application entry file.');
 }
 
-function watch() {
+async function watch() {
   const dir = path.resolve(appRoot, program.directory);
   if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
     log(`There is no a .runtime.js file in the mock directory: ${dir}.`);
@@ -158,14 +165,19 @@ function watch() {
     return;
   }
 
+  const proxyServer = program.proxy
+    ? await server.init({ mockDir: dir, enviroment: program.enviroment, })
+    : null;
+
   log(`Watching: ${dir}`);
   const webpack = new WebpackPlugin({
     dir,
     entry: /1/,
     enviroment: program.enviroment,
     type: program.type,
+    proxyMode: proxyServer
   });
-  const set = new Set();
+  const pathsSet = new Set();
   let timer = null;
   webpack.getRuntimeConfigFile(); // update .runtime.js before watching
 
@@ -175,28 +187,22 @@ function watch() {
     if (event === 'addDir' || event === 'error') return;
     if(filename && !/^[\w][-\w]*\.js$/.test(filename)) return;
 
-    if (set.has(filename)) return;
-    set.add(filename);
+    if (pathsSet.has(filePath)) return;
+    pathsSet.add(filePath);
 
     clearTimeout(timer);
     timer = setTimeout(() => {
       const runtime = webpack.getRuntimeConfigFile();
+      proxyServer && server.reload([...pathsSet]);
 
       console.log(' ');
-      log(`The changes of \x1b[32m[${[...set]}]\x1b[0m have been applied to .runtime.js.`);
       log(`${runtime} has been updated.`);
-      set.clear();
-    }, 300);
+      pathsSet.clear();
+    }, 100);
   });
 
   if (typeof program.watch === 'string') {
-    spawn(program.watch, {
-      cwd: appRoot, // process.cwd()
-      env: process.env,
-      stdio: 'inherit',
-      detached: false,
-      shell: true
-    });
+    spawn(program.watch, { cwd: appRoot, env: process.env, stdio: 'inherit', detached: false, shell: true });
   }
 }
 
@@ -248,8 +254,10 @@ function askInput(question) {
 }
 
 function copySampleFiles(mockDirectory) {
+  const samplesDirectory = path.resolve(mockDirectory, 'samples');
   const sample = file => path.resolve(__dirname, 'samples', file);
-  const mock = file => path.resolve(mockDirectory, file);
+  const mock = file => path.resolve(samplesDirectory, file);
+  fs.mkdirSync(samplesDirectory, { recursive: true });
 
   return new Promise(resolve => {
     let count = 0;
@@ -259,27 +267,14 @@ function copySampleFiles(mockDirectory) {
         resolve(true);
       }
     };
-    fs.copyFile(sample('sample-dynamic.js'), mock('sample-dynamic.js'), callback);
-    fs.copyFile(sample('sample-static.js'), mock('sample-static.js'), callback);
-    fs.copyFile(sample('sample-times.js'), mock('sample-times.js'), callback);
+
+    fs.copyFile(sample('dynamic.js'), mock('dynamic.js'), callback);
+    fs.copyFile(sample('static.js'), mock('static.js'), callback);
+    fs.copyFile(sample('times.js'), mock('times.js'), callback);
   });
 }
 
 function log(...args) {
-  console.log(`\x1b[32m[${time()}]\x1b[0m`, ...args);
+  console.log('\x1b[32m[http-request-mock]\x1b[0m', ...args);
 }
 
-function time() {
-  const now = new Date();
-  const two = num => num > 9 ? num : ('0' + num);
-  return [
-    now.getFullYear(),
-    two(now.getMonth()+1),
-    two(now.getDate())
-  ].join('-') + ' ' +
-  [
-    two(now.getHours()),
-    two(now.getMinutes()),
-    two(now.getSeconds())
-  ].join(':');
-}

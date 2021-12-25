@@ -458,7 +458,6 @@ In your packgae.josn, set a mock-dev command to start a mock development:
 | **dir**     | yes      | Mock directory, must be an absulte path                             |
 | **enable**  | no       | Whether or not to enable this plugin, defaut: true                  |
 | **watch**   | no       | Callback function triggered when a mock data file changed            |
-| **monitor** | no       | Whether or not to monitor files in the mock directory, default: true |
 
 
 ## Command line tool

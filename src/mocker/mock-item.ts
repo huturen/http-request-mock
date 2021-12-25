@@ -9,6 +9,7 @@ export default class MockItem {
   public delay: number;
   public body: unknown; // response body
   public response: unknown; // response body, for backward compatibility
+  public file: string; // for server mode
   public status: number; // http status code
 
   public disable: Disable;
@@ -40,6 +41,9 @@ export default class MockItem {
       this.body = mockItem.response;
     } else {
       this.body = '';
+    }
+    if (typeof mockItem.file !== 'undefined') {
+      this.file = mockItem.file;
     }
     this.key = `${this.url}-${this.method}`;
   }

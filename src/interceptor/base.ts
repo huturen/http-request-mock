@@ -8,11 +8,19 @@ import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
 export default class BaseInterceptor {
   protected mocker: Mocker;
+  protected proxyServer: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected global: Record<string, any>;
 
-  constructor(mocker: Mocker) {
+  constructor(mocker: Mocker, proxyServer = '') {
     this.mocker = mocker;
+
+    if (/^localhost:\d+$/.test(proxyServer)) {
+      this.proxyServer = proxyServer;
+    } else if (proxyServer) {
+      console.warn('Invalid proxyServer:', proxyServer);
+    }
+
     this.global = BaseInterceptor.getGlobal();
   }
 
@@ -20,8 +28,8 @@ export default class BaseInterceptor {
    * Setup request mocker.
    * @param {Mocker} mocker
    */
-  public static setup(mocker: Mocker) {
-    return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr | InterceptorNode> new this(mocker);
+  public static setup(mocker: Mocker, proxyServer = '') {
+    return <InterceptorFetch | InterceptorWxRequest | InterceptorXhr | InterceptorNode> new this(mocker, proxyServer);
   }
 
   /**
@@ -43,6 +51,10 @@ export default class BaseInterceptor {
    * @param {string} reqMethod
    */
   protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItem | null {
+    // ignore matching when it is a server mode
+    if (this.proxyServer && reqUrl.indexOf(`http://${this.proxyServer}`) === 0) {
+      return null;
+    }
     const mockItem: MockItem | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
     if (mockItem && mockItem.times !== undefined) {
       mockItem.times -= 1;
@@ -63,6 +75,37 @@ export default class BaseInterceptor {
       info.body = tryToParseObject(mixedRequestInfo.body);
     }
     return info;
+  }
+
+  /**
+ * Get full request url.
+ * @param {string} url
+ */
+  getFullRequestUrl(url: string) {
+    if (/^https?:\/\//i.test(url)) {
+      return this.checkProxyUrl(url);
+    }
+    if (typeof URL === 'function' && typeof window === 'object' && window) {
+      return this.checkProxyUrl(new URL(url, window.location.href).href);
+    }
+
+    if (typeof document === 'object' && document && typeof document.createElement === 'function') {
+      const elemA = document.createElement('a');
+      elemA.href = url;
+      return this.checkProxyUrl(elemA.href);
+    }
+    return this.checkProxyUrl(url);
+  }
+
+  /**
+   * Return a proxy url if in a proxy mode otherwise return the original url.
+   * @param {string} url
+   */
+  public checkProxyUrl(url: string) {
+    if (this.proxyServer) {
+      return `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/');
+    }
+    return url;
   }
 }
 

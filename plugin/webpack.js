@@ -1,6 +1,7 @@
 /* eslint-env node */
 const fs = require('fs');
 const path = require('path');
+const server = require('../bin/server');
 const { createLoader } = require('simple-functional-loader');
 
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
@@ -16,11 +17,12 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {boolean} enable Optional, whether or not to enable this plugin. Default value depends: NODE_ENV.
    *                         The default value will depend on your enviroment variable NODE_ENV if not specified:
    *                         i.e.: It'll be true on a development enviroment(NODE_ENV=development) by default.
-   * @param {boolean} monitor Optional, whether or not to monitor files in the mock directory. Defaults to true.
-   *                          If mock directory is in src/ that has configured to be monitored,
-   *                          then set monitor to false. If this option would confuse you, let it be true.
-   * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'es6'.
-   *                          Valid values are: es6(alias of module), commonjs.
+   * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'cjs'.
+   *                      Valid values are: es6(alias of module), cjs(alias of commonjs).
+   * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server
+   *                            which recives incoming requests on localhost. The module type of .runtime.js
+   *                            will be changed to cjs and mock files will be run in a node enviroment.
+   *                            Valid values are: [yes] or a server listening address such as: localhost:9091.
    */
   constructor({
     entry,
@@ -28,8 +30,8 @@ module.exports = class HttpRequestMockMockPlugin {
     watch,
     enviroment,
     enable,
-    monitor = true,
     type,
+    proxyMode,
   }) {
     if (!(entry instanceof RegExp)) {
       throw new Error('The HttpRequestMockMockPlugin expects [entry] to be a valid RegExp Object.');
@@ -43,13 +45,17 @@ module.exports = class HttpRequestMockMockPlugin {
     this.dir = this.resolve(dir);
     this.watch = watch;
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
-    this.monitor = monitor;
     this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
     this.type = ['es6', 'module', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
+
+    if (proxyMode === 'yes' || /^localhost:\d+$/.test(proxyMode)) {
+      this.proxyServer = proxyMode;
+      this.type = 'cjs';
+    }
   }
 
   /**
-   * The plugin logic.
+   * Initialize webpack plugin & inject dependencies into entry.
    *
    * @param {Webpack Compiler Object} compiler
    */
@@ -59,6 +65,20 @@ module.exports = class HttpRequestMockMockPlugin {
     this.injectMockConfigFileIntoEntryByChangingSource(compiler);
     this.setWatchCallback(compiler);
     this.addMockDependenciesToContext(compiler);
+
+    this.initProxyServer();
+  }
+
+  /**
+   * Initialize proxy server in a proxy mode.
+   */
+  async initProxyServer() {
+    const address = await server.init({
+      mockDir: this.dir,
+      enviroment: this.enviroment ? this.enviroment.join('=') : ''
+    });
+    this.proxyServer = address;
+    this.getRuntimeConfigFile();
   }
 
   /**
@@ -105,8 +125,6 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {Webpack Compiler Object} compiler
    */
   setWatchCallback(compiler) {
-    if (typeof this.watch !== 'function') return;
-
     compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async () => {
       const changedFiles = this.getChangedFiles(compiler);
       if (!changedFiles.length) {
@@ -118,9 +136,15 @@ module.exports = class HttpRequestMockMockPlugin {
         return file.indexOf(this.dir) === 0 && /^[\w][-\w]*\.js$/.test(name);
       });
       if (!files.length) return Promise.resolve();
-
       this.getRuntimeConfigFile(); // update mock runtime config file
-      return this.watch(files);
+
+      if (/^localhost:\d+$/.test(this.proxyServer)) {
+        server.reload(files);
+      }
+
+      if (typeof this.watch === 'function') {
+        this.watch(files);
+      }
     });
   }
 
@@ -129,7 +153,6 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {Webpack Compiler Object} compiler
    */
   addMockDependenciesToContext(compiler) {
-    if (!this.monitor) return;
     compiler.hooks.emit.tapPromise(PLUGIN_NAME, async (compilation) => {
       compilation.contextDependencies.add(this.dir);
       return Promise.resolve();
@@ -153,7 +176,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {array} level
    */
   getAllMockFiles(level = []){
-    if (level.length > 4) return [];
+    if (level.length > 5) return [];
 
     const dir = this.resolve(this.dir, ...level);
     const files = fs.readdirSync(dir, { withFileTypes: true });
@@ -219,7 +242,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
       const { method, delay, status, header, times } = tags;
 
-      const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
+      const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header, file }, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, '"body": data.default,');
       const config = info.replace(/\n/g, `\n${gap1}${gap2}`);
@@ -235,13 +258,14 @@ module.exports = class HttpRequestMockMockPlugin {
   getCommonjsRuntimeFileContent() {
     const files = this.getAllMockFiles();
     const gap = this.enviroment ? '  ' : '';
-
+    const proxyServer = /^localhost:\d+$/.test(this.proxyServer) ? `'${this.proxyServer}'` : '';
     const codes = [
       '/* eslint-disable */',
       (this.enviroment ? `if (process.env.${this.enviroment[0]} === '${this.enviroment[1]}') {` : ''),
       `${gap}const HttpRequestMock = require('http-request-mock');`,
-      `${gap}const mocker = HttpRequestMock.setup();`,
+      `${gap}const mocker = HttpRequestMock.setup(${proxyServer});`,
       '', // mock-items-place-holder
+      `${gap}module.exports = mocker;`,
       (this.enviroment ? '}\n/* eslint-enable */' : '/* eslint-enable */'),
     ];
 
@@ -259,8 +283,12 @@ module.exports = class HttpRequestMockMockPlugin {
 
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
       const { method, delay, status, header, times } = tags;
-
-      const info = JSON.stringify({ url: '', method, body: '', delay, status, times, header }, null, 2)
+      const mockItem = { url: '', method, body: '', delay, status, times, header };
+      if (this.proxyServer) {
+        delete mockItem.body;
+        mockItem.file = file;
+      }
+      const info = JSON.stringify(mockItem, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, `"body": require('${file}'),`);
       items.push(`${gap}mocker.mock(${gap ? info.replace(/\n/g, '\n  ') : info});`);

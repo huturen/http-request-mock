@@ -92,7 +92,7 @@ There are some problems you may encounter when using the other mocking libraries
 * **Delaying mocking**: Supports to simulate network latency.
 * **Fake data**: Easy to generate massive amounts of fake data, automatically and programmatically.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
-* **`proto` mock data**: Support for generating mock data by proto files.
+* **Mock for protobuf**: Support for generating mock data by proto files.
 
 
 ## Installation

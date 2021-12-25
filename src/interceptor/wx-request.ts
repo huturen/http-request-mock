@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import Bypass from '../common/bypass';
-import { getFullRequestUrl, isObject, sleep } from '../common/utils';
+import { isObject, sleep } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
@@ -10,8 +10,8 @@ export default class WxRequestInterceptor extends Base {
   private static instance: WxRequestInterceptor;
   private wxRequest;
 
-  constructor(mocker: Mocker) {
-    super(mocker);
+  constructor(mocker: Mocker, proxyServer = '') {
+    super(mocker, proxyServer);
 
     if (WxRequestInterceptor.instance) {
       return WxRequestInterceptor.instance;
@@ -54,7 +54,7 @@ export default class WxRequestInterceptor extends Base {
         if (!wxRequestOpts || !wxRequestOpts.url) {
           return;
         }
-        wxRequestOpts.url = getFullRequestUrl(wxRequestOpts.url);
+        wxRequestOpts.url = this.getFullRequestUrl(wxRequestOpts.url);
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
         const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);

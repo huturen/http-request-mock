@@ -16,8 +16,8 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
   private httpGet: Function;
   private httpsGet: Function;
 
-  constructor(mocker: Mocker) {
-    super(mocker);
+  constructor(mocker: Mocker, proxyServer = '') {
+    super(mocker, proxyServer);
 
     if (NodeHttpAndHttpsRequestInterceptor.instance) {
       return NodeHttpAndHttpsRequestInterceptor.instance;
@@ -125,8 +125,8 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     }
 
     const method = options.method || 'GET';
-
-    const mockItem:MockItem | null  = this.matchMockRequest(url, method);
+    const requestUrl = this.checkProxyUrl(url);
+    const mockItem:MockItem | null  = this.matchMockRequest(requestUrl, method);
 
     if (!mockItem) return false;
 

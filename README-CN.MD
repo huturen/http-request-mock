@@ -447,7 +447,6 @@ module.exports = {
 | **dir**   | 必填   | 绝对路径，mock文件夹用于存放mock配置文件                     |
 | **enable** | 可选   | 是否启用该插件，默认 true                                  |
 | **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
-| **monitor** | 可选   | 是否监控mock目录下的文件，默认为true                    |
 
 
 ## 命令行工具

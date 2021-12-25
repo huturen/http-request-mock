@@ -1,5 +1,5 @@
 import Bypass from '../common/bypass';
-import { getFullRequestUrl, sleep, tryToParseObject } from '../common/utils';
+import { sleep, tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
@@ -10,8 +10,8 @@ export default class XMLHttpRequestInterceptor extends Base {
   private static instance: XMLHttpRequestInterceptor;
   private xhr: XMLHttpRequest;
 
-  constructor(mocker: Mocker) {
-    super(mocker);
+  constructor(mocker: Mocker, proxyServer = '') {
+    super(mocker, proxyServer);
 
     if (XMLHttpRequestInterceptor.instance) {
       return XMLHttpRequestInterceptor.instance;
@@ -76,8 +76,8 @@ export default class XMLHttpRequestInterceptor extends Base {
           user: string | null = null,
           password: string | null = null
         ) => {
+          const requestUrl = me.getFullRequestUrl(url);
           if (!this.bypassMock) {
-            const requestUrl = getFullRequestUrl(url);
             const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
             if (mockItem) {
               // 'this' points XMLHttpRequest instance.
@@ -85,11 +85,11 @@ export default class XMLHttpRequestInterceptor extends Base {
               this.mockItem = mockItem;
               this.mockResponse = new NotResolved();
               this.requestInfo = me.getRequestInfo({ url: requestUrl, method, });
-              this.requestArgs = [method, url, async, user, password];
+              this.requestArgs = [method, requestUrl, async, user, password];
               return;
             }
           }
-          return original.call(this, method, url, async, user, password);
+          return original.call(this, method, requestUrl, async, user, password);
         };
       }
     });

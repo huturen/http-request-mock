@@ -73,12 +73,14 @@ module.exports = class HttpRequestMockMockPlugin {
    * Initialize proxy server in a proxy mode.
    */
   async initProxyServer() {
-    const address = await server.init({
-      mockDir: this.dir,
-      enviroment: this.enviroment ? this.enviroment.join('=') : ''
-    });
-    this.proxyServer = address;
-    this.getRuntimeConfigFile();
+    if (this.proxyServer === 'yes') {
+      const address = await server.init({
+        mockDir: this.dir,
+        enviroment: this.enviroment ? this.enviroment.join('=') : ''
+      });
+      this.proxyServer = address;
+      this.getRuntimeConfigFile();
+    }
   }
 
   /**

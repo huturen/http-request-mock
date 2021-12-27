@@ -90,6 +90,9 @@ program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
   if (program.proto) {
     return proto();
   }
+  if (program.proxy) {
+    return proxy();
+  }
   program.help();
 })();
 
@@ -204,6 +207,11 @@ async function watch() {
   if (typeof program.watch === 'string') {
     spawn(program.watch, { cwd: appRoot, env: process.env, stdio: 'inherit', detached: false, shell: true });
   }
+}
+
+function proxy() {
+  const dir = path.resolve(appRoot, program.directory);
+  server.init({ mockDir: dir, enviroment: program.enviroment, });
 }
 
 function proto() {

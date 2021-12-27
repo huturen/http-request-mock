@@ -53,7 +53,7 @@ export default class Mocker {
    * Reset global mock data configuration.
    */
   public reset() {
-    this.setMockData({});
+    this.mockConfigData = {};
     this.sendMsgToProxyServer('reset');
     return this;
   }

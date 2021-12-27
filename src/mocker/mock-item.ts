@@ -28,7 +28,7 @@ export default class MockItem {
     this.url = mockItem.url;
     this.method = /^(get|post|put|patch|delete|head|any)$/i.test(mockItem.method || '')
       ? <Method> mockItem.method?.toUpperCase()
-      : <Method> 'any';
+      : <Method> 'ANY';
 
     this.header = typeof mockItem.header === 'object' ? mockItem.header : {};
     this.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;

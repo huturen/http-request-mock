@@ -7,10 +7,14 @@ const proxy = httpProxy.createProxyServer({});
 
 const defaultHeaders = {
   'x-powered-by': 'http-request-mock',
-  'Access-Control-Allow-Origin': '*',
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': '*',
+  'access-control-allow-headers': '*',
   'access-control-allow-credentials': 'true',
+  // 'content-type': 'text/plain;charset=utf-8',
 };
 let mockDirectory = null;
+const listeningAddress = [];
 
 module.exports = { init, reload };
 
@@ -45,6 +49,7 @@ async function init({ mockDir, enviroment }) {
   }
   if (port <= max) {
     log(`proxy server is listening at: \x1b[32mhttp://${host}:${port}\x1b[0m`);
+    listeningAddress.push(host, port);
     return `${host}:${port}`;
   }
   throw new Error('start a proxy server error: no enough ports to use.');
@@ -57,17 +62,16 @@ async function init({ mockDir, enviroment }) {
 function reload(files = []) {
   if (mockDirectory) {
     try {
-      const runtime = path.resolve(mockDirectory, '.runtime.js');
-      delete require.cache[require.resolve(runtime)];
+      const runtime = require.resolve(path.resolve(mockDirectory, '.runtime.js'));
+      require(runtime).reset();
+      delete require.cache[runtime];
       require(runtime);
     } catch(e) {
       log('reload .runtime.js error: ', e.message);
     }
     files.forEach(file => {
       try {
-        const resolvedFile = path.resolve(file);
-        delete require.cache[resolvedFile];
-        fs.existsSync(resolvedFile) && require(file);
+        delete require.cache[require.resolve(path.resolve(file))];
         log('reload mock file:', path.basename(file));
       } catch(e) {
         log(`reload mock file ${path.basename(file)} error: `, e.message);
@@ -90,10 +94,8 @@ async function requestListener(req, res) {
     return serverError(res);
   }
 
-  if (checkHttpRequestMockMsg(mocker, req)) {
-    res.writeHead(200, defaultHeaders);
-    return res.end('ok');
-  }
+  if (checkHttpRequestMockMsg(mocker, req, res)) return;
+  if (checkServerIndex(req, res)) return;
 
   const request = await parseRequest(req).catch(err => err);
   if (request instanceof Error) {
@@ -123,22 +125,28 @@ async function requestListener(req, res) {
     await new Promise(resolve => setTimeout(resolve, mockItem.delay));
   }
 
-  const result = await mockData.bind(mockItem)(request, mockItem);
+  let result = '';
+  try {
+    result = await mockData.bind(mockItem)(request, mockItem);
+  } catch(err) {
+    return serverError(res, `${mockItem.file} error: `+err.message);
+  }
+
   if (result instanceof mockItem.bypass().constructor) {
     log('bypass mock for: ', request.url);
     return doProxy(req, res, request.url);
   }
-
   res.writeHead(mockItem.status, { ...mockItem.header, ...defaultHeaders});
-  return res.end(typeof result === 'string' ? result : JSON.stringify(result));
+  return res.end(typeof result === 'string' ? result : JSON.stringify(result), 'utf8');
 }
 
 /**
  * Check http-request-mock inner message from browser.
  * @param {object} mocker
  * @param {object} req
+ * @param {object} res
  */
-function checkHttpRequestMockMsg(mocker, req) {
+function checkHttpRequestMockMsg(mocker, req, res) {
   if (!req.url.startsWith('/__hrm_msg__/')) {
     return false;
   }
@@ -148,6 +156,37 @@ function checkHttpRequestMockMsg(mocker, req) {
     mocker[msg]();
     log(`triggered mocker.${msg}().`);
   }
+
+  res.writeHead(200, defaultHeaders);
+  res.end('ok', 'utf8');
+  return true;
+}
+
+/**
+ * Display all mock list for server index.
+ * @param {object} mocker
+ * @param {object} req
+ * @param {object} res
+ */
+function checkServerIndex(req, res) {
+  if (req.url !== '/') {
+    return false;
+  }
+  const address = `http://${listeningAddress.join(':')}`;
+  const from = `${address}/https/jsonplaceholder.typicode.com/todos/1`;
+  const to = 'https://jsonplaceholder.typicode.com/todos/1';
+
+  const str = ['<html><body style="font-size: 12px;">'];
+  str.push('<div><h3>Proxy Brief Introduction</h3></div>');
+  str.push('<div><p>Use this proxy like below:</p></div>');
+  str.push(`<div><p>${from} -> ${to}</div></p>`);
+  str.push('</body></html>');
+
+  res.writeHead(200, {
+    ...defaultHeaders,
+    'content-type': 'text/html;charset=utf-8',
+  });
+  res.end(str.join('\n'), 'utf8');
   return true;
 }
 
@@ -225,7 +264,7 @@ function doProxy(req, res, url) {
  */
 function serverError(res, body = 'Internal Server Error.') {
   res.writeHead(500, defaultHeaders);
-  res.end(body);
+  res.end(body, 'utf8');
 }
 
 process.on('unhandledRejection', (reason, p) => {

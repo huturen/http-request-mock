@@ -50,7 +50,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     if (proxyMode === 'yes' || /^localhost:\d+$/.test(proxyMode)) {
       this.proxyServer = proxyMode;
-      this.type = 'cjs';
+    //   this.type = 'cjs';
     }
   }
 
@@ -62,7 +62,8 @@ module.exports = class HttpRequestMockMockPlugin {
   apply(compiler) {
     if (!this.enable) return;
 
-    this.injectMockConfigFileIntoEntryByChangingSource(compiler);
+    // this.injectMockConfigFileIntoEntryByChangingSource(compiler);
+    this.injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler);
     this.setWatchCallback(compiler);
     this.addMockDependenciesToContext(compiler);
 
@@ -81,6 +82,48 @@ module.exports = class HttpRequestMockMockPlugin {
       this.proxyServer = address;
       this.getRuntimeConfigFile();
     }
+  }
+
+  /**
+   * Inject mock config file into entry by webpack config entry.
+   * @param {Webpack Compiler Object} compiler
+   */
+  injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler) {
+    const runtimeFile = this.getRuntimeConfigFile();
+
+    const doInject = (entries) => {
+      if (typeof entries === 'string' && this.entry.test(entries)) {
+        compiler.options.entry = [runtimeFile, entries];
+        console.log(`Injected mock dependency[${runtimeFile}] for ${entries}`);
+        return;
+      }
+      for(let key in entries) {
+        const entry = entries[key];
+        if (typeof entry === 'string' && this.entry.test(entry)) {
+          entries[key] = [runtimeFile, entry];
+          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
+          break;
+        }
+        if (Array.isArray(entry) && entry.find(e => this.entry.test(e))) {
+          entries[key] = [runtimeFile].concat(entry);
+          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
+          break;
+        }
+      }
+    };
+
+    compiler.hooks.entryOption.tap(PLUGIN_NAME, (_, entries) => {
+      if (typeof entries === 'function') {
+        const getEntries = entries();
+        if (typeof getEntries.then === 'function') {
+          entries().then(entries => doInject(entries));
+        } else {
+          doInject(getEntries);
+        }
+      } else {
+        doInject(entries);
+      }
+    });
   }
 
   /**
@@ -326,7 +369,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
     res.header = Object.keys(header).length > 0 ? header : undefined;
-    res.method = /^(get|post|put|patch|delete|head|any)$/i.test(res.method) ? res.method.toLowerCase() : undefined;
+    res.method = /^(get|post|put|patch|delete|head|any)$/i.test(res.method) ? res.method.toUpperCase() : undefined;
     res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
     res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;
     res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;

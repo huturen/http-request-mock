@@ -8,7 +8,8 @@ import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
 export default class BaseInterceptor {
   protected mocker: Mocker;
-  protected proxyServer: string;
+  protected proxyServer = '';
+  protected proxyMode = 'none';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected global: Record<string, any>;
 
@@ -17,6 +18,8 @@ export default class BaseInterceptor {
 
     if (/^localhost:\d+$/.test(proxyServer)) {
       this.proxyServer = proxyServer;
+      const port = +proxyServer.replace('localhost:', '');
+      this.proxyMode = port >= 9001 && port <= 9049 ? 'matched' : 'all';
     } else if (proxyServer) {
       console.warn('Invalid proxyServer:', proxyServer);
     }
@@ -81,27 +84,32 @@ export default class BaseInterceptor {
  * Get full request url.
  * @param {string} url
  */
-  getFullRequestUrl(url: string) {
+  getFullRequestUrl(url: string, method: Method) {
     if (/^https?:\/\//i.test(url)) {
-      return this.checkProxyUrl(url);
+      return this.checkProxyUrl(url, method);
     }
     if (typeof URL === 'function' && typeof window === 'object' && window) {
-      return this.checkProxyUrl(new URL(url, window.location.href).href);
+      return this.checkProxyUrl(new URL(url, window.location.href).href, method);
     }
 
     if (typeof document === 'object' && document && typeof document.createElement === 'function') {
       const elemA = document.createElement('a');
       elemA.href = url;
-      return this.checkProxyUrl(elemA.href);
+      return this.checkProxyUrl(elemA.href, method);
     }
-    return this.checkProxyUrl(url);
+    return this.checkProxyUrl(url, method);
   }
 
   /**
    * Return a proxy url if in a proxy mode otherwise return the original url.
    * @param {string} url
    */
-  public checkProxyUrl(url: string) {
+  public checkProxyUrl(url: string, method: Method) {
+    if (this.proxyMode === 'matched' && this.proxyServer) {
+      return this.matchMockRequest(url, method)
+        ? `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/')
+        : url;
+    }
     if (this.proxyServer) {
       return `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/');
     }

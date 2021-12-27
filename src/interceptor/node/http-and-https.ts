@@ -125,7 +125,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     }
 
     const method = options.method || 'GET';
-    const requestUrl = this.checkProxyUrl(url);
+    const requestUrl = this.checkProxyUrl(url, method);
     const mockItem:MockItem | null  = this.matchMockRequest(requestUrl, method);
 
     if (!mockItem) return false;

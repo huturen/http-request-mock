@@ -76,7 +76,7 @@ export default class XMLHttpRequestInterceptor extends Base {
           user: string | null = null,
           password: string | null = null
         ) => {
-          const requestUrl = me.getFullRequestUrl(url);
+          const requestUrl = me.getFullRequestUrl(url, method);
           if (!this.bypassMock) {
             const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
             if (mockItem) {
@@ -397,6 +397,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     const original = this.getGetter('response');
     Object.defineProperty(this.xhr, 'response', {
       get: function() {
+        // console.log('interceptResponse', this.getAllResponseHeaders());
         if (this.isMockRequest) {
           if (this.mockResponse instanceof NotResolved) return null;
 

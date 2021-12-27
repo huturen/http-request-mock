@@ -23,6 +23,9 @@ module.exports = class HttpRequestMockMockPlugin {
    *                            which recives incoming requests on localhost. The module type of .runtime.js
    *                            will be changed to cjs and mock files will be run in a node enviroment.
    *                            Valid values are: [yes] or a server listening address such as: localhost:9091.
+   *                            [matched] Proxy requests which are matched your defined mock items.
+   *                            [all] Proxy all incoming requests.
+   *                            [none] Do not start a proxy server. (default: "none")
    */
   constructor({
     entry,
@@ -31,7 +34,7 @@ module.exports = class HttpRequestMockMockPlugin {
     enviroment,
     enable,
     type,
-    proxyMode,
+    proxyMode = 'none',
   }) {
     if (!(entry instanceof RegExp)) {
       throw new Error('The HttpRequestMockMockPlugin expects [entry] to be a valid RegExp Object.');
@@ -48,9 +51,12 @@ module.exports = class HttpRequestMockMockPlugin {
     this.enviroment = enviroment && /^\w+=\w+$/.test(enviroment) ? enviroment.split('=') : null;
     this.type = ['es6', 'module', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
 
-    if (proxyMode === 'yes' || /^localhost:\d+$/.test(proxyMode)) {
-      this.proxyServer = proxyMode;
-    //   this.type = 'cjs';
+    this.proxyServer = '';
+    if (proxyMode === 'matched' || proxyMode === 'all') {
+      this.proxyMode = proxyMode;
+      this.type = 'cjs';
+    } else {
+      this.proxyMode = 'none';
     }
   }
 
@@ -59,28 +65,28 @@ module.exports = class HttpRequestMockMockPlugin {
    *
    * @param {Webpack Compiler Object} compiler
    */
-  apply(compiler) {
+  async apply(compiler) {
     if (!this.enable) return;
+
+    await this.initProxyServer();
 
     // this.injectMockConfigFileIntoEntryByChangingSource(compiler);
     this.injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler);
     this.setWatchCallback(compiler);
     this.addMockDependenciesToContext(compiler);
-
-    this.initProxyServer();
   }
 
   /**
    * Initialize proxy server in a proxy mode.
    */
   async initProxyServer() {
-    if (this.proxyServer === 'yes') {
+    if (this.proxyMode === 'matched' || this.proxyMode === 'all') {
       const address = await server.init({
+        proxyMode: this.proxyMode,
         mockDir: this.dir,
         enviroment: this.enviroment ? this.enviroment.join('=') : ''
       });
       this.proxyServer = address;
-      this.getRuntimeConfigFile();
     }
   }
 
@@ -90,23 +96,23 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   injectMockConfigFileIntoEntryByWebpackConfigEntry(compiler) {
     const runtimeFile = this.getRuntimeConfigFile();
-
+    const msg = entry => `\nInjected mock dependency[${runtimeFile}] for ${entry}\n`;
     const doInject = (entries) => {
       if (typeof entries === 'string' && this.entry.test(entries)) {
         compiler.options.entry = [runtimeFile, entries];
-        console.log(`Injected mock dependency[${runtimeFile}] for ${entries}`);
+        console.log(msg(entries));
         return;
       }
       for(let key in entries) {
         const entry = entries[key];
         if (typeof entry === 'string' && this.entry.test(entry)) {
           entries[key] = [runtimeFile, entry];
-          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
+          console.log(msg(entry));
           break;
         }
         if (Array.isArray(entry) && entry.find(e => this.entry.test(e))) {
           entries[key] = [runtimeFile].concat(entry);
-          console.log(`Injected mock dependency[${runtimeFile}] for ${entry}`);
+          console.log(msg(entry));
           break;
         }
       }
@@ -329,7 +335,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
       const { method, delay, status, header, times } = tags;
       const mockItem = { url: '', method, body: '', delay, status, times, header };
-      if (this.proxyServer) {
+      if (/^localhost:\d+$/.test(this.proxyServer)) {
         delete mockItem.body;
         mockItem.file = file;
       }

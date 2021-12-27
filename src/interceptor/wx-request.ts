@@ -54,7 +54,7 @@ export default class WxRequestInterceptor extends Base {
         if (!wxRequestOpts || !wxRequestOpts.url) {
           return;
         }
-        wxRequestOpts.url = this.getFullRequestUrl(wxRequestOpts.url);
+        wxRequestOpts.url = this.getFullRequestUrl(wxRequestOpts.url, wxRequestOpts.method);
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
         const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);

@@ -9,6 +9,7 @@ export default class Mocker {
   private disabled = false;
   private log = false;
   private proxyServer = '';
+  private proxyMode = 'none';
 
   constructor(proxyServer = '') {
     if (Mocker.instance) {
@@ -16,6 +17,8 @@ export default class Mocker {
     }
     if (/^localhost:\d+$/.test(proxyServer)) {
       this.proxyServer = proxyServer;
+      const port = +proxyServer.replace('localhost:', '');
+      this.proxyMode = port >= 9001 && port <= 9049 ? 'matched' : 'all';
     }
 
     Mocker.instance = this;
@@ -84,7 +87,7 @@ export default class Mocker {
    * Send a message to proxy server if in a proxy mode.
    * @param {string} msg
    */
-  private sendMsgToProxyServer(msg = '') {
+  public sendMsgToProxyServer(msg = '') {
     if (!this.proxyServer) {
       return;
     }

@@ -416,7 +416,7 @@ const faker = require('http-request-mock/plugin/faker.js');
 module.exports = (request) => {
   return ${response.replace(/\n/g, '\n  ')}
 };
-`;
+`.trim();
   /* eslint-enable */
 }
 

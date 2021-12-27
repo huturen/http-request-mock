@@ -1,5 +1,4 @@
 /* eslint-env node */
-const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const httpProxy = require('http-proxy');
@@ -24,7 +23,7 @@ module.exports = { init, reload };
  * @param {string} mockDir
  * @param {string} enviroment
  */
-async function init({ mockDir, enviroment }) {
+async function init({ proxyMode, mockDir, enviroment }) {
   if (/^\w+=\w+$/.test(enviroment)) {
     const [key, val] = enviroment.split('=');
     process.env[key] = val;
@@ -32,8 +31,9 @@ async function init({ mockDir, enviroment }) {
 
   mockDirectory = mockDir;
   const host = 'localhost';
-  const max = 9091 + 50;
-  let port = 9091;
+  // 9001-9049 for 'matched' mode, 9101-9149 for 'all' mode
+  let port = proxyMode === 'matched' ? 9001 : 9101;
+  const max = proxyMode === 'matched' ? 9049 : 9149;
   while(port <= max) {
     const server = http.createServer(requestListener);
     const res = await new Promise((resolve) => {
@@ -118,6 +118,7 @@ async function requestListener(req, res) {
 
   mockItem.times--;
   if (mockItem.times <= 0) {
+    res.setHeader('http-request-mock-times-out', 1);
     return doProxy(req, res, request.url);
   }
 
@@ -250,8 +251,14 @@ function parseQuery(search) {
 function doProxy(req, res, url) {
   const { protocol, host, pathname, search } = new URL(url);
   req.url = `${pathname}${search}`;
-  req.headers.host = host;
-  return proxy.web(req, res, { target: `${protocol}//${host}` }, function(err) {
+  // req.headers.host = host;
+  return proxy.web(req, res, {
+    changeOrigin: true,
+    target: `${protocol}//${host}`,
+    headers: { ...defaultHeaders },
+    cookieDomainRewrite: '',
+    followRedirects: true,
+  }, function(err) {
     log(`proxy error[${url}]: `, err.message);
     serverError(res, 'proxy error: ' + err.message);
   });

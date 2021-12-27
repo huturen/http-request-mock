@@ -56,16 +56,20 @@ program
   .option(
     '-t, --type [module-type]',
     'The module type of .runtime.js.\n'+spaces+
-    ' Valid values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
+    ' Possible values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
     'cjs'
   )
   .option(
-    '-p, --proxy',
+    '-p, --proxy [mode]',
     'Proxy mode. In proxy mode, http-request-mock will start\n'+spaces+
     ' a proxy server which recives incoming requests on localhost.\n'+spaces+
     ' The module type of .runtime.js will be changed to cjs and\n'+spaces+
     ' mock files will be run in a node enviroment.\n'+spaces+
-    ' Note: proxy mode is still under experimental stage, only for experts.'
+    ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
+    ' [matched] Proxy requests which are matched your defined mock items.\n'+spaces+
+    ' [all] Proxy all incoming requests.\n'+spaces+
+    ' [none] Do not start a proxy server.',
+    'none'
   )
   .option(
     '--proto',
@@ -90,7 +94,7 @@ program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
   if (program.proto) {
     return proto();
   }
-  if (program.proxy) {
+  if (program.proxy === 'matched' && program.proxy === 'all') {
     return proxy();
   }
   program.help();
@@ -168,8 +172,8 @@ async function watch() {
     return;
   }
 
-  const proxyServer = program.proxy
-    ? await server.init({ mockDir: dir, enviroment: program.enviroment, })
+  const proxyServer = program.proxy === 'matched' && program.proxy === 'all'
+    ? await server.init({ proxyMode: program.proxy, mockDir: dir, enviroment: program.enviroment, })
     : null;
 
   log(`Watching: ${dir}`);
@@ -178,8 +182,12 @@ async function watch() {
     entry: /1/,
     enviroment: program.enviroment,
     type: program.type,
-    proxyMode: proxyServer
+    proxyMode: program.proxy
   });
+  if (proxyServer) {
+    webpack.proxyServer = proxyServer;
+  }
+
   const pathsSet = new Set();
   let timer = null;
   webpack.getRuntimeConfigFile(); // update .runtime.js before watching
@@ -210,8 +218,10 @@ async function watch() {
 }
 
 function proxy() {
-  const dir = path.resolve(appRoot, program.directory);
-  server.init({ mockDir: dir, enviroment: program.enviroment, });
+  if (program.proxy === 'matched' && program.proxy === 'all') {
+    const dir = path.resolve(appRoot, program.directory);
+    server.init({ mockDir: dir, enviroment: program.enviroment, });
+  }
 }
 
 function proto() {

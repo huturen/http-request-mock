@@ -56,6 +56,7 @@ have to hack into your business code to mock something ever again after a one-ti
 * [API](#API)
 * [Unit test](#Unit-test)
 * [Mock data file](#Mock-data-file)
+* [FAQ](#FAQ)
 * [License](#License)
 
 
@@ -703,6 +704,24 @@ describe('mock axios request', () => {
 module.exports = (requestInfo) => {
   return 'Your response data';
 };
+```
+
+## FAQ
+
+1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
+```
+Solution 1: Set your babel.config.js like below:
+module.exports = {
+  presets: [
+    '@vue/app'
+  ],
+  sourceType: 'unambiguous'
+}
+
+Solution 2: Add: @babel/plugin-transform-modules-commonjs in .babelrc:
+{
+  "plugins": ["@babel/plugin-transform-modules-commonjs"]
+}
 ```
 
 ## License

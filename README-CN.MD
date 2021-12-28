@@ -46,6 +46,7 @@
 * [API文档](#API文档)
 * [单元测试](#单元测试)
 * [mock数据文件配置说明](#mock数据文件配置说明)
+* [常见问题](#FAQ)
 * [License](#License)
 
 
@@ -682,6 +683,24 @@ describe('mock axios request', () => {
 module.exports = (requestInfo) => {
   return 'Your response data';
 };
+```
+
+## 常见问题
+
+1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
+```
+解决办法1: 像下面这样，在babel.config.js里添加配置unambiguous设置:
+module.exports = {
+  presets: [
+    '@vue/app'
+  ],
+  sourceType: 'unambiguous'
+}
+
+Solution 2: 添加 @babel/plugin-transform-modules-commonjs 插件到 .babelrc 中:
+{
+  "plugins": ["@babel/plugin-transform-modules-commonjs"]
+}
 ```
 
 ## License

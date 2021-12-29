@@ -442,13 +442,10 @@ Then .runtime.js will be updated and injected into app entry file automatically.
 
 In your packgae.josn, set a mock-dev command to start a mock development:
 ```json
-...
   "scripts": {
     "dev": "npm run serve",
     "mock-dev": "NODE_ENV=development npm run serve"
   },
-}
-...
 ```
 
 #### webpack options
@@ -495,12 +492,10 @@ You can use the command-line below instead if your project does not use webpack:
 You may need to add `npx http-request-mock-cli -w` into package.json files:
 
 ```json
-...
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock": "http-request-mock-cli -w",
 },
-...
 ```
 This library supplies a integration for development.
 In this way, you can just use one command instead:
@@ -509,13 +504,11 @@ In this way, you can just use one command instead:
 
 Also, add it into package.json, please refer to `examples/vue-with-cli` for more details:
 ```json
-...
 // The command passed into `http-request-mock-cli -w` must be quoted with double quotes.
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
-...
 ```
 
 

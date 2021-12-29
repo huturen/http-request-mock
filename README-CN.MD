@@ -431,13 +431,10 @@ module.exports = {
 
 可以在package.json中，配置script命令，来启动自动拆卸mock功能。
 ```json
-...
   "scripts": {
     "dev": "npm run serve",
     "mock-dev": "NODE_ENV=development npm run serve"
   },
-}
-...
 ```
 
 #### webpack 插件选项
@@ -484,12 +481,10 @@ Options:
 `npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
 
 ```json
-...
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock": "http-request-mock-cli -w",
 },
-...
 ```
 如果希望只使用一个命令启动开发，我们也也提供了启动整合方案：
 
@@ -497,13 +492,11 @@ Options:
 
 可以添加到scripts里面，详细请参考 `examples/vue-with-cli`:
 ```json
-...
 // 传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
-...
 ```
 
 
@@ -697,9 +690,9 @@ module.exports = (requestInfo) => {
   }
 
 解法方法2: 把 [type] 选项设置为 es6。注意，es6 不能和代理模式一起使用。
-  a. 命令行启动 http-request-mock:
+  a. 如果是命令行启动 http-request-mock:
     http-request-mock-cli -t es6 -w "vue-cli-service serve"
-  b. webpack启动 http-request-mock:
+  b. 如果是webpack启动 http-request-mock:
     new HttpRequestMockPlugin({
       ...
       type: 'cjs',

@@ -710,18 +710,22 @@ module.exports = (requestInfo) => {
 
 1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
 ```
-Solution 1: Set your babel.config.js like below:
-module.exports = {
-  presets: [
-    '@vue/app'
-  ],
-  sourceType: 'unambiguous'
-}
+Solution 1: You can avoid this issue by setting sourceType: unambiguous in your babel config file:
+  { // babel.config.js or .babelrc.js
+    "presets": [...],
+    "plugins": [...],
+    sourceType: 'unambiguous'
+  }
 
-Solution 2: Add: @babel/plugin-transform-modules-commonjs in .babelrc:
-{
-  "plugins": ["@babel/plugin-transform-modules-commonjs"]
-}
+Solution 2: set [type] option to es6. Note: es6 can't work with proxy mode, don't use es6 and proxy mode together.
+  a. If you are using cli to set up your http-request-mock:
+    http-request-mock-cli -t es6 -w "vue-cli-service serve"
+  b. If you are using webpack to set up your http-request-mock:
+    new HttpRequestMockPlugin({
+      ...
+      type: 'cjs',
+      ...
+    }),
 ```
 
 ## License

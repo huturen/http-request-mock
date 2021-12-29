@@ -10,7 +10,6 @@ const defaultHeaders = {
   'access-control-allow-methods': '*',
   'access-control-allow-headers': '*',
   'access-control-allow-credentials': 'true',
-  // 'content-type': 'text/plain;charset=utf-8',
 };
 let mockDirectory = null;
 const listeningAddress = [];
@@ -179,7 +178,7 @@ function checkServerIndex(req, res) {
 
   const str = ['<html><body style="font-size: 12px;">'];
   str.push('<div><h3>Proxy Brief Introduction</h3></div>');
-  str.push('<div><p>Use this proxy like below:</p></div>');
+  str.push('<div><p>This proxy works like below:</p></div>');
   str.push(`<div><p>${from} -> ${to}</div></p>`);
   str.push('</body></html>');
 

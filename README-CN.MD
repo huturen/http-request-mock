@@ -689,18 +689,23 @@ module.exports = (requestInfo) => {
 
 1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
 ```
-解决办法1: 像下面这样，在babel.config.js里添加配置unambiguous设置:
-module.exports = {
-  presets: [
-    '@vue/app'
-  ],
-  sourceType: 'unambiguous'
-}
+解法方法1: 在babel配置中设置 sourceType: unambiguous
+  { // babel.config.js or .babelrc.js
+    "presets": [...],
+    "plugins": [...],
+    sourceType: 'unambiguous'
+  }
 
-Solution 2: 添加 @babel/plugin-transform-modules-commonjs 插件到 .babelrc 中:
-{
-  "plugins": ["@babel/plugin-transform-modules-commonjs"]
-}
+解法方法2: 把 [type] 选项设置为 es6。注意，es6 不能和代理模式一起使用。
+  a. 命令行启动 http-request-mock:
+    http-request-mock-cli -t es6 -w "vue-cli-service serve"
+  b. webpack启动 http-request-mock:
+    new HttpRequestMockPlugin({
+      ...
+      type: 'cjs',
+      ...
+    }),
+
 ```
 
 ## License

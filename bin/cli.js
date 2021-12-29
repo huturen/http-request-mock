@@ -56,7 +56,7 @@ program
   .option(
     '-t, --type [module-type]',
     'The module type of .runtime.js.\n'+spaces+
-    ' Possible values are: es6(alias of module), cjs(alias of commonjs).\n'+spaces,
+    ' Possible values are: es6, cjs(alias of commonjs).\n'+spaces,
     'cjs'
   )
   .option(
@@ -121,11 +121,9 @@ async function init() {
     enviroment: program.enviroment,
     type: program.type,
   });
-  if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
-    await copySampleFiles(dir);
-  }
+  await copySampleFiles(dir);
 
-  const runtime = webpack.getRuntimeConfigFile();
+  const runtime = webpack.setRuntimeConfigFile();
   log('A runtime mock entry configuration has been initialized:');
   log(runtime);
 }
@@ -172,10 +170,9 @@ async function watch() {
     return;
   }
 
-  const proxyServer = program.proxy === 'matched' && program.proxy === 'all'
+  const proxyServer = program.proxy === 'matched' || program.proxy === 'all'
     ? await server.init({ proxyMode: program.proxy, mockDir: dir, enviroment: program.enviroment, })
     : null;
-
   log(`Watching: ${dir}`);
   const webpack = new WebpackPlugin({
     dir,
@@ -190,7 +187,7 @@ async function watch() {
 
   const pathsSet = new Set();
   let timer = null;
-  webpack.getRuntimeConfigFile(); // update .runtime.js before watching
+  webpack.setRuntimeConfigFile(); // update .runtime.js before watching
 
   chokidar.watch(dir, {ignoreInitial: true}).on('all', (event, filePath) => {
     const filename = path.basename(filePath);
@@ -203,7 +200,7 @@ async function watch() {
 
     clearTimeout(timer);
     timer = setTimeout(() => {
-      const runtime = webpack.getRuntimeConfigFile();
+      const runtime = webpack.setRuntimeConfigFile();
       proxyServer && server.reload([...pathsSet]);
 
       console.log(' ');
@@ -273,23 +270,19 @@ function askInput(question) {
 
 function copySampleFiles(mockDirectory) {
   const samplesDirectory = path.resolve(mockDirectory, 'samples');
-  const sample = file => path.resolve(__dirname, 'samples', file);
+  const sample = file => path.resolve(__dirname, '../tpl/samples', file);
   const mock = file => path.resolve(samplesDirectory, file);
   fs.mkdirSync(samplesDirectory, { recursive: true });
 
-  return new Promise(resolve => {
-    let count = 0;
-    const callback = (err) => {
-      if (err) throw err;
-      if (++count >= 3) {
-        resolve(true);
-      }
-    };
-
-    fs.copyFile(sample('dynamic.js'), mock('dynamic.js'), callback);
-    fs.copyFile(sample('static.js'), mock('static.js'), callback);
-    fs.copyFile(sample('times.js'), mock('times.js'), callback);
-  });
+  if (!fs.existsSync(mock('dynamic.js'))) {
+    fs.copyFileSync(sample('dynamic.js'), mock('dynamic.js'));
+  }
+  if (!fs.existsSync(mock('static.js'))) {
+    fs.copyFileSync(sample('static.js'), mock('static.js'));
+  }
+  if (!fs.existsSync(mock('times.js'))) {
+    fs.copyFileSync(sample('times.js'), mock('times.js'));
+  }
 }
 
 function log(...args) {

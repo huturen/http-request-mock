@@ -106,7 +106,7 @@ export default class BaseInterceptor {
    */
   public checkProxyUrl(url: string, method: Method) {
     if (this.proxyMode === 'matched' && this.proxyServer) {
-      return this.matchMockRequest(url, method)
+      return this.mocker.matchMockItem(url, method)
         ? `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/')
         : url;
     }

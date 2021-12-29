@@ -13,4 +13,4 @@ module.exports = {
   ip: faker.ip(),
   url: faker.url(),
   data: 'The request will be resolved after 100 milliseconds.',
-};
+}

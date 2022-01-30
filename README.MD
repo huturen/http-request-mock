@@ -440,7 +440,7 @@ The webpack plugin will parse mock data files in the mock directory and extract 
 (@url, @method, @delay, @status, ...) in the first comments block which begins with `/**`.
 Then .runtime.js will be updated and injected into app entry file automatically.
 
-In your packgae.josn, set a mock-dev command to start a mock development:
+In your package.json, set a mock-dev command to start a mock development:
 ```json
   "scripts": {
     "dev": "npm run serve",

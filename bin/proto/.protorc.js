@@ -9,7 +9,7 @@ module.exports = {
   protoEntry: '',
 
   // A list of search paths that are absolute for imported .proto files.
-  protoPath: [],
+  protoPaths: [],
 
 
   // Generate mock files that match specified methods, such as: ['getUser', /^getUser.*/].

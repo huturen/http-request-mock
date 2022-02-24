@@ -68,7 +68,7 @@ backend APIs are down or not ready yet. It supplies a new way to prototype your 
 
 
 The original intention of making this library was to find a mocking library to decouple from backend.
-However, we can't find a library that meets our requirements. Some libraries has occupied the most
+However, we can't find a library that meets our requirements. Some libraries have occupied the most
 readable names, but they provide weak functionalities or even no longer provide any updates .
 
 

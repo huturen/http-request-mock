@@ -16,20 +16,20 @@ A quick demo: [https://huturen.github.io/http-request-mock-homepage/plain-html/]
 
 Integration Samples:
 1. Integration with vue by webpack plugin:
-  - [Codesandbox](https://codesandbox.io/s/tender-bird-te01lt)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
+    - [Codesandbox](https://codesandbox.io/s/tender-bird-te01lt)
+    - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
 
 2. Integration with vue by webpack CLI:
-  - [Codesandbox](https://codesandbox.io/s/hardcore-wright-y3lixj)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
+    - [Codesandbox](https://codesandbox.io/s/hardcore-wright-y3lixj)
+    - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
 
 3. Integration with react:
-  - [Codesandbox](https://codesandbox.io/s/charming-mayer-gij9yd)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+    - [Codesandbox](https://codesandbox.io/s/charming-mayer-gij9yd)
+    - [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
 
 4. Integration with nodejs:
-  - [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+    - [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc)
+    - [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 
 

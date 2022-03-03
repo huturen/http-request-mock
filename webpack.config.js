@@ -1,14 +1,6 @@
 /* eslint-env node */
 // This file is used to generate UMD bundles.
 const path = require('path');
-const externals = {
-  http: 'http',
-  https: 'https',
-  zlib: 'zlib',
-  net: 'net',
-  util: 'util',
-  url: 'url',
-};
 
 let bundle = 'http-request-mock.js';
 
@@ -25,10 +17,21 @@ module.exports = {
       },
     ],
   },
-  // make node modules external
-  externals,
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      'fs': false,
+      'tls': false,
+      'net': false,
+      'util': false,
+      'path': false,
+      'zlib': false,
+      'http': false,
+      'https': false,
+      'stream': false,
+      'crypto': false,
+      'url': false,
+    }
   },
   plugins: [],
   output: {

@@ -32,7 +32,7 @@ export default class FetchInterceptor extends Base{
   static setupForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
-      // use requre here to avoid static analysis
+      // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       global.fetch = require('../fallback/fetch').default;
     }

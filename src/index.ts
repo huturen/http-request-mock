@@ -27,7 +27,7 @@ export default class Index {
 
     // for http.get, https.get, http.request, https.request in node enviroment
     if (this.isEnabled && isNodejs()) {
-      // use requre here to avoid static analysis
+      // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
     }
@@ -71,7 +71,7 @@ export default class Index {
    */
   static setupForNode(proxyServer = '') : Mocker {
     const mocker = new Mocker(proxyServer);
-    // use requre here to avoid static analysis
+    // use require here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     this.isEnabled && require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
     return mocker;
@@ -135,7 +135,7 @@ export default class Index {
     }
 
     if (type === 'node' || type === 'node.http.request') {
-      // use requre here to avoid static analysis
+      // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }
@@ -144,7 +144,7 @@ export default class Index {
       InterceptorWxRequest.setupForUnitTest(mocker);
       InterceptorXhr.setupForUnitTest(mocker);
       InterceptorFetch.setupForUnitTest(mocker);
-      // use requre here to avoid static analysis
+      // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
     }

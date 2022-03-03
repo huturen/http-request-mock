@@ -1,4 +1,7 @@
 ### Changelog
+[2022-03-03]
+1. full support for webpack5
+
 [2021-12-26]
 1. add proxy mode
 

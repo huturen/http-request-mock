@@ -108,7 +108,7 @@ const HttpRequestMock = require('http-request-mock');
 <script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
 
 <!-- cdnjs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.2.45/http-request-mock.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.5.10/http-request-mock.js"></script>
 ```
 
 

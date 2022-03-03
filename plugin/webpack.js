@@ -107,8 +107,9 @@ module.exports = class HttpRequestMockMockPlugin {
       injected = true;
       console.log(`\nInjected mock dependency[${runtimeFile}] for ${entry}\n`);
     };
-    const doInject = (entries) => {
+    const doInject = (entries, level = 0) => {
       if (injected) return;
+      if (level >= 30) return;
       if (typeof entries === 'string' && this.entry.test(entries)) {
         compiler.options.entry = [runtimeFile, entries];
         setMsg(entries);
@@ -130,6 +131,8 @@ module.exports = class HttpRequestMockMockPlugin {
             setMsg(found);
             break;
           }
+        } else if (entry && typeof entry === 'object') {
+          doInject(entry, level + 1);
         }
       }
     };
@@ -192,17 +195,24 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {Webpack Compiler Object} compiler
    */
   setWatchCallback(compiler) {
-    compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, async () => {
-      const changedFiles = this.getChangedFiles(compiler);
+    compiler.hooks.watchRun.tap(PLUGIN_NAME, (comp) => {
+      // https://stackoverflow.com/questions/43140501/can-webpack-report-which-file-triggered-a-compilation-in-watch-mode
+      // https://github.com/webpack/webpack/issues/12507
+      let changedFiles = [];
+      if (comp.modifiedFiles) {
+        changedFiles = Array.from(comp.modifiedFiles).map(this.formatPath);
+      } else {
+        changedFiles = this.getChangedFiles(compiler);
+      }
       if (!changedFiles.length) {
-        return Promise.resolve();
+        return;
       }
 
       const files = changedFiles.filter(file => {
         const name = path.basename(file);
         return file.indexOf(this.dir) === 0 && /^[\w][-\w]*\.js$/.test(name);
       });
-      if (!files.length) return Promise.resolve();
+      if (!files.length) return;
       this.setRuntimeConfigFile(); // update mock runtime config file
 
       if (/^localhost:\d+$/.test(this.proxyServer)) {
@@ -235,7 +245,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
 
-    return Object.keys(watcher.mtimes).map(this.formatPath);
+    return Object.keys(watcher.mtimes || {}).map(this.formatPath);
   }
 
   /**

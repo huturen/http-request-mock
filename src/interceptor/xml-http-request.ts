@@ -30,7 +30,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {Mocker} mocker
    */
   static setupForUnitTest(mocker: Mocker) {
-    // use requre here to avoid static analysis
+    // use require here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     global.XMLHttpRequest = global.XMLHttpRequest || require('../fallback/xhr').default;
     return new XMLHttpRequestInterceptor(mocker);

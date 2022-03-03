@@ -29,7 +29,7 @@ Integration Samples:
 
 4. Integration with nodejs:
   - [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+  - [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 
 

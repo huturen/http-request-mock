@@ -26,7 +26,7 @@
 
 4. nodejs项目:
   - [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc)
-  - [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+  - [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。

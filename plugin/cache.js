@@ -21,7 +21,7 @@ module.exports = function cacheWrapper(cacheKey, mockData) {
   let timer = null;
   const save = () => {
     clearTimeout(timer);
-    timer = setTimeout(() => localStorage.setItem(cacheKey, JSON.stringify(result)), 100);
+    timer = setTimeout(() => localStorage.setItem(cacheKey, JSON.stringify(result)), 10);
   };
   const wrap = (obj, handler) => {
     return isObjOrArr(obj) && !obj.__proxy__ ? new Proxy(obj, handler) : obj;

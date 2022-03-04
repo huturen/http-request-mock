@@ -12,21 +12,21 @@
 
 
 项目整合示例:
-1. vue项目（通过webpack插件整合）:
-    - [Codesandbox](https://codesandbox.io/s/tender-bird-te01lt)
-    - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
+- 通过webpack插件整合vue项目:
+  [Codesandbox](https://codesandbox.io/s/tender-bird-te01lt),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
 
-2. vue项目（通过CLI工具整合）:
-    - [Codesandbox](https://codesandbox.io/s/hardcore-wright-y3lixj)
-    - [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
+- 通过CLI工具整合vue项目:
+  [Codesandbox](https://codesandbox.io/s/hardcore-wright-y3lixj),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
 
-3. react项目:
-    - [Codesandbox](https://codesandbox.io/s/charming-mayer-gij9yd)
-    - [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+- 整合react项目:
+  [Codesandbox](https://codesandbox.io/s/charming-mayer-gij9yd),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
 
-4. nodejs项目:
-    - [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc)
-    - [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+- 整合nodejs项目:
+  [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。

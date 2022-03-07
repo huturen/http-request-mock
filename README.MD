@@ -68,9 +68,10 @@ have to hack into your business code to mock something ever again after a one-ti
     - [Disable a mock item](#Disable-a-mock-item)
     - [Limited number of mocking](#Limited-number-of-mocking)
     - [Request information](#Request-information)
-* [Directory structure](#Directory-structure)
-* [Webpack plugin](#Webpack-plugin)
-* [Command line tool](#Command-line-tool)
+* [Integration](#Integration)
+    - [Integration By Webpack plugin](#Integration-By-Webpack-plugin)
+    - [Integration By Command Line Tool](#Integration-By-Command-Line-Tool)
+* [Command Line Tool Options](#Command-Line-Tool-Options)
 * [API](#API)
 * [Unit test](#Unit-test)
 * [Mock data file](#Mock-data-file)
@@ -288,7 +289,7 @@ const mockItem = mocker.mock({
 ```
 
 
-### Limited number of mocking
+#### Limited number of mocking
 
 For more details, please refer to `experiment/times.js`:
 
@@ -351,183 +352,96 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 
 
-## Directory structure
-Run `npx http-request-mock-cli -i` to initialize a mock directory which looks like below.
-
-**Note**： Any file names matched with `/^[\w][-\w]*\.js$/` will be recognized as a mock data file.
-```
-App
-├─── mock/
-|   ├─── .runtime.js   (runtime mock configuration entry file)
-|   ├─── config.js      (a mock data file)
-|   ├─── detail.js     (a mock data file)
-|   ├─── ...           (other mock data files)
-├─── src/
-|   ├─── index.js      (web application entry file)
-|   ├─── ...           (other files)
-```
-```javascript
-// mock data file: config.js：
-// tags(@url, @method,...) in the comments below will be parsed by webpack plugin or cli.
-/**
- * @url https://some.api.com/config
- * @method get
- */
-module.exports = {
-  enable: false,
-  title: 'Some Title',
-  ...
-};
-
-// mock data file: user.js：
-/**
- * @url https://some.api.com/user
- * @method post
- */
-module.exports = {
-  name: 'John',
-  age: 25,
-  ...
-};
-```
-
-Files that in the mock directory will be parsed by webpack plugin or cli,
-and a mock configuration entry file named .runtime.js like below will be generated/updated.
-```javascript
-import data0 from './config.js';
-import data1 from './user.js';
-
-import HttpRequestMock from 'http-request-mock';
-if (process.env.NODE_ENV === 'development') { // depends on webpack or cli configuration
-  const mocker = HttpRequestMock.setup();
-  mocker.get('https://some.api.com/config', data0);
-  mocker.post('https://some.api.com/user', data1);
-}
-
-```
-
----
-
-## Webpack plugin
-In a bare-bones example, you just import `http-request-mock` into your app entry file(such as: src/index.js) and
-configure your mock datas there. Take a Vue project as an example:
+## Integration
+In a bare-bones example, you just import `http-request-mock` into your application
+entry file(such as: src/main.js) and configure your mock datas there.
+Take a Vue project as an example:
 ```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
 import HttpRequestMock from 'http-request-mock'
 
-if (process.env.NODE_ENV === 'development') { // as you need
+if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup()
   mocker.get('https://some.api.com/some-path', ...)
+  mocker.post('https://some.api.com/other-path', ...)
   ...
 }
 
 createApp(App).mount('#app')
 ```
-Depends on your needs, that it's ok in a small project.
-However, for a large web application, it may have lots of APIs to be mocked.
-You may need frequently change the entry file when adding/deleting/updating a mock.
+It may be ok in a small project, however, for a large web application,
+it may have lots of APIs to be mocked. You may need frequently change
+the entry file when adding/deleting/updating a mock data.
 There will be a day that you'll get a mess as the project grows.
 
+In order to solve the problem above, we provide a webpack plugin and command
+tool to integrate your project. In this way, the mock data file can be
+separated from the entry to reduce the burden of managing this entry file.
 
-To avoid having to change your code frequently to use mocks. This library comes with a built-in webpack plugin.
-We assume you have a source directory likes [above](#Directory-structure), you can simply use mocks like below:
+#### Integration By Webpack plugin
 
-1. Run `npx http-request-mock-cli -i`. It'll initialize a .runtime.js file in your mock directory.
-2. Configure `HttpRequestMockWebpackPlugin` in your webpack config file, which looks like below.
+You can set it up by the steps below:
+
+1. Run `npx http-request-mock-cli -i`. It'll initialize some samples in your mock directory.
+2. Configure `HttpRequestMockWebpackPlugin` in your webpack configurations, which looks like below.
 ```javascript
-
 const path = require('path');
+// The webpack plugin will parse mock files under the mock directory and generate a mock
+// configuration entry file named ` runtimejs`, then inject it into the your application entry file.
 const HttpRequestMockWebpackPlugin = require('http-request-mock/plugin/webpack.js');
 module.exports = {
   // ...
   plugins: [
-    // ...
     new HttpRequestMockWebpackPlugin(
       enable: process.env.NODE_ENV === 'development', // activate/deactivate
-      entry: /src\/index\.js$/, // web application entry
+      entry: /src\/main\.js$/, // web application entry
       dir: path.resolve(__dirname, 'mock/'), // mock directory
     ),
-    // ...
   ]
   // ...
 };
 ```
-
-The webpack plugin will parse mock data files in the mock directory and extract tags
-(@url, @method, @delay, @status, ...) in the first comments block which begins with `/**`.
-Then .runtime.js will be updated and injected into app entry file automatically.
-
-In your package.json, set a mock-dev command to start a mock development:
+3. In your package.json, set a command named `mock-dev` to start a mock development:
 ```json
   "scripts": {
-    "dev": "npm run serve",
-    "mock-dev": "NODE_ENV=development npm run serve"
+    "dev": "npm run start",
+    "mock-dev": "NODE_ENV=development npm run start"
   },
 ```
 
-#### webpack options
+**Webpack Plugin options**
 
-| Option      | Required | Description                                                         |
-| :-----      | :----    | :----                                                               |
-| **entry**   | yes      | Application entry file, must be a Regexp object                      |
-| **dir**     | yes      | Mock directory, must be an absulte path                             |
-| **enable**  | no       | Whether or not to enable this plugin, defaut: true                  |
-| **watch**   | no       | Callback function triggered when a mock data file changed            |
+| Option      | Required | Description                                                      |
+| :-----      | :----    | :----                                                            |
+| **entry**   | yes      | Application entry file, must be a Regexp object                   |
+| **dir**     | yes      | Mock directory, must be an absulte path                          |
+| **enable**  | no       | Whether or not to enable this plugin, defaut: true               |
+| **watch**   | no       | A callback that is triggered when a mock data file is changed     |
 
+#### Integration By Command Line Tool
 
-## Command line tool
-`npx http-request-mock-cli -h`:
+An alternative way to integrate with your project is using CLI.
+You can set it up by the steps below:
 
-```
-Usage: npx http-request-mock-cli [options]
-
-Description: http-request-mock command line tool at version 1.1.30.
-Glossary: [.runtime.js] A runtime mock entry configuration file.
-Current working directory: /web/your_project_root_directory
-Example:
-    npx http-request-mock-cli -i
-    npx http-request-mock-cli -i -e MOCK=yes
-
-Options:
-  -d, --directory [directory]       The mock directory relatives to the working directory. (default: "mock")
-  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
-                                    (default: "NODE_ENV=development")
-  -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
-  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command is specified,
-                                    ths specified command will be executed together with watching.
-  -j, --inject <app-entry-file>     Inject .runtime.js into app entry file
-                                    which must be relative to the working directory.
-                                    NOTE: this is an experimental option.
-  -h, --help                        output usage information
+1. Run `npx http-request-mock-cli -j src/xxx.js` to inject mock configuration file
+into the specified entry which may look like below:
+```javascript
+import '../mock/.runtime.js'
+import { createApp } from 'vue'
+import App from './App.vue'
+// ...
+createApp(App).mount('#app')
 ```
 
-You can use the command-line below instead if your project does not use webpack:
-
-1. Run `npx http-request-mock-cli -j src/xx.js` to initialize a .runtime.js & inject it to app entry.
-2. Run `npx http-request-mock-cli -w` to watch mock data files.
-
-You may need to add `npx http-request-mock-cli -w` into package.json files:
-
+2. In your package.json, set a command named `mock-dev` to start a mock development:
 ```json
-"scripts": {
-  "serve": "vue-cli-service serve",
-  "mock": "http-request-mock-cli -w",
-},
-```
-This library supplies a integration for development.
-In this way, you can just use one command instead:
-
-`npx http-request-mock-cli -w "vue-cli-service serve"`
-
-Also, add it into package.json, please refer to `examples/vue-with-cli` for more details:
-```json
-// The command passed into `http-request-mock-cli -w` must be quoted with double quotes.
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
 ```
+The command passed into `http-request-mock-cli -w` must be quoted with double quotes.
 
 
 ***Note：***
@@ -536,13 +450,46 @@ If `-e --enviroment` is not specified, mock function will be enabled by `NODE_EN
 
 Or, you can specify another enviroment variable, such as: `-e MOCK=yes`.
 
-Or, you can enable mock function with no conditions by just specifying an `-e none` arugment.
+
+## Command Line Tool Options
+`npx http-request-mock-cli -h`:
+
+```
+Usage: npx http-request-mock-cli [options]
+
+Description: http-request-mock command line tool at version 1.6.3.
+Glossary: [.runtime.js] A runtime mock configuration entry file.
+Example:
+    npx http-request-mock-cli -i
+
+Options:
+  -d, --directory [directory]       The mock directory relative to the working directory. (default: "mock")
+  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
+                                    (default: "NODE_ENV=development")
+  -i, --init                        Initialize some samples & a .runtime.js in the mock directory.
+  -w, --watch [command]             Watch mock directory & update .runtime.js. If the [command] is specified,
+                                    ths specified command will be executed together with watching.
+  -j, --inject <app-entry-file>     Inject .runtime.js into the specified entry relative to the working directory.
+  -t, --type [module-type]          The module type of .runtime.js.
+                                    Possible values are: es6, cjs(alias of commonjs).
+                                    (default: "cjs")
+  -p, --proxy [mode]                Proxy mode. In proxy mode, http-request-mock will start
+                                    a proxy server which recives incoming requests on localhost.
+                                    The module type of .runtime.js will be changed to cjs and
+                                    mock files will be run in a node enviroment.
+                                    Note: proxy mode is still under experimental stage, only for experts.
+                                    [matched] Proxy requests which are matched your defined mock items.
+                                    [all] Proxy all incoming requests.
+                                    [none] Do not start a proxy server. (default: "none")
+  --proto                           Generate mock files by proto files.
+  -h, --help                        output usage information
+```
 
 
 ## API
 
 
-### For HttpRequestMock
+#### For HttpRequestMock
 
 
 **setup() : Mocker**:
@@ -578,7 +525,7 @@ Enable mock function temporarily.
 Disable mock function temporarily.
 
 ---
-### For Mocker
+#### For Mocker
 
 **setMockData(mockConfigData: MockConfigData)**
 
@@ -600,7 +547,7 @@ interface MockItemInfo {
   delay?: number;
   disable?: Disable; // yes or no
   times?: number;
-  response?: any; // response body
+  body?: any; // response body
   status?: number; // http status code
 };
 ```
@@ -618,8 +565,6 @@ interface MockItemExt {
   status?: number; // http status code
 };
 ```
-
-
 
 **post(url: RegExp | String, body: any, opts: MockItemExt)**
 
@@ -648,28 +593,27 @@ Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  req
 
 ## Unit test
 
-This library comes built-in with unit test capability and can be used in jest and mocha envrioment.
+This library comes with built-in unit test capability and can be used in jest and mocha envrioment.
 The unit tests of this library are also based on itself.
 
 An example of jest：
 ```javascript
-import HttpRequestMock from 'http-request-mock';
 import axios from 'axios';
+import xhrAdapter from 'axios/lib/adapters/xhr';
+import HttpRequestMock from 'http-request-mock';
+
+axios.defaults.adapter = xhrAdapter;
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
-describe('mock axios request', () => {
-  it('url config item should support partial matching', (done) => {
-    mocker.get('www.api.com/some-path', 'your fake response content');
+mocker.get('https://your.api.com/path', function() {
+  return { abc: 123 };
+});
 
-    axios.get('https://www.api.com/some-path', 'get').then(res => {
-      expect(res.data).toBe('your fake response content');
-      done();
-    }),
-  });
+it('should match object`', async () => {
+  const res = await axios.get('https://your.api.com/path');
+  expect(res.data).toMatchObject({abc: 123});
 });
 ```
-
-2. For a mocha example, please refer to `experiment/mocha.js`.
 
 
 ## Mock data file

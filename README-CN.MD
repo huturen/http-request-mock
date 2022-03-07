@@ -59,9 +59,10 @@
     - [单独禁用mock](#单独禁用mock)
     - [mock次数限制](#mock次数限制)
     - [请求信息](#请求信息)
-* [目录结构](#目录结构)
-* [webpack插件](#webpack插件)
-* [命令行工具](#命令行工具)
+* [项目整合](#项目整合)
+    - [使用webpack插件整合项目](#使用webpack插件整合项目)
+    - [使用命令行工具整合项目](#使用命令行工具整合项目)
+* [命令行选项](#命令行选项)
 * [API文档](#API文档)
 * [单元测试](#单元测试)
 * [mock数据文件配置说明](#mock数据文件配置说明)
@@ -337,118 +338,56 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 
 
-## 目录结构
-运行`npx http-request-mock-cli -i` 它将会生成类似如下的目录结构:
-
-**注意**： mock/ 目录下的文件名符合 `/[\w][-\w]*\.js/` 正则的才被视为mock数据配置文件。
-```
-App
-├─── mock/
-|   ├─── .runtime.js   (mock入口配置文件)
-|   ├─── config.js      (mock数据配置文件)
-|   ├─── detail.js     (mock数据配置文件)
-|   ├─── ...           (其他mock数据配置文件)
-├─── src/
-|   ├─── index.js      (业务入口文件)
-|   ├─── ...           (其他业务代码)
-```
-```javascript
-// mock文件 config.js：
-// 以下注释中的 @url, @method 等标签信息，会被webpack插件或cli工具所解析并使用。
-/**
- * @url https://some.api.com/config
- * @method get
- */
-module.exports = {
-  enable: false,
-  title: 'Some Title',
-  ...
-};
-
-// mock文件 user.js：
-/**
- * @url https://some.api.com/user
- * @method post
- */
-module.exports = {
-  name: 'John',
-  age: 25,
-  ...
-};
-```
-
-webpack插件或cli工具会解析mock目录下面的mock文件，
-并生成类似如下mock配置入口文件 `.runtime.js`：
-```javascript
-import data0 from './config.js';
-import data1 from './user.js';
-
-import HttpRequestMock from 'http-request-mock';
-if (process.env.NODE_ENV === 'development') { // depends on webpack or cli configuration
-  const mocker = HttpRequestMock.setup();
-  mocker.get('https://some.api.com/config', data0);
-  mocker.post('https://some.api.com/user', data1);
-}
-
-```
-
----
-
-## webpack插件
-简单来说，只要在入口引入`http-request-mock`并配置就可以用mock了, 以vue项目为例：
+## 项目整合
+对于简单项目来说，只要在项目入口引入`http-request-mock`并配置mok数据就可以用mock了, 以vue项目为例：
 ```javascript
 import { createApp } from 'vue'
 import App from './App.vue'
 import HttpRequestMock from 'http-request-mock'
 
-if (process.env.NODE_ENV === 'development') { // as you need
+if (process.env.NODE_ENV === 'development') {
   const mocker = HttpRequestMock.setup()
   mocker.get('https://some.api.com/some-path', ...)
+  mocker.post('https://some.api.com/other-path', ...)
   ...
 }
 
 createApp(App).mount('#app')
 ```
-取决于你的需要，对与小项目，这样做是ok的。
+取决于你的需要，对与小项目，这样做是ok的。但对于一个大型项目来说，
+可能有很多个API需要需要mock。这样做的话，当你在 新增、删除或修改mock
+时，你可能要频繁的修改这个入口文件。随着项目增长，管理这个入口文件，
+可能会是一件相当棘手的问题。
+
+为了解决上面这个问题，我们提供了webpack插件和命令行工具，以整合你项目。
+这样就可以把mock数据文件从入口中分离出来，减轻管理这个入口文件负担。
+
 
 ---
 
-但是这样的方式，仍具有一定的侵入性。增，删mock数据时，仍然需要反复修
-改业务入口文件。为避免修改你的业务源码入口文件（如，src/index.js）。
+#### 使用webpack插件整合项目
 
-我们额外提供了一个内置webpack插件，使用方式如下：
+使用方式如下：
 
-1. 运行 `npx http-request-mock-cli -i` 初始化 .runtime.js（mock配置入口）
+1. 运行 `npx http-request-mock-cli -i` 初始化demo及mock配置入口
 2. 在你的 `webpack` 配置文件中：
 ```javascript
-
 const path = require('path');
+// webpack插件会自动解析mock目录下的数据文件，然后自动注入业务入口当中。
 const HttpRequestMockWebpackPlugin = require('http-request-mock/plugin/webpack.js');
 module.exports = {
   // ...
   plugins: [
-    // ...
     new HttpRequestMockWebpackPlugin(
-      enable: process.env.NODE_ENV === 'development', // 根据环境变量启用插件
-      entry: /src\/index\.js$/, // 入口页面
-      dir: path.resolve(__dirname, 'mock/'), // mock文件目录
+      enable: process.env.NODE_ENV === 'development', // activate/deactivate
+      entry: /src\/main\.js$/, // web application entry
+      dir: path.resolve(__dirname, 'mock/'), // mock directory
     ),
-    // ...
   ]
   // ...
 };
 ```
-
-此插件，会自动解析mock目录下面的文件，并从文件的注释内容中提取：
-
-"@url, @method, @delay, @status, @header" 等标签信息，
-
-并自动注入到 entry 匹配到的入口文件中，免去了修改入口文件的必要。
-
-注意：enable选项，根据环境变量自动拆卸，启动跟关闭mock均不需要修改源码。
-
-
-可以在package.json中，配置script命令，来启动自动拆卸mock功能。
+3. 在package.json中，配置script命令，来启动mock开发。
 ```json
   "scripts": {
     "dev": "npm run serve",
@@ -456,7 +395,8 @@ module.exports = {
   },
 ```
 
-#### webpack 插件选项
+
+**webpack插件选项**
 
 | 选项      | 配置   | 说明                                                     |
 | :-----    | :---- | :----                                                   |
@@ -466,57 +406,28 @@ module.exports = {
 | **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
 
 
-## 命令行工具
-`npx http-request-mock-cli -h`:
+#### 使用命令行工具整合项目
 
-```
-Usage: npx http-request-mock-cli [options]
+如果你的项目不方便使用webpack配置，可以使用以下命令行工具代替，步骤如下:
 
-Description: http-request-mock command line tool at version 1.1.30.
-Glossary: [.runtime.js] A runtime mock entry configuration file.
-Current working directory: /web/your_project_root_directory
-Example:
-    npx http-request-mock-cli -i
-    npx http-request-mock-cli -i -e MOCK=yes
-
-Options:
-  -d, --directory [directory]       The mock directory relatives to the working directory. (default: "mock")
-  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
-                                    (default: "NODE_ENV=development")
-  -i, --init                        Initialize .runtime.js & samples(if necessary) in the mock directory.
-  -w, --watch [command]             Watch mock directory & update .runtime.js. If a command is specified,
-                                    ths specified command will be executed together with watching.
-  -j, --inject <app-entry-file>     Inject .runtime.js into app entry file
-                                    which must be relative to the working directory.
-                                    NOTE: this is an experimental option.
-  -h, --help                        output usage information
+1. 运行 `npx http-request-mock-cli -j src/xxx.js` 初始化.runtime.js，
+把依赖注入到指定的业务入口，注入之后的入口文件可能看起来是这样的：
+```javascript
+import '../mock/.runtime.js'
+import { createApp } from 'vue'
+import App from './App.vue'
+// ...
+createApp(App).mount('#app')
 ```
 
-如果你的项目不使用webpack，可以使用以下命令行工具代替，步骤如下:
-
-1. 运行 `npx http-request-mock-cli -j src/xx.js` 初始化.runtime.js，把依赖注入到指定的业务入口
-2. 运行 `npx http-request-mock-cli -w` 监控文件修改并自动更新 .runtime.js
-
-`npx http-request-mock-cli -w` 可能需要经常用，在package.json中添加script命令：
-
+2. 在package.json中，配置script命令，来启动mock开发。
 ```json
-"scripts": {
-  "serve": "vue-cli-service serve",
-  "mock": "http-request-mock-cli -w",
-},
-```
-如果希望只使用一个命令启动开发，我们也也提供了启动整合方案：
-
-`npx http-request-mock-cli -w "vue-cli-service serve"`
-
-可以添加到scripts里面，详细请参考 `examples/vue-with-cli`:
-```json
-// 传入到 `http-request-mock-cli -w` 中的命令需要用双引号转译。
 "scripts": {
   "serve": "vue-cli-service serve",
   "mock-dev": "http-request-mock-cli -w \"vue-cli-service serve\"",
 },
 ```
+传入到 `http-request-mock-cli -w` 中的命令需要用双引号转义。
 
 
 ***注意：***
@@ -525,10 +436,40 @@ Options:
 
 如果需要其他环境变量来开启mock，可指定其他变量，如: `-e MOCK=yes`.
 
-如果想去掉环境变量判断，直接指定 `-e none` 就可以了。
 
+## 命令行选项
+`npx http-request-mock-cli -h`:
 
+```
+Usage: npx http-request-mock-cli [options]
 
+Description: http-request-mock command line tool at version 1.6.3.
+Glossary: [.runtime.js] A runtime mock configuration entry file.
+Example:
+    npx http-request-mock-cli -i
+
+Options:
+  -d, --directory [directory]       The mock directory relative to the working directory. (default: "mock")
+  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
+                                    (default: "NODE_ENV=development")
+  -i, --init                        Initialize some samples & a .runtime.js in the mock directory.
+  -w, --watch [command]             Watch mock directory & update .runtime.js. If the [command] is specified,
+                                    ths specified command will be executed together with watching.
+  -j, --inject <app-entry-file>     Inject .runtime.js into the specified entry relative to the working directory.
+  -t, --type [module-type]          The module type of .runtime.js.
+                                    Possible values are: es6, cjs(alias of commonjs).
+                                    (default: "cjs")
+  -p, --proxy [mode]                Proxy mode. In proxy mode, http-request-mock will start
+                                    a proxy server which recives incoming requests on localhost.
+                                    The module type of .runtime.js will be changed to cjs and
+                                    mock files will be run in a node enviroment.
+                                    Note: proxy mode is still under experimental stage, only for experts.
+                                    [matched] Proxy requests which are matched your defined mock items.
+                                    [all] Proxy all incoming requests.
+                                    [none] Do not start a proxy server. (default: "none")
+  --proto                           Generate mock files by proto files.
+  -h, --help                        output usage information
+```
 
 ## API文档
 
@@ -591,7 +532,7 @@ interface MockItemInfo {
   delay?: number;
   disable?: Disable; // yes or no
   times?: number;
-  response?: any; // response body
+  body?: any; // response body
   status?: number; // http status code
 };
 ```
@@ -645,30 +586,29 @@ Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  req
 
 jest测试环境：
 ```javascript
-import HttpRequestMock from 'http-request-mock';
 import axios from 'axios';
+import xhrAdapter from 'axios/lib/adapters/xhr';
+import HttpRequestMock from 'http-request-mock';
+
+axios.defaults.adapter = xhrAdapter;
 const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
-describe('mock axios request', () => {
-  it('url config item should support partial matching', (done) => {
-    mocker.get('www.api.com/some-path', 'your fake response content');
+mocker.get('https://your.api.com/path', function() {
+  return { abc: 123 };
+});
 
-    axios.get('https://www.api.com/some-path', 'get').then(res => {
-      expect(res.data).toBe('your fake response content');
-      done();
-    }),
-  });
+it('should match object`', async () => {
+  const res = await axios.get('https://your.api.com/path');
+  expect(res.data).toMatchObject({abc: 123});
 });
 ```
-
-2. mocha测试环境, 请参考： `experiment/mocha.js`
 
 
 ## mock数据文件配置说明
 ```javascript
 /**
  * 注意： 只会解析第一个注释块中的标签信息
- * 请求的url，支持正则，如果是正则，请使用 / 或者 # 做为正则的起始分割字符，
+ * 请求的url，支持正则，如果是正则，可使用 / 或者 # 做为正则的起始分割字符，
  * 如： #.*\/getUserInfo.*#
  * @url https://jsonplaceholder.typicode.com/todos/1
  *

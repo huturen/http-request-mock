@@ -29,29 +29,26 @@ program
   .usage('[options]')
   .description([
     `Description: http-request-mock command line tool at version ${pkg.version}.`,
-    'Glossary: [.runtime.js] A runtime mock entry configuration file.',
+    'Glossary: [.runtime.js] A runtime mock configuration entry file.',
     `Current working directory: \x1b[32m${appRoot}\x1b[0m`,
     'Example: ',
     '    npx http-request-mock-cli -i',
-    '    npx http-request-mock-cli -i -e MOCK=yes',
   ].join('\n'))
-  .option('-d, --directory [directory]', 'The mock directory relatives to the working directory.', 'mock')
+  .option('-d, --directory [directory]', 'The mock directory relative to the working directory.', 'mock')
   .option(
     '-e, --enviroment [variable-pair]',
     'Enable mock function by enviroment variable for .runtime.js.\n'+spaces,
     'NODE_ENV=development'
   )
-  .option('-i, --init', 'Initialize .runtime.js & samples(if necessary) in the mock directory.')
+  .option('-i, --init', 'Initialize some samples & a .runtime.js in the mock directory.')
   .option(
     '-w, --watch [command]',
-    'Watch mock directory & update .runtime.js. If a command is specified,\n'+spaces+
+    'Watch mock directory & update .runtime.js. If the [command] is specified,\n'+spaces+
     ' ths specified command will be executed together with watching.'
   )
   .option(
     '-j, --inject <app-entry-file>',
-    'Inject .runtime.js into app entry file\n'+spaces+
-    ' which must be relative to the working directory.\n'+spaces+
-    ' NOTE: this is an experimental option.'
+    'Inject .runtime.js into the specified entry relative to the working directory.'
   )
   .option(
     '-t, --type [module-type]',
@@ -73,7 +70,7 @@ program
   )
   .option(
     '--proto',
-    'Generate mock files from a .protorc config file.'
+    'Generate mock files by proto files.'
   )
   .parse(process.argv);
 
@@ -143,23 +140,23 @@ async function inject() {
   runtime = process.platform === 'win32' ? runtime.replace(/\\/g, '/') : runtime;
   runtime = /^\./.test(runtime) ? runtime : ('./'+runtime);
 
-  const codes = [
-    '/* eslint-disable */',
-    (program.type === 'commonjs' || program.type === 'cjs'
-      ? `require('${runtime}');`
-      : `import '${runtime}';`),
-    '/* eslint-enable */',
-  ].join('\n');
-
   const entryContent = fs.readFileSync(appEntryFile, 'utf8');
   if (/(\/|\\)\.runtime\.js('|")/.test(entryContent)) {
     log(`The specified application entry file [\x1b[32m${appEntryFile}\x1b[0m] already contains '.runtime.js'.`);
-    log('Please check out your application entry file.');
+    log('Please check your application entry file.');
     return;
   }
+
+  const isCjs = /\brequire\s*\(/.test(entryContent) && !/\bimport /.test(entryContent);
+  const codes = [
+    '/* eslint-disable */',
+    (isCjs ? `require('${runtime}');` : `import '${runtime}';`),
+    '/* eslint-enable */',
+  ].join('\n');
+
   fs.writeFileSync(appEntryFile, codes+'\n'+entryContent);
   log(`[.runtime.js] dependency has been injected into [\x1b[32m${appEntryFile}\x1b[0m].`);
-  log('Please check out your application entry file.');
+  log('Please check your application entry file.');
 }
 
 async function watch() {

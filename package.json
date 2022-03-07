@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "browser": "dist/http-request-mock.js",
@@ -128,7 +128,7 @@
     "type": "git",
     "url": "https://github.com/huturen/http-request-mock.git"
   },
-  "homepage": "https://huturen.github.io/http-request-mock-homepage/",
+  "homepage": "https://huturen.github.io/http-request-mock-docs/",
   "engines": {
     "node": ">=14.13.1"
   },

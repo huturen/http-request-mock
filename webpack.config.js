@@ -1,8 +1,8 @@
 /* eslint-env node */
 // This file is used to generate UMD bundles.
 const path = require('path');
+const webpack = require('webpack');
 
-let bundle = 'http-request-mock.js';
 
 module.exports = {
   mode: 'production',  // development, production
@@ -33,9 +33,15 @@ module.exports = {
       'url': false,
     }
   },
-  plugins: [],
+  plugins: [
+    new webpack.IgnorePlugin({
+      checkResource(resource) {
+        return /dummy\/(fetch|wx-request|xhr)/.test(resource) || /\/node\/http-and-https/.test(resource);
+      },
+    })
+  ],
   output: {
-    filename: bundle,
+    filename: 'http-request-mock.js',
     path: path.resolve(__dirname, 'dist'),
     library: 'HttpRequestMock',
     libraryTarget: 'umd',

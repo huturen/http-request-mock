@@ -7,11 +7,11 @@
 
 
 
-# http-request-mock ![Logo](https://huturen.github.io/http-request-mock-homepage/imgs/logo-small.png)
+# http-request-mock ![Logo](https://huturen.github.io/http-request-mock-docs/imgs/logo-small.png)
 
-Full documentation: [https://huturen.github.io/http-request-mock-homepage/](https://huturen.github.io/http-request-mock-homepage/)
+Full documentation: [https://huturen.github.io/http-request-mock-docs/](https://huturen.github.io/http-request-mock-docs/)
 
-A quick demo: [https://huturen.github.io/http-request-mock-homepage/plain-html/](https://huturen.github.io/http-request-mock-homepage/plain-html/)
+A quick demo: [https://huturen.github.io/http-request-mock-docs/](https://huturen.github.io/http-request-mock-docs/)
 
 
 Integration Cases:
@@ -48,7 +48,7 @@ based on the above requests can also be supported, such as:
 
 `axios`, `jquery`, `superagent`, `ky`, `node-fetch`, `got`, `request` ...
 
-![layers-design](https://huturen.github.io/http-request-mock-homepage/imgs/layers-design.png)
+![layers-design](https://huturen.github.io/http-request-mock-docs/imgs/layers-design.png)
 
 It differs from the other mocking libraries in that it provides a webpack plugin and command line tool
 to separate mock data from your business code. It's a truly non-hacking mocking library. You never

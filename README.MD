@@ -11,7 +11,7 @@
 
 Full documentation: [https://huturen.github.io/http-request-mock-docs/](https://huturen.github.io/http-request-mock-docs/)
 
-A quick demo: [https://huturen.github.io/http-request-mock-docs/](https://huturen.github.io/http-request-mock-docs/)
+A quick demo: [https://huturen.github.io/http-request-mock-docs/plain-html/](https://huturen.github.io/http-request-mock-docs/plain-html/)
 
 
 Integration Cases:

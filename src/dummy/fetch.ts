@@ -4,9 +4,7 @@ import { HTTPStatusCodes } from '../config';
 import { FetchRequest } from '../types';
 import fallback from './fallback';
 
-
-
-export default function fakeFetch(input: string | FetchRequest, init: Record<string, unknown>) {
+export default function dummyFetch(input: string | FetchRequest, init: Record<string, unknown>) {
   let url: string | FetchRequest;
   let params: Record<string, unknown>;
   // https://developer.mozilla.org/en-US/docs/Web/API/Request

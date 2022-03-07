@@ -4,7 +4,7 @@ import xhrAdapter from 'axios/lib/adapters/xhr';
 import http from 'http';
 import https from 'https';
 import Bypass from '../src/common/bypass';
-import * as fallback from '../src/fallback/fallback';
+import * as fallback from '../src/dummy/fallback';
 import HttpRequestMock from '../src/index';
 import XMLHttpRequestInterceptor from '../src/interceptor/xml-http-request';
 

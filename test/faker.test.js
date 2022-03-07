@@ -2,15 +2,15 @@ import { expect, jest } from '@jest/globals';
 import http from 'http';
 import https from 'https';
 import { isArrayBuffer, str2arrayBuffer } from '../src/common/utils';
-import * as fallback from '../src/fallback/fallback';
-import fakeFetch from '../src/fallback/fetch';
-import fakeWxRequest from '../src/fallback/wx-request';
-import fakeXhr from '../src/fallback/xhr';
+import * as fallback from '../src/dummy/fallback';
+import dummyFetch from '../src/dummy/fetch';
+import dummyWxRequest from '../src/dummy/wx-request';
+import dummyXhr from '../src/dummy/xhr';
 
 let times = 0;
 const xhrRequest = (url, method, body = null, opts = {}) => {
   return new Promise((resolve, reject) => {
-    const xhr = new fakeXhr();
+    const xhr = new dummyXhr();
     const openLeftArgs = { // for coverage
       1: [true],
       2: [true, 'abc'],
@@ -39,7 +39,7 @@ const xhrRequest = (url, method, body = null, opts = {}) => {
 
 const wxRequest = (opts) => {
   return new Promise((resolve, reject) => {
-    fakeWxRequest({
+    dummyWxRequest({
       url: 'http://www.example.com',
       method: 'post',
       dataType: 'json',
@@ -61,7 +61,7 @@ const fallbackDefault = fallback.default;
 
 // axios.defaults.adapter = httpAdapter; //
 describe('test fake request object', () => {
-  it('fakeFetch method should simulate capabilities of fetch request object', async () => {
+  it('dummyFetch method should simulate capabilities of fetch request object', async () => {
     const fakeResponse = {
       body: {msg:'fake-body'},
       response: {
@@ -71,7 +71,7 @@ describe('test fake request object', () => {
     };
     // eslint-disable-next-line no-import-assign
     fallback.default = jest.fn().mockResolvedValue(fakeResponse);
-    const res = await fakeFetch(new URL('http://www.example.com'));
+    const res = await dummyFetch(new URL('http://www.example.com'));
     const body = await res.text();
     expect((res.headers instanceof Headers) && res.headers.get('abc') === 'xyz').toBe(true);
     expect(body).toContain('fake-body');
@@ -85,16 +85,16 @@ describe('test fake request object', () => {
     expect(res.redirect()).toBeTruthy();
 
     fakeResponse.body = str2arrayBuffer('{"msg": "fake-body"}');
-    const res1 = await fakeFetch('http://www.example.com').then(res => res.arrayBuffer());
+    const res1 = await dummyFetch('http://www.example.com').then(res => res.arrayBuffer());
     expect(isArrayBuffer(res1)).toBe(true);
 
     fakeResponse.body = '{"msg": "fake-body"}';
-    const res2 = await fakeFetch('http://www.example.com').then(res => res.arrayBuffer());
+    const res2 = await dummyFetch('http://www.example.com').then(res => res.arrayBuffer());
     expect(isArrayBuffer(res2)).toBe(true);
 
     fakeResponse.body = {msg:'fake-body'};
     global.Headers = undefined;
-    const res3 = await fakeFetch({url: 'http://www.example.com' });
+    const res3 = await dummyFetch({url: 'http://www.example.com' });
     const body3 = await res3.text();
     expect(res3.headers.abc === 'xyz').toBe(true);
     expect(body3).toContain('fake-body');
@@ -103,13 +103,13 @@ describe('test fake request object', () => {
       void(0);
     };
     global.Blob = undefined;
-    const res4 = await fakeFetch('http://www.example.com');
+    const res4 = await dummyFetch('http://www.example.com');
     expect(res4).toBeInstanceOf(global.Response);
 
     fallback.default.mockRestore();
   });
 
-  it('fakeXhr method should simulate capabilities of XMLHttpRequest request object', async () => {
+  it('dummyXhr method should simulate capabilities of XMLHttpRequest request object', async () => {
     const fakeResponse = {
       body: '{"msg":"fake-body"}',
       response: {
@@ -186,7 +186,7 @@ describe('test fake request object', () => {
     fallback.default.mockRestore();
   });
 
-  it('fakeWxRequest method should simulate capabilities of wx.request object', async () => {
+  it('dummyWxRequest method should simulate capabilities of wx.request object', async () => {
     const fakeResponse = {
       body: {msg:'fake-body'},
       response: {
@@ -228,7 +228,7 @@ describe('test fake request object', () => {
     const err2 = await wxRequest({url: 'https://www.example.com'}).catch(e => e);
     expect(err2 instanceof Error).toBe(true);
 
-    expect(fakeWxRequest({url: 'https://www.example.com'}).abort()).toBe(undefined);
+    expect(dummyWxRequest({url: 'https://www.example.com'}).abort()).toBe(undefined);
     fallback.default.mockRestore();
   });
 

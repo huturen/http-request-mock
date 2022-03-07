@@ -34,7 +34,7 @@ export default class FetchInterceptor extends Base{
     if (!global.fetch) {
       // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      global.fetch = require('../fallback/fetch').default;
+      global.fetch = require('../dummy/fetch').default;
     }
     return new FetchInterceptor(mocker);
   }

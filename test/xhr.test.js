@@ -1,5 +1,5 @@
 import { expect } from '@jest/globals';
-import FakeXMLHttpRequest from '../src/fallback/xhr';
+import FakeXMLHttpRequest from '../src/dummy/xhr';
 import HttpRequestMock from '../src/index';
 
 global.XMLHttpRequest = undefined; // do not use XMLHttpRequest in jsdom

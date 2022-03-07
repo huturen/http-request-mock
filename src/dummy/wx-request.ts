@@ -3,7 +3,7 @@ import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import { WxRequestOpts } from '../types';
 import fallback from './fallback';
 
-export default function fakeWxRequest(wxReqOpts : WxRequestOpts) {
+export default function dummyWxRequest(wxReqOpts : WxRequestOpts) {
   const { url, method, data, header, dataType, responseType, success, fail, complete } = wxReqOpts;
 
   const body = (data && (method + '').toUpperCase() !== 'GET') ? data : null;

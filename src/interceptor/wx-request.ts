@@ -35,7 +35,7 @@ export default class WxRequestInterceptor extends Base {
     if (!global.wx.request) {
       // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      global.wx.request = require('../fallback/wx-request').default.bind(global.wx);
+      global.wx.request = require('../dummy/wx-request').default.bind(global.wx);
     }
 
     return new WxRequestInterceptor(mocker);

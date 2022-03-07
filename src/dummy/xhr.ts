@@ -2,7 +2,7 @@ import { IncomingMessage } from 'http';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import fallback from './fallback';
 
-export default class FakeXMLHttpRequest {
+export default class dummyXMLHttpRequest {
   'http-request-mock': true; // make a flag to distinguish
   requestArgs: (string | boolean | null)[] = [];
   reqHeaders: Record<string, string> = {};

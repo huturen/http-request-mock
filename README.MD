@@ -388,7 +388,7 @@ You can set it up by the steps below:
 ```javascript
 const path = require('path');
 // The webpack plugin will parse mock files under the mock directory and generate a mock
-// configuration entry file named ` runtimejs`, then inject it into the your application entry file.
+// configuration entry file named `.runtime.js`, then inject it into the your application entry file.
 const HttpRequestMockWebpackPlugin = require('http-request-mock/plugin/webpack.js');
 module.exports = {
   // ...

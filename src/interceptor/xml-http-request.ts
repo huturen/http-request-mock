@@ -77,8 +77,15 @@ export default class XMLHttpRequestInterceptor extends Base {
           password: string | null = null
         ) => {
           const requestUrl = me.getFullRequestUrl(url, method);
+          const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
+
+          // remoteInfo has a higher priority than BypassMock
+          const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
+          if (remoteInfo) {
+            return original.call(this, remoteInfo.method || method, remoteInfo.url, async, user, password);
+          }
+
           if (!this.bypassMock) {
-            const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
             if (mockItem) {
               // 'this' points XMLHttpRequest instance.
               this.isMockRequest = true;

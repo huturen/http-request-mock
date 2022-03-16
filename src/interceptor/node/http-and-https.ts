@@ -64,15 +64,24 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const me = this;
     http.request = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
-      if (clientRequest) {
+      if (clientRequest && clientRequest.remoteUrl) {
+        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsRequest' : 'httpRequest';
+        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
+      }
+      else if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpRequest, args);
         return clientRequest;
       }
       return me.httpRequest(...args);
     };
+
     https.request = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
-      if (clientRequest) {
+      if (clientRequest && clientRequest.remoteUrl) {
+        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsRequest' : 'httpRequest';
+        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
+      }
+      else if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpsRequest, args);
         return clientRequest;
       }
@@ -94,7 +103,11 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const me = this;
     http.get = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
-      if (clientRequest) {
+      if (clientRequest && clientRequest.remoteUrl) {
+        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsGet' : 'httpGet';
+        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
+      }
+      else if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpGet, args);
         clientRequest.end();
         return clientRequest;
@@ -104,7 +117,11 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
 
     https.get = function(...args: unknown[]) {
       const clientRequest = me.getClientRequest(args);
-      if (clientRequest) {
+      if (clientRequest && clientRequest.remoteUrl) {
+        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsGet' : 'httpGet';
+        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
+      }
+      else if (clientRequest) {
         clientRequest.setOriginalRequestInfo(me.httpsGet, args);
         clientRequest.end();
         return clientRequest;
@@ -130,9 +147,19 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
 
     if (!mockItem) return false;
 
+    const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
+    if (remoteInfo) {
+      const { headers, agent, agents, auth } = options;
+      const remoteOptions = { method: remoteInfo.method || method, headers, agent, agents, auth };
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return new ClientRequest(remoteInfo.url, remoteOptions, callback, remoteInfo.url);
+    }
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);
+    const clientRequest: ClientRequestType = new ClientRequest(url, options, callback, mockItem?.remote);
     this.doMockRequest(clientRequest, mockItem);
     return clientRequest;
   }
@@ -171,7 +198,6 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getRequestArguments(args: any[]) {
     let url, options, callback;
-
     if (typeof args[0] === 'string' || this.isUrlObject(args[0])) {
       url = typeof args[0] === 'string' ? args[0] : args[0].href;
     }
@@ -181,18 +207,16 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     if (typeof args[1] === 'function' || typeof args[2] === 'function') {
       callback = typeof args[1] === 'function' ? args[1] : args[2];
     }
-
     if (!url) {
       const port = /^\d+$/.test(options.port) ? `:${options.port}` : '';
       const isHttps = (port === ':443') || options.cert || /^https:/i.test(options.path);
       const protocol = options.protocol ? options.protocol : (isHttps ? 'https:' : 'http:');
 
       const host = options.hostname || options.host || 'localhost';
-      const path = options.path || '/';
+      const path = (options.path || '/').replace(/^\/+/g, '/');
       const auth = options.auth ? options.auth+'@' : '';
 
       const base = `${protocol}//${auth}${host}${port}`;
-
       // uri property will be populated by request library.
       url = options.uri ? options.uri.href : new URL(path, base).href;
     }

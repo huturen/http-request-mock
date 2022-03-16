@@ -348,8 +348,8 @@ module.exports = class HttpRequestMockMockPlugin {
       file = /^\./.test(file) ? file : ('./'+file);
 
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
-      const { method, delay, status, header, times } = tags;
-      const mockItem = { url: '', method, body: '', delay, status, times, header };
+      const { method, delay, status, header, times, remote } = tags;
+      const mockItem = { url: '', method, body: '', delay, status, times, header, remote };
       if (/^localhost:\d+$/.test(this.proxyServer)) {
         delete mockItem.body;
         mockItem.file = file;
@@ -373,7 +373,7 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   parseCommentTags(file) {
     const tags = this.getFileCommentTags(file);
-    const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times'];
+    const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times', 'remote'];
     const res = {};
     const header = {};
 
@@ -398,6 +398,7 @@ module.exports = class HttpRequestMockMockPlugin {
     res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;
     res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
     res.disable = res.disable !== undefined && /^(yes|true|1|)$/i.test(res.disable) ? 'yes' : (res.disable || undefined);
+    res.remote = /^((get|post|put|patch|delete|head)\s+)?https?:\/\/[^\s]+$/i.test(res.remote) ? res.remote : undefined;
 
     if (this.isRegExp(res.url)) {
       res.regexp = this.str2RegExp(res.url, true);

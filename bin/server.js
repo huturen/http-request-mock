@@ -102,8 +102,12 @@ async function requestListener(req, res) {
   }
 
   const mockItem = mocker.matchMockItem(request.url, request.method);
+
   if (!mockItem) {
     return doProxy(req, res, request.url);
+  }
+  if (mockItem.remote) {
+    return doProxy(req, res, mockItem.remote);
   }
 
   const mockFile = path.resolve(mockDirectory, mockItem.file);

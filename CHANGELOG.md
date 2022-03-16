@@ -1,4 +1,7 @@
 ### Changelog
+[2022-03-19]
+1. add @remote tag
+
 [2022-03-03]
 1. full support for webpack5
 

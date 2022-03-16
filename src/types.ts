@@ -98,6 +98,7 @@ export interface ClientRequestType extends http.ClientRequest{
   options: ClientRequestOptions;
   method: string;
   callback: ((...args: unknown[]) => unknown) | undefined;
+  remoteUrl: string | undefined;
 
   init: Function;
   setOriginalRequestInfo: Function;

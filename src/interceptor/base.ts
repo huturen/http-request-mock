@@ -81,9 +81,9 @@ export default class BaseInterceptor {
   }
 
   /**
- * Get full request url.
- * @param {string} url
- */
+   * Get full request url.
+   * @param {string} url
+   */
   getFullRequestUrl(url: string, method: Method) {
     if (/^https?:\/\//i.test(url)) {
       return this.checkProxyUrl(url, method);

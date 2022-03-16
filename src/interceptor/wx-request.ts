@@ -3,7 +3,7 @@ import Bypass from '../common/bypass';
 import { isObject, sleep } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
+import { Method, RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -57,6 +57,13 @@ export default class WxRequestInterceptor extends Base {
         wxRequestOpts.url = this.getFullRequestUrl(wxRequestOpts.url, wxRequestOpts.method);
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
+        const remoteInfo = mockItem?.getRemoteInfo(wxRequestOpts.url);
+        if (remoteInfo) {
+          wxRequestOpts.url = remoteInfo.url;
+          wxRequestOpts.method = <Method>remoteInfo.method || wxRequestOpts.method;
+          return this.wxRequest(wxRequestOpts); // fallback to original wx.request
+        }
+
         const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
         if (/^get$/i.test(wxRequestOpts.method) && isObject(wxRequestOpts.data)) {
           requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
@@ -72,6 +79,7 @@ export default class WxRequestInterceptor extends Base {
           });
           return this.getRequstTask();
         } else {
+          wxRequestOpts.url = wxRequestOpts.url;
           return this.wxRequest(wxRequestOpts); // fallback to original wx.request
         }
       }

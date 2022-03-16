@@ -325,7 +325,7 @@ export default class Mocker {
             return info;
           }
           const infoUrl = reqUrl.indexOf('//') === 0
-            // for request urls which without http protocol
+            // for the request urls which without http protocol
             ? String(info.url).replace(/^https?:/ig, '')
             : String(info.url);
 

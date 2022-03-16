@@ -96,13 +96,14 @@
 * **拦截器**: 可以做为请求拦截器使用，你来决定怎么处理请求。
 * **多合一**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
 * **更多的第3方请求库支持**: 支持主流第3方请求库，如：axios, jquery, superagent, ky, node-fetch, got, request...
-* **单元测试能力支持**: 支持jest，mocha, ava测试库运行环境，甚至裸node运行环境。
+* **单元测试能力支持**: 支持jest，mocha, ava测试库运行环境。
 * **动态响应模拟**: 基于请求信息，如url，查询参数，post请求包体，来动态模拟返回内容。
 * **灵活的路由匹配**: 支持URL局部匹配及RegExp正则匹配。
 * **网络延迟模拟**: 支持模拟网络请求的时延，精确到毫秒级别。
 * **假数据生成**: 支持海量的假数据生成, 假数据生成具备可编程性。
 * **完备的单元测试**: 本库具有完整的单元测试，甚至对第3方请求库也做了完整的单元测试。
-* **根据protobuf协议生成mock数据**: 支持通过proto文件自动生成mock数据.。
+* **Protobuf**: 支持通过proto文件自动生成mock数据.。
+* **支持远程mock数据**: 支持远程mock数据。
 
 ## 安装
 
@@ -629,6 +630,10 @@ it('should match object`', async () => {
  *
  * 是否禁用这个mock配置项，如果是yes，则走真实网络请求，默认no
  * @disable no
+ *
+ * 远程mock数据
+ * 在浏览器中，指定的远程url必须符合跨域规范。
+ * @remote https://remote.api.com/some/mock/data
  */
 // http响应内容，支持静态对象，函数，或者 异步函数,
 // 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。

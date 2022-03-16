@@ -106,13 +106,14 @@ There are some problems you may encounter when using the other mocking libraries
 * **Interceptor**: It can be used as an interceptor. You can decide how to handle requests.
 * **All in one**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
 * **More 3rd-party libraries support**: It supports axios, jquery, superagent, ky, node-fetch, got, request...
-* **Unit test capability**: It has built-in support for unit test and works in jest, mocha and ava.
+* **Unit test capability**: It can be worked in jest, mocha and ava environment.
 * **Dynamic mocking**: Dynamically resolve response based on request query, payloads...
 * **Flexible route matching**: Supports RegExp matching and partial string matching.
 * **Delaying mocking**: Supports to simulate network latency.
 * **Fake data**: Easy to generate massive amounts of fake data, automatically and programmatically.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
-* **Mock for protobuf**: Support for generating mock data by proto files.
+* **Protobuf**: Support for generating mock data by proto files.
+* **Remote**: Support for using remote mock data.
 
 
 ## Installation
@@ -652,6 +653,10 @@ it('should match object`', async () => {
  * 'yes' for real network request, 'no' for mock request.
  * Default: no
  * @disable no
+ *
+ * Remote mock data.
+ * In browser, the specified remote url must conform to the cross-domain specification.
+ * @remote https://remote.api.com/some/mock/data
  */
 // Response body to be mocked.
 // It supports to export an object, function, async function, sting or any other types.

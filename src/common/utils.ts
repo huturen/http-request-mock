@@ -19,6 +19,18 @@ export function getQuery(reqUrl: string) : Query{
 }
 
 /**
+ * Convert query object to search string.
+ * @param {object} queryObj
+ */
+export function queryObject2String(queryObj: Record<string, string>) : string{
+  const str: string[] = [];
+  for(const key in queryObj) {
+    str.push(key + '=' + queryObj[key]);
+  }
+  return str.join('&');
+}
+
+/**
  * Check whether or not the specified obj is an object.
  * @param {unknown} obj
  */

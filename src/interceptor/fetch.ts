@@ -64,14 +64,21 @@ export default class FetchInterceptor extends Base{
 
       return new Promise((resolve, reject) => {
         const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);
-        if (mockItem) {
+
+        const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
+        if (remoteInfo) {
+          params.method = remoteInfo.method || method;
+          me.fetch(remoteInfo.url, params).then(resolve).catch(reject);
+        }
+        else if (mockItem) {
           const requestInfo = me.getRequestInfo({ url: requestUrl, method, ...params });
           me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
             if (isBypassed) {
               me.fetch(requestUrl, params).then(resolve).catch(reject);
             }
           });
-        } else {
+        }
+        else {
           me.fetch(requestUrl, params).then(resolve).catch(reject);
         }
       });

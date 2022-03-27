@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.6.7",
+  "version": "1.6.8",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "dist/index.js",
   "browser": "dist/http-request-mock.js",
@@ -16,7 +16,7 @@
     "clean": "del-cli dist",
     "build:bundle": "webpack",
     "build": "npm run clean && tsc && npm run build:bundle",
-    "dev": "tsc -w"
+    "dev": "node ./development.js"
   },
   "keywords": [
     "xhr mock",
@@ -97,7 +97,6 @@
     "babel-loader": "^8.1.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "commitizen": "^4.2.1",
     "coveralls": "^3.1.1",
     "del-cli": "^3.0.1",
     "eslint": "^8.4.1",
@@ -138,9 +137,6 @@
     "commander": "^2.20.3",
     "http-proxy": "^1.18.1",
     "protobufjs": "^6.11.2"
-  },
-  "optionalDependencies": {
-    "simple-functional-loader": "^1.2.1"
   },
   "publishConfig": {
     "access": "public"

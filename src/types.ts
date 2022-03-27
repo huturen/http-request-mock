@@ -112,6 +112,13 @@ export interface ClientRequestType extends http.ClientRequest{
   fallbackToNativeRequest: Function;
 }
 
+export interface NodeRequestOpts {
+  isNodeRequestOpts: true,
+  url: string;
+  options: Record<string, string>;
+  callback: Function;
+}
+
 export interface ClientRequestOptions {
   method: string;
   path: string;

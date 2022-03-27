@@ -18,10 +18,8 @@ import { ClientRequestOptions, ClientRequestType, RequestInfo } from '../../type
 function ClientRequest(
   this: ClientRequestType,
   url: string,
-  // options: { [key: string]: string },
   options: ClientRequestOptions,
-  callback: undefined | ((...args: unknown[]) => unknown),
-  remoteUrl: string | undefined,
+  callback: undefined | ((...args: unknown[]) => unknown)
 ) {
 
   // http.OutgoingMessage serves as the parent class of http.ClientRequest and http.ServerResponse.
@@ -32,7 +30,6 @@ function ClientRequest(
   this.url = url;
   this.options = options;
   this.callback = callback;
-  this.remoteUrl = remoteUrl;
   this.nativeInstance = null;
 
   /**

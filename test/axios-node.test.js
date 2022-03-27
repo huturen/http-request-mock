@@ -44,8 +44,7 @@ describe('mock axios requests which are based on node http adaptor for node envi
 
   it('url config item should support RegExp matching', async () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
-
-    await axios.get('http://www.api.com/regexp').then(res => {
+    await axios.get('https://www.api.com/regexp').then(res => {
       expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
     });
   });

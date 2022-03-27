@@ -1,4 +1,7 @@
 ### Changelog
+[2022-03-27]
+1. add @proxy tag
+
 [2022-03-19]
 1. add @remote tag
 
@@ -35,7 +38,7 @@
 
 [2021-09-01]
 1. integrate with faker.js
-2. fallback to nodejs native http/https request if not matched for fetch, xhr and wx in unit test enviroment
+2. fallback to nodejs native http/https request if not matched for fetch, xhr and wx in unit test environment
 
 
 [2021-08-28]

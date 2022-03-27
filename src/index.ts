@@ -7,7 +7,7 @@ import Mocker from './mocker/mocker';
 export default class Index {
   private static isEnabled = true;
   /**
-   * Auto detect request enviroment and setup request mock.
+   * Auto detect request environment and setup request mock.
    * @param {string} type
    */
   static setup(proxyServer = '') : Mocker {
@@ -25,7 +25,7 @@ export default class Index {
       InterceptorFetch.setup(mocker, proxyServer);
     }
 
-    // for http.get, https.get, http.request, https.request in node enviroment
+    // for http.get, https.get, http.request, https.request in node environment
     if (this.isEnabled && isNodejs()) {
       // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires

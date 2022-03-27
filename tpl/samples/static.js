@@ -6,11 +6,11 @@
  * @method get
  */
 /* eslint-disable */
-const faker = require('http-request-mock/plugin/faker.js');
+const faker = require("http-request-mock/plugin/faker.js");
 module.exports = {
   ret: 0,
-  msg: 'ok',
+  msg: "ok",
   ip: faker.ip(),
   url: faker.url(),
-  data: 'The request will be resolved after 100 milliseconds.',
+  data: "The request will be resolved after 100 milliseconds.",
 }

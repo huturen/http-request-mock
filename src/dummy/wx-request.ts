@@ -55,7 +55,7 @@ export default function dummyWxRequest(wxReqOpts : WxRequestOpts) {
 
   return {
     abort(){
-      // `abort` method is not supported in a fake enviroment.'
+      // `abort` method is not supported in a fake environment.'
     }
   };
 }

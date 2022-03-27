@@ -22,7 +22,7 @@ const appRoot = (() => {
   return fs.readFileSync(json, 'utf8').includes('"http-request-mock"') ? root : process.cwd();
 })();
 
-const spaces = ' '.repeat(33);
+const spaces = ' '.repeat(34);
 
 program
   .name('npx http-request-mock-cli')
@@ -36,8 +36,8 @@ program
   ].join('\n'))
   .option('-d, --directory [directory]', 'The mock directory relative to the working directory.', 'mock')
   .option(
-    '-e, --enviroment [variable-pair]',
-    'Enable mock function by enviroment variable for .runtime.js.\n'+spaces,
+    '-e, --environment [variable-pair]',
+    'Enable mock function by environment variable for .runtime.js.\n'+spaces,
     'NODE_ENV=development'
   )
   .option('-i, --init', 'Initialize some samples & a .runtime.js in the mock directory.')
@@ -60,13 +60,11 @@ program
     '-p, --proxy [mode]',
     'Proxy mode. In proxy mode, http-request-mock will start\n'+spaces+
     ' a proxy server which recives incoming requests on localhost.\n'+spaces+
-    ' The module type of .runtime.js will be changed to cjs and\n'+spaces+
-    ' mock files will be run in a node enviroment.\n'+spaces+
+    ' The mock files will be run in a node environment.\n'+spaces+
     ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
-    ' [matched] Proxy requests which are matched your defined mock items.\n'+spaces+
-    ' [all] Proxy all incoming requests.\n'+spaces+
-    ' [none] Do not start a proxy server.',
-    'none'
+    ' [matched] All requests matched by @url will be proxied to a proxy server.\n'+spaces+
+    ' [marked] All requests marked by @proxy will be proxied to a proxy server.',
+    'marked'
   )
   .option(
     '--proto',
@@ -74,8 +72,8 @@ program
   )
   .parse(process.argv);
 
-program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
-  ? program.enviroment
+program.environment = program.environment && /^\w+=\w+$/.test(program.environment)
+  ? program.environment
   : '';
 
 (function main() {
@@ -91,7 +89,7 @@ program.enviroment = program.enviroment && /^\w+=\w+$/.test(program.enviroment)
   if (program.proto) {
     return proto();
   }
-  if (program.proxy === 'matched' && program.proxy === 'all') {
+  if (program.proxy === 'matched' && program.proxy === 'marked') {
     return proxy();
   }
   program.help();
@@ -115,10 +113,11 @@ async function init() {
   const webpack = new WebpackPlugin({
     dir,
     entry: /1/,
-    enviroment: program.enviroment,
     type: program.type,
   });
-  await copySampleFiles(dir);
+  webpack.environment = program.environment ? program.environment.split('=') : null;
+
+  copySampleFiles(dir);
 
   const runtime = webpack.setRuntimeConfigFile();
   log('A runtime mock entry configuration has been initialized:');
@@ -167,19 +166,20 @@ async function watch() {
     return;
   }
 
-  const proxyServer = program.proxy === 'matched' || program.proxy === 'all'
-    ? await server.init({ proxyMode: program.proxy, mockDir: dir, enviroment: program.enviroment, })
+  const proxyServer = program.proxy === 'matched' || program.proxy === 'marked'
+    ? await server.init({ mockDir: dir, environment: program.environment, proxyMode: program.proxy })
     : null;
   log(`Watching: ${dir}`);
   const webpack = new WebpackPlugin({
     dir,
     entry: /1/,
-    enviroment: program.enviroment,
     type: program.type,
     proxyMode: program.proxy
   });
+
+  webpack.environment = program.environment ? program.environment.split('=') : null;
   if (proxyServer) {
-    webpack.proxyServer = proxyServer;
+    webpack.proxyServer = program.proxy + '@' + proxyServer;
   }
 
   const pathsSet = new Set();
@@ -201,7 +201,7 @@ async function watch() {
       proxyServer && server.reload([...pathsSet]);
 
       console.log(' ');
-      log(`${runtime} has been updated.`);
+      log(`${path.relative(path.resolve(dir, '..'), runtime)} has been updated.`);
       pathsSet.clear();
     }, 100);
   });
@@ -212,9 +212,9 @@ async function watch() {
 }
 
 function proxy() {
-  if (program.proxy === 'matched' && program.proxy === 'all') {
+  if (program.proxy === 'matched' && program.proxy === 'marked') {
     const dir = path.resolve(appRoot, program.directory);
-    server.init({ mockDir: dir, enviroment: program.enviroment, });
+    server.init({ mockDir: dir, environment: program.environment, proxyMode: program.proxy });
   }
 }
 

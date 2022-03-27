@@ -12,7 +12,7 @@ mocker.get('www.api.com/mocha', (requestInfo) => {
   return { url: requestInfo.url, times };
 });
 
-describe('mocha enviroment test', function() {
+describe('mocha environment test', function() {
   it('the response of XHR request should match expected result', function(done) {
     const url = 'https://www.api.com/mocha?type=xhr';
     const xhr = new XMLHttpRequest();

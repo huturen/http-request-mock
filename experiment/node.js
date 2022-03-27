@@ -30,7 +30,7 @@ const it = (title, callback) => {
 };
 
 
-describe('node enviroment test', function() {
+describe('node environment test', function() {
   it('the response of XHR request should match expected result', function(done) {
     const url = 'https://www.api.com/node?type=xhr';
     const xhr = new XMLHttpRequest();

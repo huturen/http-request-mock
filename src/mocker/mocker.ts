@@ -15,10 +15,8 @@ export default class Mocker {
     if (Mocker.instance) {
       return Mocker.instance;
     }
-    if (/^localhost:\d+$/.test(proxyServer)) {
-      this.proxyServer = proxyServer;
-      const port = +proxyServer.replace('localhost:', '');
-      this.proxyMode = port >= 9001 && port <= 9049 ? 'matched' : 'all';
+    if (/^(matched|marked)@localhost:\d+$/.test(proxyServer)) {
+      [this.proxyMode, this.proxyServer] = proxyServer.split('@');
     }
 
     Mocker.instance = this;

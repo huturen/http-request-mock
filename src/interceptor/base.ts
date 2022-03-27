@@ -9,19 +9,15 @@ import InterceptorXhr from './xml-http-request';
 export default class BaseInterceptor {
   protected mocker: Mocker;
   protected proxyServer = '';
-  protected proxyMode = 'none';
+  protected proxyMode = '';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected global: Record<string, any>;
 
   constructor(mocker: Mocker, proxyServer = '') {
     this.mocker = mocker;
 
-    if (/^localhost:\d+$/.test(proxyServer)) {
-      this.proxyServer = proxyServer;
-      const port = +proxyServer.replace('localhost:', '');
-      this.proxyMode = port >= 9001 && port <= 9049 ? 'matched' : 'all';
-    } else if (proxyServer) {
-      console.warn('Invalid proxyServer:', proxyServer);
+    if (/^(matched|marked)@localhost:\d+$/.test(proxyServer)) {
+      [this.proxyMode, this.proxyServer] = proxyServer.split('@');
     }
 
     this.global = BaseInterceptor.getGlobal();
@@ -105,15 +101,23 @@ export default class BaseInterceptor {
    * @param {string} url
    */
   public checkProxyUrl(url: string, method: Method) {
-    if (this.proxyMode === 'matched' && this.proxyServer) {
-      return this.mocker.matchMockItem(url, method)
-        ? `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/')
-        : url;
+    if (!['matched', 'marked'].includes(this.proxyMode) || !this.proxyServer) {
+      return url;
     }
-    if (this.proxyServer) {
-      return `http://${this.proxyServer}` + url.replace(/^(https?):\/\//, '/$1/');
+
+    const mockItem = this.mocker.matchMockItem(url, method);
+    if (!mockItem) {
+      return url;
     }
-    return url;
+
+    const remoteInfo = mockItem?.getRemoteInfo(url);
+    const target = remoteInfo ? remoteInfo.url : url;
+    const proxyUrl = `http://${this.proxyServer}` + target.replace(/^(https?):\/\//, '/$1/');
+    if (this.proxyMode === 'marked') {
+      return mockItem.proxy ? proxyUrl : url;
+    }
+
+    return proxyUrl;
   }
 }
 

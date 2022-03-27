@@ -16,23 +16,24 @@ const listeningAddress = [];
 
 module.exports = { init, reload };
 
+setLocalStorage();
+
 /**
  * Start a proxy server. Default port: 9091.
  *
  * @param {string} mockDir
- * @param {string} enviroment
+ * @param {string} environment
  */
-async function init({ proxyMode, mockDir, enviroment }) {
-  if (/^\w+=\w+$/.test(enviroment)) {
-    const [key, val] = enviroment.split('=');
+async function init({ mockDir, environment, proxyMode }) {
+  if (/^\w+=\w+$/.test(environment)) {
+    const [key, val] = environment.split('=');
     process.env[key] = val;
   }
 
   mockDirectory = mockDir;
   const host = 'localhost';
-  // 9001-9049 for 'matched' mode, 9101-9149 for 'all' mode
-  let port = proxyMode === 'matched' ? 9001 : 9101;
-  const max = proxyMode === 'matched' ? 9049 : 9149;
+  let port = 9001;
+  const max = 9101;
   while(port <= max) {
     const server = http.createServer(requestListener);
     const res = await new Promise((resolve) => {
@@ -47,7 +48,12 @@ async function init({ proxyMode, mockDir, enviroment }) {
     if (res) break;
   }
   if (port <= max) {
-    log(`proxy server is listening at: \x1b[32mhttp://${host}:${port}\x1b[0m`);
+    if (proxyMode === 'marked') {
+      log('Proxy mode is enabled, all requests that are marked by @proxy will be proxied to the server below.');
+    } else if (proxyMode === 'matched') {
+      log('Proxy mode is enabled, all requests that are matched by @url will be proxied to the server below.');
+    }
+    log(`A proxy server is listening at: \x1b[32mhttp://${host}:${port}\x1b[0m`, '\n');
     listeningAddress.push(host, port);
     return `${host}:${port}`;
   }
@@ -60,14 +66,6 @@ async function init({ proxyMode, mockDir, enviroment }) {
  */
 function reload(files = []) {
   if (mockDirectory) {
-    try {
-      const runtime = require.resolve(path.resolve(mockDirectory, '.runtime.js'));
-      require(runtime).reset();
-      delete require.cache[runtime];
-      require(runtime);
-    } catch(e) {
-      log('reload .runtime.js error: ', e.message);
-    }
     files.forEach(file => {
       try {
         delete require.cache[require.resolve(path.resolve(file))];
@@ -76,6 +74,14 @@ function reload(files = []) {
         log(`reload mock file ${path.basename(file)} error: `, e.message);
       }
     });
+    try {
+      const runtime = require.resolve(path.resolve(mockDirectory, '.runtime.js'));
+      require(runtime).reset();
+      delete require.cache[runtime];
+      require(runtime);
+    } catch(e) {
+      log('reload .runtime.js error: ', e.message);
+    }
   }
 }
 
@@ -93,7 +99,7 @@ async function requestListener(req, res) {
     return serverError(res);
   }
 
-  if (checkHttpRequestMockMsg(mocker, req, res)) return;
+  if (checkHttpRequestMockInnerMsg(mocker, req, res)) return;
   if (checkServerIndex(req, res)) return;
 
   const request = await parseRequest(req).catch(err => err);
@@ -102,22 +108,17 @@ async function requestListener(req, res) {
   }
 
   const mockItem = mocker.matchMockItem(request.url, request.method);
-
   if (!mockItem) {
     return doProxy(req, res, request.url);
   }
-  if (mockItem.remote) {
-    return doProxy(req, res, mockItem.remote);
+  const remoteInfo = mockItem.getRemoteInfo(request.url);
+  if (remoteInfo) {
+    req.method = remoteInfo.method || request.method;
+    return doProxy(req, res, remoteInfo.url);
   }
 
-  const mockFile = path.resolve(mockDirectory, mockItem.file);
-  let mockData = null;
-  try {
-    const mockModule = require(mockFile);
-    mockData = typeof mockModule === 'function' ? mockModule : () => mockModule;
-  } catch(err) {
-    return serverError(res, `${mockItem.file} error: `+err.message);
-  }
+  const mockData = mockItem.response || mockItem.body;
+  const response = typeof mockData === 'function' ? mockData : () => mockData;
 
   mockItem.times--;
   if (mockItem.times <= 0) {
@@ -131,9 +132,9 @@ async function requestListener(req, res) {
 
   let result = '';
   try {
-    result = await mockData.bind(mockItem)(request, mockItem);
+    result = await response.bind(mockItem)(request, mockItem);
   } catch(err) {
-    return serverError(res, `${mockItem.file} error: `+err.message);
+    return serverError(res, `Server Error: ${err.message}`);
   }
 
   if (result instanceof mockItem.bypass().constructor) {
@@ -150,7 +151,7 @@ async function requestListener(req, res) {
  * @param {object} req
  * @param {object} res
  */
-function checkHttpRequestMockMsg(mocker, req, res) {
+function checkHttpRequestMockInnerMsg(mocker, req, res) {
   if (!req.url.startsWith('/__hrm_msg__/')) {
     return false;
   }
@@ -277,6 +278,34 @@ function serverError(res, body = 'Internal Server Error.') {
   res.end(body, 'utf8');
 }
 
+/**
+ * Set a global localStorage object for the compatibility of cache plugin.
+ */
+function setLocalStorage() {
+  let localStorageCache = {};
+  global.localStorage = {
+    get length() {
+      return Object.keys(localStorageCache).length;
+    },
+    setItem(key, val) {
+      localStorageCache.data[key] = val;
+    },
+    getItem(key) {
+      return localStorageCache.data[key];
+    },
+    clear() {
+      localStorageCache = {};
+    },
+    removeItem(key) {
+      delete localStorageCache[key];
+    },
+    // https://developer.mozilla.org/en-US/docs/Web/API/Storage/key
+    key(index) {
+      return Object.keys(localStorageCache)[index];
+    }
+  };
+}
+
 process.on('unhandledRejection', (reason, p) => {
   console.error(reason, 'Unhandled Rejection at Promise', p);
 }).on('uncaughtException', err => {
@@ -285,5 +314,5 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 function log(...args) {
-  console.log('\x1b[32m[http-request-mock:proxy mode]\x1b[0m', ...args);
+  console.log('\x1b[32m[http-request-mock]\x1b[0m', ...args);
 }

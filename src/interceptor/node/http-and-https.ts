@@ -5,7 +5,7 @@ import urlUtil from 'url';
 import { isNodejs, isObject } from '../../common/utils';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
-import { ClientRequestType } from '../../types';
+import { ClientRequestType, Method, NodeRequestOpts } from '../../types';
 import Base from '../base';
 import ClientRequest from './client-request';
 
@@ -63,29 +63,11 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
     http.request = function(...args: unknown[]) {
-      const clientRequest = me.getClientRequest(args);
-      if (clientRequest && clientRequest.remoteUrl) {
-        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsRequest' : 'httpRequest';
-        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
-      }
-      else if (clientRequest) {
-        clientRequest.setOriginalRequestInfo(me.httpRequest, args);
-        return clientRequest;
-      }
-      return me.httpRequest(...args);
+      return me.doRquest('request', me.httpRequest, ...args);
     };
 
     https.request = function(...args: unknown[]) {
-      const clientRequest = me.getClientRequest(args);
-      if (clientRequest && clientRequest.remoteUrl) {
-        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsRequest' : 'httpRequest';
-        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
-      }
-      else if (clientRequest) {
-        clientRequest.setOriginalRequestInfo(me.httpsRequest, args);
-        return clientRequest;
-      }
-      return me.httpsRequest(...args);
+      return me.doRquest('request', me.httpsRequest, ...args);
     };
   }
 
@@ -102,64 +84,71 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
     http.get = function(...args: unknown[]) {
-      const clientRequest = me.getClientRequest(args);
-      if (clientRequest && clientRequest.remoteUrl) {
-        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsGet' : 'httpGet';
-        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
-      }
-      else if (clientRequest) {
-        clientRequest.setOriginalRequestInfo(me.httpGet, args);
-        clientRequest.end();
-        return clientRequest;
-      }
-      return me.httpGet(...args);
+      return me.doRquest('get', me.httpGet, ...args);
     };
 
     https.get = function(...args: unknown[]) {
-      const clientRequest = me.getClientRequest(args);
-      if (clientRequest && clientRequest.remoteUrl) {
-        const request = /^https:/i.test(clientRequest.remoteUrl) ? 'httpsGet' : 'httpGet';
-        return me[request](clientRequest.remoteUrl, clientRequest.options, clientRequest.callback);
-      }
-      else if (clientRequest) {
-        clientRequest.setOriginalRequestInfo(me.httpsGet, args);
-        clientRequest.end();
-        return clientRequest;
-      }
-      return me.httpsGet(...args);
+      return me.doRquest('get', me.httpsGet, ...args);
     };
+  }
+
+  private doRquest(getOrRequest: 'get' | 'request', getOrRequestFunc: Function, ...args: unknown[]) {
+    const result = this.getClientRequest(args);
+    if (!result) {
+      return getOrRequestFunc(...args);
+    }
+
+    const opts = result as NodeRequestOpts;
+    if (opts && opts.isNodeRequestOpts) {
+      const protocol = /^https:/i.test(opts.url) ? 'https' : 'http';
+      const func = getOrRequest.replace(/^\w/, c => c.toUpperCase());
+      const request = `${protocol}${func}` as 'httpGet' | 'httpsGet' | 'httpRequest' | 'httpsRequest';
+      return this[request](opts.url, opts.options, opts.callback);
+    }
+
+    const client = result as ClientRequestType;
+    client.setOriginalRequestInfo(getOrRequestFunc, args);
+    getOrRequest === 'get' && client.end();
+    return result;
   }
 
   /**
    * Get instance of ClientRequest.
    * @param args Arguments of http.get, https.get, http.request or https.request
    */
-  private getClientRequest(args: unknown[]) {
-    const [url, options, callback] = this.getRequestArguments(args);
+  private getClientRequest(args: unknown[]): NodeRequestOpts | ClientRequestType | boolean {
+    const { url, options, callback } = this.getRequestOpts(args);
     if (options.useNativeModule) {
       delete options.useNativeModule; // not a standard option
       return false;
     }
 
-    const method = options.method || 'GET';
-    const requestUrl = this.checkProxyUrl(url, method);
-    const mockItem:MockItem | null  = this.matchMockRequest(requestUrl, method);
+    if (!/^https?:/i.test(url)) {
+      throw new TypeError(`[ERR_INVALID_URL]: Invalid URL: ${url}`);
+    }
 
+    const method = (options.method || 'GET') as Method;
+    const requestUrl = this.checkProxyUrl(url, method);
+
+    if (this.proxyServer && requestUrl.startsWith(`http://${this.proxyServer}`)) {
+      const { headers, agent, agents, auth } = options;
+      const proxyOptions = { method, headers, agent, agents, auth };
+      return { url: requestUrl, options: proxyOptions, callback, isNodeRequestOpts: true } as NodeRequestOpts;
+    }
+
+    const mockItem:MockItem | null  = this.matchMockRequest(requestUrl, method);
     if (!mockItem) return false;
 
     const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
     if (remoteInfo) {
       const { headers, agent, agents, auth } = options;
       const remoteOptions = { method: remoteInfo.method || method, headers, agent, agents, auth };
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return new ClientRequest(remoteInfo.url, remoteOptions, callback, remoteInfo.url);
+      return { url: requestUrl, options: remoteOptions, callback, isNodeRequestOpts: true } as NodeRequestOpts;
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const clientRequest: ClientRequestType = new ClientRequest(url, options, callback, mockItem?.remote);
+    const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);
     this.doMockRequest(clientRequest, mockItem);
     return clientRequest;
   }
@@ -196,7 +185,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    * @param {any[]} args arguments of http.get, https.get, http.request or https.request
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private getRequestArguments(args: any[]) {
+  private getRequestOpts(args: any[]): NodeRequestOpts {
     let url, options, callback;
     if (typeof args[0] === 'string' || this.isUrlObject(args[0])) {
       url = typeof args[0] === 'string' ? args[0] : args[0].href;
@@ -221,10 +210,10 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       url = options.uri ? options.uri.href : new URL(path, base).href;
     }
 
-    return [url, options || {}, callback];
+    return { url, options: options || {}, callback, isNodeRequestOpts: true };
   }
 
-  private isUrlObject(url: String | {[key: string]: string}) {
+  private isUrlObject(url: String | Record<string, string>) {
     return (Object.prototype.toString.call(url) === '[object URL]')
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore urlUtil.Url for a legacy compatibility

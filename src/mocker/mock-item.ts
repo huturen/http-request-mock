@@ -10,8 +10,8 @@ export default class MockItem {
   public delay: number;
   public body: unknown; // response body
   public response: unknown; // response body, for backward compatibility
-  public file: string; // for proxy mode
   public remote: string; // url of remote mock data
+  public proxy: boolean; // marked proxy mode
   public status: number; // http status code
 
   public disable: Disable;
@@ -44,12 +44,10 @@ export default class MockItem {
     } else {
       this.body = '';
     }
-    if (typeof mockItem.file !== 'undefined') {
-      this.file = mockItem.file;
-    }
     if (mockItem.remote && /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote)) {
       this.remote = mockItem.remote;
     }
+    this.proxy = !!mockItem.proxy;
     this.key = `${this.url}-${this.method}`;
   }
 
@@ -67,6 +65,7 @@ export default class MockItem {
 
   public getRemoteInfo(requestUrl: string): false | Record<string, string> {
     if (!this.remote) return false;
+
     const arr = this.remote.split(/(\s)/);
     let method = '';
     let url = this.remote;

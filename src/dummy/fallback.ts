@@ -4,7 +4,7 @@ import { URL } from 'url';
 import * as zlib from 'zlib';
 
 /**
- * In nodejs enviroment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock
+ * In nodejs environment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock
  * does a fallback request by simply using http/https native request module, which encodes the
  * response body with utf8. It may not meet your requirement in some complex applications.
  * So, you can use another third fake (XMLHttpRequest, fetch, wx.request)request library

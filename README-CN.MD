@@ -399,12 +399,13 @@ module.exports = {
 
 **webpack插件选项**
 
-| 选项      | 配置   | 说明                                                     |
-| :-----    | :---- | :----                                                   |
-| **entry** | 必填   | 正则对象，用于匹配入口文件                                  |
-| **dir**   | 必填   | 绝对路径，mock文件夹用于存放mock配置文件                     |
-| **enable** | 可选   | 是否启用该插件，默认 true                                  |
-| **watch** | 可选     | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件 |
+| 选项          | 配置      | 说明                                                     |
+| :-----        | :----    | :----                                                   |
+| **entry**     | 必填      | 正则对象，用于匹配入口文件                                  |
+| **dir**       | 必填      | 绝对路径，mock文件夹用于存放mock配置文件                     |
+| **enable**    | 可选      | 是否启用该插件，默认 true                                  |
+| **watch**     | 可选      | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件      |
+| **proxyMode** | 可选      | 代理模式，有效值为： marked 或 matched                      |
 
 
 #### 使用命令行工具整合项目
@@ -433,7 +434,7 @@ createApp(App).mount('#app')
 
 ***注意：***
 
-如果不指定 `-e --enviroment` 默认的会根据 `NODE_ENV=development` 来开启mock。
+如果不指定 `-e --environment` 默认的会根据 `NODE_ENV=development` 来开启mock。
 
 如果需要其他环境变量来开启mock，可指定其他变量，如: `-e MOCK=yes`.
 
@@ -444,32 +445,30 @@ createApp(App).mount('#app')
 ```
 Usage: npx http-request-mock-cli [options]
 
-Description: http-request-mock command line tool at version 1.6.3.
+Description: http-request-mock command line tool at version 1.6.8.
 Glossary: [.runtime.js] A runtime mock configuration entry file.
 Example:
     npx http-request-mock-cli -i
 
 Options:
-  -d, --directory [directory]       The mock directory relative to the working directory. (default: "mock")
-  -e, --enviroment [variable-pair]  Enable mock function by enviroment variable for .runtime.js.
-                                    (default: "NODE_ENV=development")
-  -i, --init                        Initialize some samples & a .runtime.js in the mock directory.
-  -w, --watch [command]             Watch mock directory & update .runtime.js. If the [command] is specified,
-                                    ths specified command will be executed together with watching.
-  -j, --inject <app-entry-file>     Inject .runtime.js into the specified entry relative to the working directory.
-  -t, --type [module-type]          The module type of .runtime.js.
-                                    Possible values are: es6, cjs(alias of commonjs).
-                                    (default: "cjs")
-  -p, --proxy [mode]                Proxy mode. In proxy mode, http-request-mock will start
-                                    a proxy server which recives incoming requests on localhost.
-                                    The module type of .runtime.js will be changed to cjs and
-                                    mock files will be run in a node enviroment.
-                                    Note: proxy mode is still under experimental stage, only for experts.
-                                    [matched] Proxy requests which are matched your defined mock items.
-                                    [all] Proxy all incoming requests.
-                                    [none] Do not start a proxy server. (default: "none")
-  --proto                           Generate mock files by proto files.
-  -h, --help                        output usage information
+  -d, --directory [directory]        The mock directory relative to the working directory. (default: "mock")
+  -e, --environment [variable-pair]  Enable mock function by environment variable for .runtime.js.
+                                     (default: "NODE_ENV=development")
+  -i, --init                         Initialize some samples & a .runtime.js in the mock directory.
+  -w, --watch [command]              Watch mock directory & update .runtime.js. If the [command] is specified,
+                                     ths specified command will be executed together with watching.
+  -j, --inject <app-entry-file>      Inject .runtime.js into the specified entry relative to the working directory.
+  -t, --type [module-type]           The module type of .runtime.js.
+                                     Possible values are: es6, cjs(alias of commonjs).
+                                     (default: "cjs")
+  -p, --proxy [mode]                 Proxy mode. In proxy mode, http-request-mock will start
+                                     a proxy server which recives incoming requests on localhost.
+                                     The mock files will be run in a node environment.
+                                     Note: proxy mode is still under experimental stage, only for experts.
+                                     [matched] All requests matched by @url will be proxied to a proxy server.
+                                     [marked] All requests marked by @proxy will be proxied to a proxy server. (default: "marked")
+  --proto                            Generate mock files by proto files.
+  -h, --help                         output usage information
 ```
 
 ## API文档
@@ -480,7 +479,7 @@ Options:
 
 **setup() : Mocker**:
 
-Auto detect request enviroment and set up request mock.
+Auto detect request environment and set up request mock.
 
 **setupForWx() : Mocker**:
 
@@ -498,7 +497,7 @@ Set up request mock for fetch.
 
 Set up request mock for http.get, https.get, http.request and https.request in nodejs envrioment.
 
-**setupForUnitTest('wx' | 'xhr' | 'fetch' | 'all') : Mocker**:
+**setupForUnitTest() : Mocker**:
 
 Set up request mock for unit test.
 
@@ -592,7 +591,7 @@ import xhrAdapter from 'axios/lib/adapters/xhr';
 import HttpRequestMock from 'http-request-mock';
 
 axios.defaults.adapter = xhrAdapter;
-const mocker = HttpRequestMock.setupForUnitTest('xhr');
+const mocker = HttpRequestMock.setupForUnitTest();
 
 mocker.get('https://your.api.com/path', function() {
   return { abc: 123 };
@@ -634,6 +633,11 @@ it('should match object`', async () => {
  * 远程mock数据
  * 在浏览器中，指定的远程url必须符合跨域规范。
  * @remote https://remote.api.com/some/mock/data
+ *
+ * 标记代理模式, mock定义的内容将在nodejs环境中运行。
+ * 只有当代理模式打开时才有效, 可通过webpack插件(proxyMode=marked) 或者 命令行工具(--proxy marked)打开。
+ * 注意: 此特性尚处于实验阶段。
+ * @proxy
  */
 // http响应内容，支持静态对象，函数，或者 异步函数,
 // 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。

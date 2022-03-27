@@ -5,7 +5,7 @@
  * @times 10
  */
 /* eslint-disable */
-const faker = require('http-request-mock/plugin/faker.js');
+const faker = require("http-request-mock/plugin/faker.js");
 let times = 10;
 module.exports = () => ({
   id: faker.incrementId(),
@@ -13,5 +13,5 @@ module.exports = () => ({
   address: faker.address(),
   current: times,
   left: --times,
-  msg: 'This mock item will be disabled after 10 requests.',
+  msg: "This mock item will be disabled after 10 requests.",
 })

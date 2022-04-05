@@ -50,7 +50,7 @@ module.exports = {
     code: 0,
     msg: 'ok',
     id: (messageType) => {
-      return faker.incrementId(1, messageType);
+      return faker.incrementId(messageType, 1);
     },
     title: faker.text(),
     name: faker.name(),

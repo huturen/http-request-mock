@@ -24,12 +24,10 @@ export default class XMLHttpRequestInterceptor extends Base {
   }
 
   /**
-   * Setup request mocker for unit test.
-   * You can specify the second argument for a fallback request
-   * using http/https native request module if not matched.
+   * Initialize a dummy 'XMLHttpRequest' object if 'XMLHttpRequest' is not existent in the context.
    * @param {Mocker} mocker
    */
-  static setupForUnitTest(mocker: Mocker) {
+  static initDummyXHRForUnitTest(mocker: Mocker) {
     // use require here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     global.XMLHttpRequest = global.XMLHttpRequest || require('../dummy/xhr').default;

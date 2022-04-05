@@ -26,10 +26,10 @@ export default class FetchInterceptor extends Base{
   }
 
   /**
-   * Setup request mocker for unit test.
+   * Initialize a dummy 'fetch' object if 'fetch' is not existent in the context.
    * @param {Mocker} mocker
    */
-  static setupForUnitTest(mocker: Mocker) {
+  static initDummyFetchForUnitTest(mocker: Mocker) {
     const global = Base.getGlobal();
     if (!global.fetch) {
       // use require here to avoid static analysis

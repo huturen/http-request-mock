@@ -100,8 +100,6 @@ There are some problems you may encounter when using the other mocking libraries
 
 ## Features
 
-* **Easy to set up**: No complex servers, no proxies, no lots of URL replacements.
-* **Cross domain**: Out of the box, with no configuration, support for cross domain.
 * **Non-hacking**: You don't have to change your business code.
 * **Interceptor**: It can be used as an interceptor. You can decide how to handle requests.
 * **All in one**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
@@ -603,7 +601,7 @@ import xhrAdapter from 'axios/lib/adapters/xhr';
 import HttpRequestMock from 'http-request-mock';
 
 axios.defaults.adapter = xhrAdapter;
-const mocker = HttpRequestMock.setupForUnitTest();
+const mocker = HttpRequestMock.setupForUnitTest('xhr');
 
 mocker.get('https://your.api.com/path', function() {
   return { abc: 123 };
@@ -657,7 +655,7 @@ it('should match object`', async () => {
  * In browser, the specified remote url must conform to the cross-domain specification.
  * @remote https://remote.api.com/some/mock/data
  *
- * Marked proxy mode, which the mock definitions will be run in a nodejs environment.
+ * Marked proxy mode, only for browser, which the mock definitions will be run in a nodejs environment.
  * Only available when proxy mode is enabled by webpack plugin(proxyMode=marked) or CLI(--proxy marked).
  * Note: this feature is still under experimental stage.
  * @proxy

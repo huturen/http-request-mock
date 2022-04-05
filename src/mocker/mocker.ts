@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import Comment from '../../plugin/comment';
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import { Logs, Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
@@ -119,6 +122,51 @@ export default class Mocker {
     this.sendMsgToProxyServer('enableLog');
     return this;
   }
+
+  /**
+   * Note: this method is only for a nodejs envrioment(test environment).
+   * Use a mock file & add it to global mock data configuration.
+   * @param {string} file
+   */
+  public use(file: string) {
+    let absoluteFile = file;
+    if (!path.isAbsolute(file)) {
+      const callerFile = this.getCallerFile();
+      if (!callerFile) {
+        throw new Error('Expected "file" to be a absolute path.');
+      }
+      absoluteFile = path.resolve(callerFile, '..', file);
+    }
+    if (!fs.existsSync(absoluteFile)) {
+      throw new Error(`${absoluteFile} does not exist.`);
+    }
+    const tags = Comment.parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
+    // To avoid "Critical dependency: the request of a dependency is an expression" error
+    tags.body = eval('require')(absoluteFile);
+    return this.mock(tags);
+  }
+
+  /**
+   * Get caller file from error stack
+   */
+  private getCallerFile() {
+    const oldPrepareStackTrace = Error.prepareStackTrace;
+    Error.prepareStackTrace = (_, stack)  => stack;
+    const stack = new Error().stack as unknown as Record<string, { getFileName: () => string }>;
+    Error.prepareStackTrace = oldPrepareStackTrace;
+
+
+    if (stack !== null && typeof stack === 'object') {
+      for(let i = 0; i < 20; i++) {
+        const file = stack[i] ? stack[i].getFileName() : undefined;
+        const next = stack[i + 1] ? stack[i + 1].getFileName() : undefined;
+        if (file !== next && file === __filename) {
+          return next;
+        }
+      }
+    }
+  }
+
 
   /**
    * Check specified mock item & add it to global mock data configuration.

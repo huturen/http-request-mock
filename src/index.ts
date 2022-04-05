@@ -7,10 +7,10 @@ import Mocker from './mocker/mocker';
 export default class Index {
   private static isEnabled = true;
   /**
-   * Auto detect request environment and setup request mock.
-   * @param {string} type
+   * Auto detect request environment and setup request mock for wx.request, fetch and XHR.
+   * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
-  static setup(proxyServer = '') : Mocker {
+  static setup(proxyServer = ''): Mocker {
     const mocker = new Mocker(proxyServer);
 
     if (this.isEnabled && typeof wx !== 'undefined' && typeof wx.request === 'function') {
@@ -37,9 +37,9 @@ export default class Index {
 
   /**
    * Setup request mock for wx.request.
-   * @param {string} type
+   * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
-  static setupForWx(proxyServer = '') : Mocker {
+  static setupForWx(proxyServer = ''): Mocker {
     const mocker = new Mocker(proxyServer);
     this.isEnabled && InterceptorWxRequest.setup(mocker, proxyServer);
     return mocker;
@@ -47,9 +47,9 @@ export default class Index {
 
   /**
    * Setup request mock for XMLHttpRequest.
-   * @param {string} type
+   * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
-  static setupForXhr(proxyServer = '') : Mocker {
+  static setupForXhr(proxyServer = ''): Mocker {
     const mocker = new Mocker(proxyServer);
     this.isEnabled && InterceptorXhr.setup(mocker, proxyServer);
     return mocker;
@@ -57,9 +57,9 @@ export default class Index {
 
   /**
    * Setup request mock for fetch.
-   * @param {string} type
+   * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
-  static setupForFetch(proxyServer = '') : Mocker {
+  static setupForFetch(proxyServer = ''): Mocker {
     const mocker = new Mocker(proxyServer);
     this.isEnabled && InterceptorFetch.setup(mocker, proxyServer);
     return mocker;
@@ -67,9 +67,10 @@ export default class Index {
 
   /**
    * Setup request mock for node http/https request.
-   * @param {string} type
+   * For http.get, https.get, http.request, https.request in nodejs environment
+   * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
-  static setupForNode(proxyServer = '') : Mocker {
+  static setupForNode(proxyServer = ''): Mocker {
     const mocker = new Mocker(proxyServer);
     // use require here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -81,7 +82,7 @@ export default class Index {
    * Enable mock function temporarily.
    * Not available in proxy mode.
    */
-  static enable() : Mocker {
+  static enable(): Mocker {
     this.isEnabled = true;
     return Mocker.getInstance().enable();
   }
@@ -90,7 +91,7 @@ export default class Index {
    * Disable mock function temporarily.
    * Not available in proxy mode.
    */
-  static disable() : Mocker {
+  static disable(): Mocker {
     this.isEnabled = false;
     return Mocker.getInstance().disable();
   }
@@ -99,7 +100,7 @@ export default class Index {
    * Enable verbose log.
    * Not available in proxy mode.
    */
-  static enableLog() : Mocker {
+  static enableLog(): Mocker {
     return Mocker.getInstance().enableLog();
   }
 
@@ -107,7 +108,7 @@ export default class Index {
    * Disable verbose log.
    * Not available in proxy mode.
    */
-  static disableLog() : Mocker {
+  static disableLog(): Mocker {
     return Mocker.getInstance().disableLog();
   }
 
@@ -115,38 +116,31 @@ export default class Index {
    * Setup request mock for unit test.
    * @param {string} type
    */
-  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'node.http.request' | 'all') : Mocker {
+  static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'all') : Mocker {
     if (!isNodejs()) {
       throw new Error('"setupForUnitTest" is only for nodejs envrioment.');
+    }
+    if (!['wx', 'xhr', 'fetch', 'node', 'all'].includes(type)) {
+      throw new Error('Invalid type, valid types are "wx", "xhr", "fetch", "node" and "all".');
     }
 
     const mocker = new Mocker();
 
-    if (type === 'wx') {
-      InterceptorWxRequest.setupForUnitTest(mocker);
+    if (type === 'wx' || type === 'all') {
+      InterceptorWxRequest.initDummyWxRequestForUnitTest(mocker);
     }
 
-    if (type === 'xhr') {
-      InterceptorXhr.setupForUnitTest(mocker);
+    if (type === 'xhr' || type === 'all') {
+      InterceptorXhr.initDummyXHRForUnitTest(mocker);
     }
 
-    if (type === 'fetch') {
-      InterceptorFetch.setupForUnitTest(mocker);
+    if (type === 'fetch' || type === 'all') {
+      InterceptorFetch.initDummyFetchForUnitTest(mocker);
     }
 
-    if (type === 'node' || type === 'node.http.request') {
-      // use require here to avoid static analysis
+    if (type === 'node' || type === 'all') {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
-    }
-
-    if (type === 'all') {
-      InterceptorWxRequest.setupForUnitTest(mocker);
-      InterceptorXhr.setupForUnitTest(mocker);
-      InterceptorFetch.setupForUnitTest(mocker);
-      // use require here to avoid static analysis
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./interceptor/node/http-and-https').default.setupForUnitTest(mocker);
+      require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
     return mocker;
@@ -155,4 +149,4 @@ export default class Index {
   static default = Index; // for backward compatibility
 }
 
-module.exports = Index; // make it can be required without 'default' property
+module.exports = Index; // without 'default' property

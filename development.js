@@ -12,4 +12,4 @@ const opts = {
 };
 
 spawn('tsc -w', opts);
-spawn('webpack --watch', opts);
+spawn('webpack --watch --stats-error-details', opts);

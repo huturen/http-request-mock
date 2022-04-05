@@ -3,7 +3,7 @@
 const HttpRequestMock = require('../dist/index');
 // const HttpRequestMock = require('http-request-mock');
 // const mocker = HttpRequestMock.setupForUnitTest('xhr');
-const mocker = HttpRequestMock.setupForUnitTest('xhr', true);
+const mocker = HttpRequestMock.setupForUnitTest('xhr');
 const axios = require('axios');
 // const httpAdapter = require('axios/lib/adapters/http');
 // axios.defaults.adapter = httpAdapter; // do not use xhr adapter

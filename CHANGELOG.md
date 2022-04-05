@@ -1,4 +1,7 @@
 ### Changelog
+[2022-04-05]
+1. add 'use' API for mocker
+
 [2022-03-27]
 1. add @proxy tag
 

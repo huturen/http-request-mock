@@ -25,10 +25,10 @@ export default class WxRequestInterceptor extends Base {
   }
 
   /**
-   * Setup request mocker for unit test.
+   * Initialize a dummy 'wx.request' object if 'wx.request' is not existent in the context.
    * @param {Mocker} mocker
    */
-  static setupForUnitTest(mocker: Mocker) {
+  static initDummyWxRequestForUnitTest(mocker: Mocker) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const global: any = Base.getGlobal();
     global.wx = global.wx || {};

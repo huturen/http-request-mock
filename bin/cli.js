@@ -60,11 +60,12 @@ program
     '-p, --proxy [mode]',
     'Proxy mode. In proxy mode, http-request-mock will start\n'+spaces+
     ' a proxy server which recives incoming requests on localhost.\n'+spaces+
-    ' The mock files will be run in a node environment.\n'+spaces+
+    ' The mock files will be run in a nodejs environment.\n'+spaces+
+    ' This feature is designed for browser, so do not use it in a nodjs project.\n'+spaces+
     ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
     ' [matched] All requests matched by @url will be proxied to a proxy server.\n'+spaces+
     ' [marked] All requests marked by @proxy will be proxied to a proxy server.',
-    'marked'
+    'none'
   )
   .option(
     '--proto',

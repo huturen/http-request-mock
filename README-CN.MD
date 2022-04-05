@@ -90,8 +90,6 @@
 
 本库提供了以下特性:
 
-* **配置简单**: 免去了复杂的服务器，代理配置；更没有请求URL替换。
-* **跨域**: 开箱，零配置, 支持跨域请求。
 * **无侵入**: 不侵入源代码来实现mock处理。
 * **拦截器**: 可以做为请求拦截器使用，你来决定怎么处理请求。
 * **多合一**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
@@ -634,7 +632,7 @@ it('should match object`', async () => {
  * 在浏览器中，指定的远程url必须符合跨域规范。
  * @remote https://remote.api.com/some/mock/data
  *
- * 标记代理模式, mock定义的内容将在nodejs环境中运行。
+ * 标记代理模式, 只用于浏览器，mock定义的内容将在nodejs环境中运行。
  * 只有当代理模式打开时才有效, 可通过webpack插件(proxyMode=marked) 或者 命令行工具(--proxy marked)打开。
  * 注意: 此特性尚处于实验阶段。
  * @proxy

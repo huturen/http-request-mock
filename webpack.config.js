@@ -6,6 +6,8 @@ const webpack = require('webpack');
 
 module.exports = {
   mode: 'production',  // development, production
+  optimization: { minimize: false },
+  devtool: 'source-map',
   entry: './src/index.ts',
   // devtool: 'inline-source-map',
   module: {

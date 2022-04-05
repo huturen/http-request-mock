@@ -362,10 +362,13 @@ module.exports =  {
 
   /**
    * Return an auto-incremented id.
-   * @param {number} base
    * @param {string} group
+   * @param {number} base
    */
-  incrementId(base = 1, group = 'default') {
+  incrementId(group = 'default', base = 1) {
+    if (typeof group === 'number' && typeof base === 'string') {
+      [group, base] = [base, group];
+    }
     cache.incrementId = cache.incrementId || {};
     cache.incrementId[group || 'default'] = cache.incrementId[group] || base;
     return cache.incrementId[group]++;

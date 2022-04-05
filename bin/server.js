@@ -9,6 +9,7 @@ const defaultHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': '*',
   'access-control-allow-headers': '*',
+  'access-control-expose-headers': '*',
   'access-control-allow-credentials': 'true',
 };
 let mockDirectory = null;
@@ -141,7 +142,7 @@ async function requestListener(req, res) {
     log('bypass mock for: ', request.url);
     return doProxy(req, res, request.url);
   }
-  res.writeHead(mockItem.status, { ...mockItem.header, ...defaultHeaders});
+  res.writeHead(mockItem.status, { ...mockItem.header, ...defaultHeaders });
   return res.end(typeof result === 'string' ? result : JSON.stringify(result), 'utf8');
 }
 
@@ -255,7 +256,6 @@ function parseQuery(search) {
 function doProxy(req, res, url) {
   const { protocol, host, pathname, search } = new URL(url);
   req.url = `${pathname}${search}`;
-  // req.headers.host = host;
   return proxy.web(req, res, {
     changeOrigin: true,
     target: `${protocol}//${host}`,
@@ -288,10 +288,10 @@ function setLocalStorage() {
       return Object.keys(localStorageCache).length;
     },
     setItem(key, val) {
-      localStorageCache.data[key] = val;
+      localStorageCache[key] = val;
     },
     getItem(key) {
-      return localStorageCache.data[key];
+      return localStorageCache[key];
     },
     clear() {
       localStorageCache = {};

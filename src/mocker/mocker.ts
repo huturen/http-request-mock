@@ -157,7 +157,7 @@ export default class Mocker {
 
 
     if (stack !== null && typeof stack === 'object') {
-      for(let i = 0; i < 20; i++) {
+      for(let i = 0; i < 50; i++) {
         const file = stack[i] ? stack[i].getFileName() : undefined;
         const next = stack[i + 1] ? stack[i + 1].getFileName() : undefined;
         if (file !== next && file === __filename) {

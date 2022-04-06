@@ -20,7 +20,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server which
    *                           recives incoming requests on localhost. Mock files will be run in a node environment.
    *                           [matched] Proxy requests which are matched your defined mock items.
-   *                           [marked] Proxy requests which are marked by @proxy. (default: "marked")
+   *                           [marked] Proxy requests which are marked by @proxy. (default: "none")
    */
   constructor({
     entry,
@@ -307,8 +307,8 @@ module.exports = class HttpRequestMockMockPlugin {
       file = /^\./.test(file) ? file : ('./'+file);
 
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
-      const { method, delay, status, header, times, remote } = tags;
-      const mockItem = { url: '', method, body: '', delay, status, times, header, remote };
+      const { method, delay, status, header, times, remote, proxy } = tags;
+      const mockItem = { url: '', method, body: '', delay, status, times, header, remote, proxy };
       const info = JSON.stringify(mockItem, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, isCjs ? `"body": require('${file}'),` : `"body": require('${file}').default,` );

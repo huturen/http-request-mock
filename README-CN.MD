@@ -13,20 +13,24 @@
 
 项目整合示例:
 - 通过webpack插件整合vue项目:
-  [Codesandbox](https://codesandbox.io/s/tender-bird-te01lt),
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
 
 - 通过CLI工具整合vue项目:
-  [Codesandbox](https://codesandbox.io/s/hardcore-wright-y3lixj),
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-cli/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
 
 - 整合react项目:
-  [Codesandbox](https://codesandbox.io/s/charming-mayer-gij9yd),
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-react-by-cli/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
 
 - 整合nodejs项目:
-  [Codesandbox](https://codesandbox.io/s/objective-snowflake-txt9qc),
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+
+- 单元测试:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-unit-test)
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。

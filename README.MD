@@ -479,10 +479,11 @@ Options:
                                      (default: "cjs")
   -p, --proxy [mode]                 Proxy mode. In proxy mode, http-request-mock will start
                                      a proxy server which recives incoming requests on localhost.
-                                     The mock files will be run in a node environment.
+                                     The mock files will be run in a nodejs environment.
+                                     This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
                                      [matched] All requests matched by @url will be proxied to a proxy server.
-                                     [marked] All requests marked by @proxy will be proxied to a proxy server. (default: "marked")
+                                     [marked] All requests marked by @proxy will be proxied to a proxy server. (default: "none")
   --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```
@@ -659,7 +660,8 @@ it('should match object`', async () => {
  * In browser, the specified remote url must conform to the cross-domain specification.
  * @remote https://remote.api.com/some/mock/data
  *
- * Marked proxy mode, only for browser, which the mock definitions will be run in a nodejs environment.
+ * Marked proxy mode, which the mock definitions will be run in a nodejs environment.
+ * This feature is designed for browser, so do not use it in a nodjs project.
  * Only available when proxy mode is enabled by webpack plugin(proxyMode=marked) or CLI(--proxy marked).
  * Note: this feature is still under experimental stage.
  * @proxy

@@ -154,7 +154,7 @@ module.exports =  {
 
   /**
    * Return a random province.
-   * @param boolean cn
+   * @param {boolean} cn
    */
   province(cn = false) {
     return cn ? chance.pickone(Object.keys(chinese.cities)) : chance.province({full: true});
@@ -162,7 +162,7 @@ module.exports =  {
 
   /**
    * Return a random city.
-   * @param {*} cn
+   * @param {boolean} cn
    */
   city(cn = false) {
     return cn ? chance.pickone(chinese.cities[this.province()].split(',')) : chance.city();
@@ -170,7 +170,7 @@ module.exports =  {
 
   /**
    * Return a random street.
-   * @param {*} cn
+   * @param {boolean} cn
    */
   street(cn = false) {
     if (cn) {
@@ -181,7 +181,7 @@ module.exports =  {
 
   /**
    * Return a random address.
-   * @param {*} cn
+   * @param {boolean} cn
    */
   address(cn = false) {
     if (cn) {
@@ -293,19 +293,21 @@ module.exports =  {
 
   /**
    * Return a random datetime.
+   * @param {number} timestamp
    * @param {string} dateFormat
    * @param {string} timeFormat
    */
-  datetime(dateFormat = 'YYYY-MM-DD', timeFormat = 'HH:mm:ss') {
-    return this.date(dateFormat) + ' ' + this.time(timeFormat);
+  datetime(timestamp, dateFormat = 'YYYY-MM-DD', timeFormat = 'HH:mm:ss') {
+    return this.date(timestamp, dateFormat) + ' ' + this.time(timestamp, timeFormat);
   },
 
   /**
    * Return a random date.
+   * @param {number} timestamp
    * @param {string} format default YYY-MM-DD
    */
-  date(format = 'YYYY-MM-DD') {
-    const time = new Date(Date.now() - rand(0, 1000) * 86400000);
+  date(timestamp, format = 'YYYY-MM-DD') {
+    const time = new Date(timestamp || Date.now() - rand(0, 1000) * 86400000);
     const two = num => num >= 10 ? num : `0${num}`;
     return format
       .replace(/YYYY/g, time.getFullYear())
@@ -315,10 +317,11 @@ module.exports =  {
 
   /**
    * Return a random time.
+   * @param {number} timestamp
    * @param {string} format default HH:mm:ss
    */
-  time(format = 'HH:mm:ss') {
-    const time = new Date(Date.now() - rand(0, 86400000));
+  time(timestamp, format = 'HH:mm:ss') {
+    const time = new Date(timestamp || Date.now() - rand(0, 86400000));
     const two = num => num >= 10 ? num : `0${num}`;
     return format
       .replace(/HH/g, two(time.getHours()))

@@ -42,7 +42,6 @@ module.exports = class HttpRequestMockMockPlugin {
     this.dir = this.resolve(dir);
     this.watch = watch;
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
-    this.environment = ['NODE_ENV', 'development'];
 
     this.type = ['es6', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
     this.environment = ['NODE_ENV', 'development'];
@@ -79,7 +78,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const address = await server.init({
         proxyMode: this.proxyMode,
         mockDir: this.dir,
-        enviroment: this.enviroment ? this.enviroment.join('=') : ''
+        environment: this.environment ? this.environment.join('=') : ''
       });
       this.proxyServer = this.proxyMode + '@' + address;
     }
@@ -287,9 +286,9 @@ module.exports = class HttpRequestMockMockPlugin {
     const tpl = isCjs ? 'cjs' : 'es6';
 
     let codes = fs.readFileSync(path.resolve(__dirname, `../tpl/runtime.${tpl}.js`), {encoding: 'utf8'});
-    codes = !this.enviroment ? codes : codes
-      .replace('__hrm_enviroment_key__', this.enviroment[0])
-      .replace('__hrm_enviroment_val__', this.enviroment[1])
+    codes = !this.environment ? codes : codes
+      .replace('__hrm_environment_key__', this.environment[0])
+      .replace('__hrm_environment_val__', this.environment[1])
       .replace(/\/\* __hrf_env_if__ \*\//g, '');
 
     codes = codes.replace('__hrm_proxy_server__', this.proxyServer ? `"${this.proxyServer}"` : '');
@@ -317,7 +316,7 @@ module.exports = class HttpRequestMockMockPlugin {
     codes = codes.replace(/( {2})?__hrm_mock_items__/, items.join('\n'));
     return [
       files,
-      this.enviroment ? codes : codes.replace(/\/\* __hrf_env_if__ \*\/.*\n/mg, '').replace(/^ {2}/gm, '')
+      this.environment ? codes : codes.replace(/\/\* __hrf_env_if__ \*\/.*\n/mg, '').replace(/^ {2}/gm, '')
     ];
   }
 

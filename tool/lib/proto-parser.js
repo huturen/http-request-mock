@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const pbjs = require('protobufjs/cli/pbjs');
-const faker = require('../../plugin/faker');
+const faker = require('../plugin/faker');
 
 module.exports = {
   getProtoService,

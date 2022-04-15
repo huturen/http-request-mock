@@ -1,6 +1,6 @@
 import Bypass from '../common/bypass';
-import { getQuery, queryObject2String } from '../common/utils';
-import { Disable, Header, Method, RequestInfo } from '../types';
+import { getQuery, isDynamicImported, isPromise, queryObject2String } from '../common/utils';
+import { Disable, DynamicImported, Header, Method, RequestInfo } from '../types';
 
 export default class MockItem {
   public url: RegExp | string;
@@ -37,18 +37,31 @@ export default class MockItem {
     this.times = mockItem.times !== undefined && /^-?\d{0,15}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;
     this.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
     this.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'YES' : 'NO') as Disable;
-    if ('body' in mockItem) {
-      this.body = mockItem.body;
-    } else if ('response' in mockItem) {
-      this.body = mockItem.response;
-    } else {
-      this.body = '';
-    }
+    this.setBody(mockItem);
+
     if (mockItem.remote && /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote)) {
       this.remote = mockItem.remote;
     }
     this.proxy = !!mockItem.proxy;
     this.key = `${this.url}-${this.method}`;
+  }
+
+  private setBody(mockItem: Partial<MockItem>) {
+    let body: unknown;
+    if ('body' in mockItem) {
+      body = mockItem.body;
+    } else if ('response' in mockItem) {
+      body = mockItem.response;
+    } else {
+      body = '';
+    }
+    if (isPromise(body)) {
+      (body as Promise<unknown>).then((data) => {
+        this.body = isDynamicImported(data) ? (data as DynamicImported).default : data;
+      });
+    } {
+      this.body = body;
+    }
   }
 
   public bypass() {

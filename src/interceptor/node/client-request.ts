@@ -38,6 +38,8 @@ function ClientRequest(
   this.init = () => {
     const [options, callback] = [this.options, this.callback];
     this.method = options.method || 'GET';
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     this.path = options.path || '/';
 
     // The optional callback parameter will be added as
@@ -99,14 +101,12 @@ function ClientRequest(
    * Calling this will cause remaining data in the response to be dropped and the socket to be destroyed.
    */
   this.destroy = () => {
-    if (this.aborted || this.destroyed) return;
+    if (this.aborted || this.destroyed) return this;
 
     this.aborted = true;
     this.destroyed = true;
 
-    const error = { ...new Error(), code: 'aborted' };
-
-    this.response.emit('close', error);
+    this.response.emit('close', { ...new Error(), code: 'aborted' });
     // socket.destroy()
     this.emit('abort');
 

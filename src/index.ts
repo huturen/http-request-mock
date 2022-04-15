@@ -139,13 +139,13 @@ export default class Index {
     }
 
     if (type === 'node' || type === 'all') {
+      // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('./interceptor/node/http-and-https').default.setup(mocker);
     }
 
     return mocker;
   }
-
   static default = Index; // for backward compatibility
 }
 

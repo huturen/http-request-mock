@@ -1,6 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import Comment from '../../plugin/comment';
+import { parseCommentTags } from '../../tool/lib/comment';
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import { Logs, Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
@@ -129,6 +127,11 @@ export default class Mocker {
    * @param {string} file
    */
   public use(file: string) {
+    // use require here to avoid static analysis
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require('path');
     let absoluteFile = file;
     if (!path.isAbsolute(file)) {
       const callerFile = this.getCallerFile();
@@ -140,7 +143,7 @@ export default class Mocker {
     if (!fs.existsSync(absoluteFile)) {
       throw new Error(`${absoluteFile} does not exist.`);
     }
-    const tags = Comment.parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
+    const tags = parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
     // To avoid "Critical dependency: the request of a dependency is an expression" error
     tags.body = eval('require')(absoluteFile);
     return this.mock(tags);

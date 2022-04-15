@@ -1,4 +1,4 @@
-const faker = require('../../plugin/faker.js').shadow;
+const faker = require('../plugin/faker.js').shadow; // __hrm_faker_shadow__
 
 module.exports = {
   overwrite: true,

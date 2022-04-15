@@ -10,6 +10,8 @@ cache:
     - node_modules
 
 before_deploy: npm run build
+deploy: npm run release
+
 deploy:
   provider: npm
   email: "$NPM_EMAIL_ADDRESS"

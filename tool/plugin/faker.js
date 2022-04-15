@@ -1,22 +1,36 @@
-// see this issue: https://github.com/chancejs/chancejs/issues/51
-const isWindowPresent = typeof window !== 'undefined' && Object.prototype.toString.call(window) === '[object Window]';
-if (isWindowPresent) {
-  window.global = window;
-}
-// remove the global chance instance
-const chance = require('chance').Chance();
-if (isWindowPresent && ('chance' in window.global)) {
-  delete window.global.chance;
-}
+const {
+  rand,
+  randAvatar,
+  randBoolean,
+  randCity,
+  randEmail,
+  randEmailProvider,
+  randFirstName,
+  randFloat,
+  randFullAddress,
+  randFullName,
+  randIp,
+  randLastName,
+  randNumber,
+  randPhoneNumber,
+  randSentence,
+  randState,
+  randStreetAddress,
+  randText,
+  randUrl,
+  randUuid,
+  randWord
+} = require('@ngneat/falso');
 
+const randArr = rand;
 const cache = {};
 const chinese = getChineseInfo();
+const twoDigits = num => num < 10 ? `0${num}` : `${num}`;
 
 /**
  * Export some frequently-used methods.
  */
-module.exports =  {
-  chance,
+module.exports = {
   chinese,
 
   /**
@@ -24,8 +38,9 @@ module.exports =  {
    * @param {number} min
    * @param {number} max
    */
-  rand(min = 0, max = 1000000000) {
-    return rand(min, max);
+  rand(min = 0,
+    max = Number.MAX_SAFE_INTEGER) {
+    return randNumber({ min, max });
   },
 
   /**
@@ -45,10 +60,9 @@ module.exports =  {
   /**
    * The default likelihood of success (returning true) is 50%. Can optionally specify the likelihood in percent.
    * chance.bool({likelihood: 30}): In this case only a 30% likelihood of true, and a 70% likelihood of false.
-   * @param {number} likelihood
    */
-  bool(likelihood = 50) {
-    return chance.bool({likelihood});
+  bool() {
+    return randBoolean();
   },
 
   /**
@@ -56,7 +70,7 @@ module.exports =  {
    * @param {string} pool
    */
   char(pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') {
-    return chance.character({ pool });
+    return pool[this.rand(0, pool.length - 1)];
   },
 
   /**
@@ -67,17 +81,17 @@ module.exports =  {
    * @param {string} pool
    */
   string(min = 5, max = 20, pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') {
-    return chance.string({ length: rand(min, max), pool });
+    return [...Array(this.rand(min, max))].map(() => this.char(pool)).join('');
   },
 
   /**
    * Return a random floating point number. By default it will return a fixed number of at most 2 digits after the decimal.
    * @param {number} min
    * @param {number} max
-   * @param {number} fixed
+   * @param {number} fraction
    */
-  float(min = -90071992547409, max = 90071992547409, fixed = 2) {
-    return chance.floating({ min, max, fixed });
+  float(min = 0, max = Number.MAX_SAFE_INTEGER, fraction = 2) {
+    return randFloat({ min, max, fraction });
   },
 
   /**
@@ -85,44 +99,35 @@ module.exports =  {
    * @param {number} min
    * @param {number} max
    */
-  integer(min = -9007199254740991, max = 9007199254740991) {
-    return chance.integer({ min, max });
+  integer(min = 0, max = Number.MAX_SAFE_INTEGER) {
+    return randNumber({ min, max });
   },
 
-  /**
-   * Return a natural number. range: 0 to 9007199254740991
-   * @param {number} min
-   * @param {number} max
-   */
-  natural(min = 0, max = 9007199254740991) {
-    return chance.natural({ min, max });
-  },
 
   /**
    * Return a random sentence populated by semi-pronounceable random (nonsense) words.
    * Default is a sentence with a random number of words from 12 to 18.
-   * @param {number} length
-   * @param {number} words
+   * @param {boolean} cn
    */
-  sentence(length = rand(12, 18), cn = false) {
-    return cn ? chance.pickset(chinese.words, length).join('') : chance.sentence({ words: length });
+  sentence(cn = false) {
+    return cn ? randArr(chinese.words, { length: this.rand(8, 18) }).join('') : randSentence();
   },
 
   /**
    * Return a random text words.
    * Default is a sentence with a random number of words from 2 to 8.
-   * @param {number} length
-   * @param {number} words
+   * @param {boolean} cn
    */
-  text(length = rand(3, 8), cn = false) {
-    return cn ? chance.pickset(chinese.words, length).join('') : chance.sentence({ words: length });
+  text(cn = false) {
+    return cn ? randArr(chinese.words, { length: this.rand(3, 8) }).join('') : randText();
   },
 
   /**
    * Return a semi-pronounceable random (nonsense) word.
+   * @param {boolean} cn
    */
   word(cn = false) {
-    return cn ? chance.pickone(chinese.words) : chance.word({ length: rand(2, 12) });
+    return cn ? randArr(chinese.words) : randWord();
   },
 
   /**
@@ -131,9 +136,9 @@ module.exports =  {
    */
   name(cn = false) {
     if (cn) {
-      return chance.pickone(chinese.firstNames) + chance.pickset(chinese.lastNames, rand(1, 2)).join('');
+      return randArr(chinese.firstNames) + randArr(chinese.lastNames, this.rand(1, 2)).join('');
     }
-    return chance.name();
+    return randFullName({ withAccents: false });
   },
 
   /**
@@ -141,7 +146,7 @@ module.exports =  {
    * @param {boolean} cn
    */
   firstName(cn = false) {
-    return cn ? chance.pickone(chinese.firstNames) : chance.firstName();
+    return cn ? randArr(chinese.firstNames) : randFirstName({ withAccents: false });
   },
 
   /**
@@ -149,7 +154,15 @@ module.exports =  {
    * @param {boolean} cn
    */
   lastName(cn = false) {
-    return cn ? chance.pickset(chinese.lastNames, rand(1, 2)).join('') : chance.lastName();
+    return cn ? randArr(chinese.lastNames, { length: this.rand(1, 2)}).join('') : randLastName({ withAccents: false });
+  },
+
+  /**
+   * Generate a random gender.
+   * @param {string[]} pool
+   */
+  gender(pool = ['male', 'female']) {
+    return this.pick(pool);
   },
 
   /**
@@ -157,7 +170,7 @@ module.exports =  {
    * @param {boolean} cn
    */
   province(cn = false) {
-    return cn ? chance.pickone(Object.keys(chinese.cities)) : chance.province({full: true});
+    return cn ? randArr(Object.keys(chinese.cities)) : randState();
   },
 
   /**
@@ -165,7 +178,7 @@ module.exports =  {
    * @param {boolean} cn
    */
   city(cn = false) {
-    return cn ? chance.pickone(chinese.cities[this.province()].split(',')) : chance.city();
+    return cn ? randArr(randArr(Object.values(chinese.cities)).split(',')) : randCity();
   },
 
   /**
@@ -174,9 +187,9 @@ module.exports =  {
    */
   street(cn = false) {
     if (cn) {
-      return chance.pickone(chinese.area) + chance.pickset(chinese.words, rand(2, 3)).join('')+'街';
+      return randArr(chinese.area) + randArr(chinese.words, { length: this.rand(2, 3)}).join('')+'街';
     }
-    return chance.street();
+    return randStreetAddress();
   },
 
   /**
@@ -185,17 +198,23 @@ module.exports =  {
    */
   address(cn = false) {
     if (cn) {
-      return chance.pickone(chinese.area) + chance.pickset(chinese.words, rand(2, 3)).join('')+'路'+rand(10, 999)+'号';
+      return [
+        randArr(chinese.area),
+        randArr(chinese.words, { length: this.rand(2, 3)}).join(''),
+        '路',
+        this.rand(10, 999),
+        '号'
+      ].join('');
     }
-    return chance.address();
+    return randFullAddress({ includeCounty: false, includeCountry: false });
   },
 
   /**
    * Return a random avatar.
-   * @param {string} fileExtension
+   * @param {number} size
    */
-  avatar(fileExtension = 'jpg') {
-    return chance.avatar({protocol: 'https', fileExtension});
+  avatar(size = 100) {
+    return randAvatar({ size });
   },
 
   /**
@@ -215,17 +234,18 @@ module.exports =  {
 
   /**
    * Return a random email with a random domain.
-   * @param {string | undefined} domain
+   * @param {string} provider
+   * @param {string} suffix
    */
-  email(domain = undefined) {
-    return domain ? chance.email({ domain }) : chance.email();
+  email(provider = randEmailProvider(), suffix = 'com') {
+    return randEmail({ provider, suffix, nameSeparator: '_'  }).replace('_', this.rand(1, 3) === 1 ? '_' : '');
   },
 
   /**
    * Return a random IP Address.
    */
   ip(){
-    return chance.ip();
+    return randIp();
   },
 
   /**
@@ -233,7 +253,7 @@ module.exports =  {
    * @param {string} format
    */
   phone(format = '1##########') {
-    return format.replace(/#/g, () => rand(0, 9));
+    return format === 'random' ? randPhoneNumber() : format.replace(/#/g, () => this.rand(0, 9));
   },
 
   /**
@@ -257,16 +277,16 @@ module.exports =  {
     const replacer = (match) => {
       const [char, quantity = ''] = [match[0], match.slice(1)];
       const fun = {
-        '#': () => rand(0, 9),
-        '!': () => rand(1, 9),
+        '#': () => this.rand(0, 9),
+        '!': () => this.rand(1, 9),
         '@': () => this.string(1, 1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
         '$': () => this.string(1, 1, '~!@#$%^&*()_-+;\'",<>/?\\'),
         '%': () => this.string(1, 1, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_-+;\'",<>/?\\'),
       }[char];
       const len = /^\d+$/.test(quantity) ? +quantity : {
-        '*': rand(0, 10),
-        '+': rand(1, 10),
-        '?': rand(0, 1),
+        '*': this.rand(0, 10),
+        '+': this.rand(1, 10),
+        '?': this.rand(0, 1),
         '': 1,
       }[quantity];
       return [...Array(len)].map(() => fun()).join('');
@@ -279,16 +299,15 @@ module.exports =  {
    * @param {string | undefined} domain
    * @param {string} protocol
    */
-  url(domain = undefined, protocol = 'https'){
-    return chance.url({protocol, domain });
+  url(){
+    return randUrl().replace(/\/+$/g, '') + '/' + randWord();
   },
 
   /**
-   * Return a random guid, version 5 by default.
-   * @param {number} version
+   * Return a random guid.
    */
-  guid(version = 5){
-    return chance.guid({ version });
+  guid(){
+    return randUuid();
   },
 
   /**
@@ -307,12 +326,11 @@ module.exports =  {
    * @param {string} format default YYY-MM-DD
    */
   date(timestamp, format = 'YYYY-MM-DD') {
-    const time = new Date(timestamp || Date.now() - rand(0, 1000) * 86400000);
-    const two = num => num >= 10 ? num : `0${num}`;
+    const time = new Date(timestamp || Date.now() - this.rand(0, 1000) * 86400000);
     return format
       .replace(/YYYY/g, time.getFullYear())
-      .replace(/MM/g, two(time.getMonth()+1))
-      .replace(/DD/g, two(time.getDate()));
+      .replace(/MM/g, twoDigits(time.getMonth()+1))
+      .replace(/DD/g, twoDigits(time.getDate()));
   },
 
   /**
@@ -321,13 +339,14 @@ module.exports =  {
    * @param {string} format default HH:mm:ss
    */
   time(timestamp, format = 'HH:mm:ss') {
-    const time = new Date(timestamp || Date.now() - rand(0, 86400000));
-    const two = num => num >= 10 ? num : `0${num}`;
+    const time = new Date(timestamp || Date.now() - this.rand(0, 86400000));
     return format
-      .replace(/HH/g, two(time.getHours()))
-      .replace(/mm/g, two(time.getMinutes()))
-      .replace(/ss/g, two(time.getSeconds()));
+      .replace(/HH/g, twoDigits(time.getHours()))
+      .replace(/mm/g, twoDigits(time.getMinutes()))
+      .replace(/ss/g, twoDigits(time.getSeconds()));
   },
+
+
 
   /**
    * Return some bytes.
@@ -352,15 +371,7 @@ module.exports =  {
    * @param {number} quantity
    */
   pick(arr, quantity = 1) {
-    return quantity <= 1 ? chance.pickone(arr) : chance.pickset(arr, quantity);
-  },
-
-  /**
-   * Given an array, scramble the order and return it.
-   * @param {any[]} arr
-   */
-  shuffle(arr) {
-    return chance.shuffle(arr);
+    return quantity === 1 ? randArr(arr) : randArr(arr, { length: quantity });
   },
 
   /**
@@ -400,38 +411,21 @@ module.exports =  {
    *    The codes above will output: "faker.integer(1, 10)";
    */
   get shadow() {
-    const inteceptor = (instance, key, isChance) => new Proxy(instance, {
+    const inteceptor = (instance, key) => new Proxy(instance, {
       // eslint-disable-next-line
       apply: function(_, __, argumentsList) {
         const args = argumentsList.map(arg => JSON.stringify(arg)).join(', ');
-        return isChance ? `faker.chance.${key}(${args})` : `faker.${key}(${args})`;
+        return `faker.${key}(${args})`;
       }
     });
     const shadow = new Proxy(this, {
       get(target, key) {
-        if (key === 'chance') {
-          return new Proxy(chance, {
-            get(target, key) {
-              return typeof target[key] === 'function' ? inteceptor(target[key], key, 1) :target[key];
-            },
-          });
-        }
-        return typeof target[key] === 'function' ? inteceptor(target[key], key) :target[key];
+        return typeof target[key] === 'function' ? inteceptor(target[key], key) : target[key];
       },
     });
     return shadow;
   }
 };
-
-function rand(min = 0, max) {
-  if (min < 0) {
-    throw new Error('`min` must be greater than -1.');
-  }
-  if (max <= 0) {
-    throw new Error('`max` must be greater than 0.');
-  }
-  return min + Math.floor(Math.random() * (max - min + 1));
-}
 
 function getChineseInfo () {
   const words = (

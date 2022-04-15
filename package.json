@@ -1,12 +1,13 @@
 {
   "name": "http-request-mock",
-  "version": "1.6.13",
+  "version": "1.6.15",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
-  "main": "dist/src/index.js",
-  "browser": "dist/http-request-mock.js",
+  "main": "src/index.js",
+  "module": "http-request-mock.esm.mjs",
+  "browser": "http-request-mock.js",
   "bin": {
-    "http-request-mock-cli": "bin/cli.js",
-    "http-request-mock": "bin/cli.js"
+    "http-request-mock-cli": "tool/bin/cli.js",
+    "http-request-mock": "tool/bin/cli.js"
   },
   "scripts": {
     "test": "jest --no-cache --testTimeout 8000",
@@ -14,9 +15,11 @@
     "coverage": "jest --no-cache --coverage --testTimeout 8000",
     "coveralls": "jest --coverage --testTimeout 8000 --coverageReporters=text-lcov | coveralls",
     "clean": "del-cli dist",
-    "build:bundle": "webpack",
-    "build": "npm run clean && tsc && npm run build:bundle",
-    "dev": "node ./development.js"
+    "dev": "node ./script/development.js",
+    "build": "node ./script/build.js",
+    "release": "node ./script/release.js",
+    "link-dist": "cd dist && npm link",
+    "unlink-dist": "cd dist && npm unlink http-request-mock"
   },
   "keywords": [
     "xhr mock",
@@ -65,13 +68,6 @@
     "superagent mock",
     "ky mock"
   ],
-  "files": [
-    "bin",
-    "plugin",
-    "tpl",
-    "dist",
-    "README.MD"
-  ],
   "author": "shuilonghu",
   "license": "MIT",
   "devDependencies": {
@@ -89,14 +85,14 @@
     "@babel/runtime": "^7.15.4",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^13.1.0",
-    "@types/node": "^14.17.18",
+    "@types/node": "^12.20.48",
     "@types/webpack": "^5.28.0",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "axios": "^0.21.4",
     "babel-loader": "^8.1.0",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
+    "copy-dir": "^1.3.0",
     "coveralls": "^3.1.1",
     "del-cli": "^3.0.1",
     "eslint": "^8.4.1",
@@ -115,8 +111,9 @@
     "ts-loader": "^8.3.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.4.3",
-    "webpack": "^5.54.0",
-    "webpack-cli": "^4.8.0"
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-watch-files-plugin": "^1.2.1"
   },
   "husky": {
     "hooks": {
@@ -132,7 +129,7 @@
     "node": ">=14.13.1"
   },
   "dependencies": {
-    "chance": "^1.1.8",
+    "@ngneat/falso": "^4.0.0",
     "chokidar": "^3.5.2",
     "commander": "^2.20.3",
     "http-proxy": "^1.18.1",

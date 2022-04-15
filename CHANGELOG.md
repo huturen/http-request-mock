@@ -1,4 +1,7 @@
 ### Changelog
+[2022-04-18]
+1. feat: add ESM module
+
 [2022-04-05]
 1. add 'use' API for mocker
 

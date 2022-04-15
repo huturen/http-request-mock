@@ -2,7 +2,9 @@
 const fs = require('fs');
 const path = require('path');
 const server = require('../bin/server');
-const Comment = require('./comment');
+const { parseCommentTags } = require('../lib/comment');
+const { log } = require('../lib/misc');
+const { convertJsType } = require('../lib/convertor');
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
 module.exports = class HttpRequestMockMockPlugin {
   /**
@@ -16,7 +18,7 @@ module.exports = class HttpRequestMockMockPlugin {
    *                         The default value will depend on your environment variable NODE_ENV if not specified:
    *                         i.e.: It'll be true on a development environment(NODE_ENV=development) by default.
    * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'cjs'.
-   *                      Valid values are: es6, cjs(alias of commonjs).
+   *                      Valid values are: es6(alias of ESM), cjs(alias of commonjs).
    * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server which
    *                           recives incoming requests on localhost. Mock files will be run in a node environment.
    *                           [matched] Proxy requests which are matched your defined mock items.
@@ -43,12 +45,12 @@ module.exports = class HttpRequestMockMockPlugin {
     this.watch = watch;
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
 
-    this.type = ['es6', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
-    this.environment = ['NODE_ENV', 'development'];
+    this.type = ['es6', 'esm', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
+    this.environment = '';
 
     const isProxyMode = proxyMode === 'matched' || proxyMode === 'marked';
-    if (this.type === 'es6' && isProxyMode) {
-      throw new Error('[proxyMode] does not compatible with the [type] of es6.');
+    if (['es6', 'esm'].includes(type) && isProxyMode) {
+      throw new Error('[proxyMode] does not compatible with the type of es6(ESM).');
     }
 
     this.proxyServer = '';
@@ -76,6 +78,7 @@ module.exports = class HttpRequestMockMockPlugin {
   async initProxyServer() {
     if (this.proxyMode === 'matched' || this.proxyMode === 'marked') {
       const address = await server.init({
+        type: this.type,
         proxyMode: this.proxyMode,
         mockDir: this.dir,
         environment: this.environment ? this.environment.join('=') : ''
@@ -94,7 +97,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const setMsg = entry => {
       injected = true;
       const dependency = path.relative(this.dir, this.runtimeFile);
-      console.log(`\x1b[32m[http-request-mock]\x1b[0m Injected mock dependency[${dependency}] for ${entry}`);
+      log(`Injected mock dependency[${dependency}] for ${entry}`);
     };
     const doInject = (entries, level = 0) => {
       if (injected) return;
@@ -237,44 +240,10 @@ module.exports = class HttpRequestMockMockPlugin {
       return this.runtimeFile;
     }
 
-    this.convertJsType(files);
+    convertJsType(this.type, files);
     fs.writeFileSync(this.runtimeFile, codes);
 
     return this.runtimeFile;
-  }
-
-  convertJsType(files) {
-    const isCjs = this.type === 'commonjs' || this.type === 'cjs';
-    for(const file of files) {
-      const content = fs.readFileSync(file, {encoding: 'utf8'});
-      if (isCjs && (/\s*export\s+default\s+/.test(content) || /import[^\n]+from\s+/.test(content))) {
-        fs.writeFileSync(file, this.covertES62CJS(content));
-        continue;
-      }
-      if (!isCjs && /\s*module\.exports\s*=/.test(content)) {
-        fs.writeFileSync(file, this.covertCJS2ES6(content));
-      }
-    }
-  }
-
-  covertES62CJS(codes) {
-    return codes.replace(
-      /^(\s*)import\s+(\w+)\s+from\s+('|")([.\w/-]+)\3\s*;?\s*$/gm,
-      '$1const $2 = require(\'$4\');'
-    ).replace(
-      /^(\s*)export\s+default\s+(.*)$/gm,
-      '$1module.exports = $2'
-    );
-  }
-
-  covertCJS2ES6(codes) {
-    return codes.replace(
-      /^(\s*)(const|let)\s+(.*?)\s*?=\s*?require\s*\(\s*('|")(.*?)\4\s*?\)\s*;?\s*$/gm,
-      '$1import $3 from \'$5\';'
-    ).replace(
-      /^(\s*)module\.exports\s+=\s*(.*)$/gm,
-      '$1export default $2'
-    );
   }
 
   /**
@@ -284,7 +253,6 @@ module.exports = class HttpRequestMockMockPlugin {
     const isCjs = this.type === 'commonjs' || this.type === 'cjs';
     const files = this.getAllMockFiles();
     const tpl = isCjs ? 'cjs' : 'es6';
-
     let codes = fs.readFileSync(path.resolve(__dirname, `../tpl/runtime.${tpl}.js`), {encoding: 'utf8'});
     codes = !this.environment ? codes : codes
       .replace('__hrm_environment_key__', this.environment[0])
@@ -295,7 +263,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const items = [];
     for (let i = 0; i < files.length; i += 1) {
-      const tags = Comment.parseCommentTags(files[i]);
+      const tags = parseCommentTags(files[i]);
 
       if (!tags.url) continue;
       if (/yes|true|1/i.test(tags.disable)) continue;
@@ -310,7 +278,7 @@ module.exports = class HttpRequestMockMockPlugin {
       const mockItem = { url: '', method, body: '', delay, status, times, header, remote, proxy };
       const info = JSON.stringify(mockItem, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
-        .replace(/"body": "",?/, isCjs ? `"body": require('${file}'),` : `"body": require('${file}').default,` );
+        .replace(/"body": "",?/, isCjs ? `"body": require('${file}'),` : `"body": import('${file}'),` );
       items.push(`  mocker.mock(${info.replace(/\n/g, '\n  ')});`);
     }
     codes = codes.replace(/( {2})?__hrm_mock_items__/, items.join('\n'));

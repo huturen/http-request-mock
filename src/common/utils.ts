@@ -151,3 +151,18 @@ export function isNodejs() {
     && (Object.prototype.toString.call(process) === '[object process]')
     && (!!(process.versions && process.versions.node));
 }
+
+/**
+ * Check if an object is a Promise
+ */
+export function isPromise(object: unknown){
+  if(Promise && Promise.resolve){
+    return Promise.resolve(object) === object;
+  }else{
+    throw new Error('Promise not supported in your environment');
+  }
+}
+
+export function isDynamicImported(obj: unknown) {
+  return obj && typeof obj === 'object' && ('default' in obj);
+}

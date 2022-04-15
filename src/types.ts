@@ -126,6 +126,10 @@ export interface ClientRequestOptions {
   timeout: number;
 }
 
+export interface DynamicImported {
+  default?: unknown;
+}
+
 
 // types:
 export type FetchRequest = {

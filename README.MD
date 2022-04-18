@@ -30,8 +30,8 @@ Integration Cases:
   [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 - A CURD demo (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
-  [Website](https://huturen.github.io/http-request-mock-curd/#/dashboard)
-  [Github](https://github.com/huturen/http-request-mock-curd),
+  [Website](https://huturen.github.io/http-request-mock-curd/#/dashboard),
+  [Github](https://github.com/huturen/http-request-mock-curd)
 
 - Unit test:
   [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),

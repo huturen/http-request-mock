@@ -29,8 +29,8 @@
   [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
 
 - 增、删、改、查案例 (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
-  [网站](https://huturen.github.io/http-request-mock-curd/#/dashboard)
-  [Github](https://github.com/huturen/http-request-mock-curd),
+  [网站](https://huturen.github.io/http-request-mock-curd/#/dashboard),
+  [Github](https://github.com/huturen/http-request-mock-curd)
 
 - 单元测试:
   [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),

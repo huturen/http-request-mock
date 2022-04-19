@@ -148,5 +148,3 @@ export default class Index {
   }
   static default = Index; // for backward compatibility
 }
-
-module.exports = Index; // without 'default' property

@@ -27,15 +27,17 @@ module.exports = env => {
     devtool: 'source-map',
     entry: './src/index.ts',
     // devtool: 'inline-source-map',
+
     module: {
       rules: [
         {
           test: /\.tsx?$/,
-          use: 'ts-loader',
-          exclude: /node_modules/,
+          loader: 'ts-loader',
+          options: { configFile: target === 'esm' ? 'tsconfig.esm.json' : 'tsconfig.json' },
         },
       ],
     },
+
     resolve: {
       extensions: ['.tsx', '.ts', '.js'],
       fallback: {
@@ -81,14 +83,6 @@ module.exports = env => {
           compiler.hooks.done.tap('After', () => {
             if (target !== 'esm') return;
 
-            console.log('Generating http-request-mock.esm.mjs...');
-            fs.writeFileSync(resolve('dist/http-request-mock.esm.mjs'), [
-              'import \'./http-request-mock.__esm_raw__.js\'',
-              'const __MODULE_DEFAULT_EXPORT__ = window.__MODULE_DEFAULT_EXPORT__',
-              'delete window.__MODULE_DEFAULT_EXPORT__',
-              'export default __MODULE_DEFAULT_EXPORT__',
-            ].join('\n'));
-
             console.log('Generating ESM plugins...');
             convertJsType('esm', {
               [resolve('./tool/plugin/faker.js')]: resolve('./dist/tool/plugin/faker.mjs'),
@@ -108,13 +102,16 @@ module.exports = env => {
         }
       },
     ],
+    experiments: target === 'esm' ? { outputModule: true, } : undefined,
+
+    target: 'web',
     output: target === 'esm'
       ? {
-        filename: 'http-request-mock.__esm_raw__.js',
+        filename: 'http-request-mock.esm.mjs',
         path: path.resolve(__dirname, 'dist'),
-        library: '__MODULE_DEFAULT_EXPORT__',
-        libraryTarget: 'window',
-        libraryExport: 'default'
+        library: {
+          type: 'module'
+        }
       }
       : {
         filename: 'http-request-mock.js',

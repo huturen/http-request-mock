@@ -677,6 +677,13 @@ module.exports = (requestInfo) => {
 
 ```
 
+2. TypeError: __webpack_require__.r is not a function
+```
+解决方案:
+  把 `require('http-request-mock')` 改成 `require('http-request-mock/http-request-mock.js')`,
+  如果你使用es6， 则把`import('http-request-mock')` 改成 `import('http-request-mock/http-request-mock.js')`。
+```
+
 ## License
 
 http-request-mock is licensed under the MIT license.

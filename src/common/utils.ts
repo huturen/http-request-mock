@@ -164,10 +164,10 @@ export function isPromise(object: unknown){
 }
 
 /**
- * Check if an object is imported
+ * Check if an object is imported.
  */
 export function isImported(obj: unknown) {
-  return obj && typeof obj === 'object' && ('default' in obj);
+  return obj && typeof obj === 'object' && Object.keys(obj).length === 1 && ('default' in obj);
 }
 
 

@@ -697,6 +697,13 @@ Solution 2: set [type] option to es6. Note: es6 can't work with proxy mode, don'
     }),
 ```
 
+2. TypeError: __webpack_require__.r is not a function
+```
+Solution:
+  Change `require('http-request-mock')` to `require('http-request-mock/http-request-mock.js')`,
+  or change `import('http-request-mock')` to `import('http-request-mock/http-request-mock.js')` if you are using es6.
+```
+
 ## License
 
 http-request-mock is licensed under the MIT license.

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parseCommentTags } from '../../tool/lib/comment.js';
+import { isImported } from '../common/utils.js';
 import MockItem from './mock-item';
 import Mocker from './mocker';
 
@@ -26,6 +27,7 @@ export default class Use {
       const tags = parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
       // To avoid "Critical dependency: the request of a dependency is an expression" error
       tags.body = require(absoluteFile);
+      tags.body = isImported(tags.body) ? (tags.body as {default: unknown}).default : tags.body;
       return this.mock(tags);
     };
   }

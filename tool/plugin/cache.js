@@ -4,6 +4,10 @@
  * @param {object | array} mockData
  */
 module.exports = function cacheWrapper(cacheKey, mockData) {
+  if (typeof localStorage === 'undefined') {
+    return mockData;
+  }
+
   const isObjOrArr = (obj) => {
     return {}.toString.call(obj) === '[object Object]' || {}.toString.call(obj) === '[object Array]';
   };

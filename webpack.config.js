@@ -81,7 +81,12 @@ module.exports = env => {
       {
         apply: (compiler) => {
           compiler.hooks.done.tap('After', () => {
-            if (target !== 'esm') return;
+            if (target !== 'esm') {
+              // For backward compatibility with require: it's not good, but it works.
+              const index = resolve('./dist/src/index.js');
+              fs.writeFileSync(index, fs.readFileSync(index, 'utf8') + '\nmodule.exports = Index;');
+              return;
+            }
 
             console.log('Generating ESM plugins...');
             convertJsType('esm', {
@@ -89,6 +94,7 @@ module.exports = env => {
               [resolve('./tool/plugin/cache.js')]: resolve('./dist/tool/plugin/cache.mjs'),
               [resolve('./tool/plugin/webpack.js')]: resolve('./dist/tool/plugin/webpack.mjs'),
             });
+
             // Copy a redundant plugin directory for backward compatibility.
             console.log('Copy a redundant plugin directory for backward compatibility.');
             copyDir.sync(resolve('./dist/tool/plugin'), resolve('./dist/plugin'), copyOpts);
@@ -117,6 +123,7 @@ module.exports = env => {
         filename: 'http-request-mock.js',
         path: path.resolve(__dirname, 'dist'),
         library: 'HttpRequestMock',
+        globalObject: 'typeof self !== \'undefined\' ? self : this',
         libraryTarget: 'umd',
         libraryExport: 'default'
       }

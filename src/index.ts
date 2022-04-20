@@ -1,3 +1,5 @@
+import cache from '../tool/plugin/cache.js';
+import faker from '../tool/plugin/faker.js';
 import { isNodejs } from './common/utils';
 import InterceptorFetch from './interceptor/fetch';
 import InterceptorWxRequest from './interceptor/wx-request';
@@ -146,5 +148,7 @@ export default class Index {
 
     return mocker;
   }
+  static faker = faker;
+  static cache = cache;
   static default = Index; // for backward compatibility
 }

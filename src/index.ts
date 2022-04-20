@@ -1,36 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-import { parseCommentTags } from '../tool/lib/comment.js';
 import Browser from './browser';
-import { getCallerFile, isNodejs } from './common/utils';
+import { isNodejs } from './common/utils';
 import Dummy from './dummy';
 import NodeHttpAndHttps from './interceptor/node/http-and-https';
-import MockItem from './mocker/mock-item.js';
 import Mocker from './mocker/mocker';
+import Use from './mocker/use';
 
-/**
-* Note: this method is only for a nodejs envrioment(test environment).
-* Use a mock file & add it to global mock data configuration.
-* @param {string} file
-*/
-Mocker.prototype.use = function use(file: string) {
-  let absoluteFile = file;
-  if (!path.isAbsolute(file)) {
-    const callerFile = getCallerFile();
-    if (!callerFile) {
-      throw new Error('Expected "file" to be a absolute path.');
-    }
-    absoluteFile = path.resolve(callerFile, '..', file);
-  }
-  if (!fs.existsSync(absoluteFile)) {
-    throw new Error(`${absoluteFile} does not exist.`);
-  }
-  const tags = parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
-  // To avoid "Critical dependency: the request of a dependency is an expression" error
-  tags.body = require(absoluteFile);
-  return this.mock(tags);
-};
 
+Use.init();
 export default class Index extends Browser{
   /**
    * Auto detect request environment and setup request mock for wx.request, fetch and XHR.
@@ -77,19 +53,28 @@ export default class Index extends Browser{
       throw new Error('Invalid type, valid types are "wx", "xhr", "fetch", "node" and "all".');
     }
 
+    const mocker = new Mocker();
+
     if (type === 'wx' || type === 'all') {
       Dummy.initDummyWxRequestForUnitTest();
+      this.setupForWx();
     }
 
     if (type === 'xhr' || type === 'all') {
       Dummy.initDummyXHRForUnitTest();
+      this.setupForXhr();
     }
 
     if (type === 'fetch' || type === 'all') {
       Dummy.initDummyFetchForUnitTest();
+      this.setupForFetch();
     }
 
-    return this.setupForNode();
+    if (type === 'node' || type === 'all') {
+      this.setupForNode();
+    }
+
+    return mocker;
   }
 
   static default = Index; // for backward compatibility

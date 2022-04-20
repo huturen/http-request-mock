@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parseCommentTags } from '../../tool/lib/comment.js';
-import { isImported } from '../common/utils.js';
+import { isImported } from '../common/utils';
 import MockItem from './mock-item';
 import Mocker from './mocker';
 

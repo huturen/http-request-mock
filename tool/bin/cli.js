@@ -21,6 +21,9 @@ module.exports = new class CommandToolLine {
     program.environment = program.environment && /^\w+=\w+$/.test(program.environment)
       ? program.environment
       : '';
+    program.index = ['src/index.js', 'http-request-mock.js', 'http-request-mock.esm.mjs'].includes(program.index)
+      ? program.index
+      : '';
     this.main();
   }
 
@@ -68,6 +71,7 @@ module.exports = new class CommandToolLine {
       dir,
       entry: /1/,
       type: program.type,
+      index: program.index,
     });
     webpack.environment = program.environment ? program.environment.split('=') : null;
 
@@ -142,6 +146,7 @@ module.exports = new class CommandToolLine {
       dir,
       entry: /1/,
       type: program.type,
+      index: program.index,
       proxyMode: program.proxy
     });
 
@@ -317,6 +322,14 @@ module.exports = new class CommandToolLine {
         'The module type of .runtime.js.\n'+spaces+
         ' Possible values are: es6(alias of ESM), cjs(alias of commonjs).\n'+spaces,
         'cjs'
+      )
+      .option(
+        '--index [index-entry]',
+        'Index entry, automatic detection by default.\n'+spaces+
+        ' Possible values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.\n'+spaces+
+        ' [src/index.js] for commonJS\n'+spaces+
+        ' [http-request-mock.js] for UMD\n'+spaces+
+        ' [http-request-mock.esm.mjs] for ESM\n'
       )
       .option(
         '-p, --proxy [mode]',

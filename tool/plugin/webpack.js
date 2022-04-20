@@ -19,6 +19,13 @@ module.exports = class HttpRequestMockMockPlugin {
    *                         i.e.: It'll be true on a development environment(NODE_ENV=development) by default.
    * @param {string} type Optional, the module type of .runtime.js.. Defaults to 'cjs'.
    *                      Valid values are: es6(alias of ESM), cjs(alias of commonjs).
+   *
+   * @param {string} index Optional, Index entry, automatic detection by default.
+   *                        Valid values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
+   *                        [src/index.js] for commonJS
+   *                        [http-request-mock.js] for UMD
+   *                        [http-request-mock.esm.mjs] for ESM
+   *
    * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server which
    *                           recives incoming requests on localhost. Mock files will be run in a node environment.
    *                           [matched] Proxy requests which are matched your defined mock items.
@@ -30,6 +37,7 @@ module.exports = class HttpRequestMockMockPlugin {
     watch,
     enable,
     type,
+    index,
     proxyMode = 'none',
   }) {
     if (!(entry instanceof RegExp)) {
@@ -46,6 +54,9 @@ module.exports = class HttpRequestMockMockPlugin {
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
 
     this.type = ['es6', 'esm', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
+    this.getIndexEntry = ['src/index.js', 'http-request-mock.js', 'http-request-mock.esm.mjs'].includes(index)
+      ? `http-request-mock/${index}`
+      : 'http-request-mock';
     this.environment = '';
 
     const isProxyMode = proxyMode === 'matched' || proxyMode === 'marked';
@@ -257,6 +268,7 @@ module.exports = class HttpRequestMockMockPlugin {
     codes = !this.environment ? codes : codes
       .replace('__hrm_environment_key__', this.environment[0])
       .replace('__hrm_environment_val__', this.environment[1])
+      .replace('__hrm_index_entry__', this.getIndexEntry)
       .replace(/\/\* __hrf_env_if__ \*\//g, '');
 
     codes = codes.replace('__hrm_proxy_server__', this.proxyServer ? `"${this.proxyServer}"` : '');

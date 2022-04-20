@@ -25,23 +25,6 @@ export default class WxRequestInterceptor extends Base {
   }
 
   /**
-   * Initialize a dummy 'wx.request' object if 'wx.request' is not existent in the context.
-   * @param {Mocker} mocker
-   */
-  static initDummyWxRequestForUnitTest(mocker: Mocker) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const global: any = Base.getGlobal();
-    global.wx = global.wx || {};
-    if (!global.wx.request) {
-      // use require here to avoid static analysis
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      global.wx.request = require('../dummy/wx-request').default.bind(global.wx);
-    }
-
-    return new WxRequestInterceptor(mocker);
-  }
-
-  /**
    * https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
    * Intercept wx.request object.
    */

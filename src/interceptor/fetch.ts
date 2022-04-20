@@ -26,20 +26,6 @@ export default class FetchInterceptor extends Base{
   }
 
   /**
-   * Initialize a dummy 'fetch' object if 'fetch' is not existent in the context.
-   * @param {Mocker} mocker
-   */
-  static initDummyFetchForUnitTest(mocker: Mocker) {
-    const global = Base.getGlobal();
-    if (!global.fetch) {
-      // use require here to avoid static analysis
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      global.fetch = require('../dummy/fetch').default;
-    }
-    return new FetchInterceptor(mocker);
-  }
-
-  /**
    * https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
    * Intercept fetch object.
    */

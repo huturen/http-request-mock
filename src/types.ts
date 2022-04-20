@@ -19,6 +19,12 @@ export enum Disable {
 }
 
 // interfaces:
+
+
+export interface AnyObject {
+  [key: string]: unknown;
+}
+
 export interface Query {
   [key: string]: string
 }
@@ -66,6 +72,11 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
 }
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+export interface WxObject {
+  request: Function;
+}
+
+
 export interface WxRequestOpts {
   url: string;
   method: Method;

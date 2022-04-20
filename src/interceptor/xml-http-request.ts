@@ -24,17 +24,6 @@ export default class XMLHttpRequestInterceptor extends Base {
   }
 
   /**
-   * Initialize a dummy 'XMLHttpRequest' object if 'XMLHttpRequest' is not existent in the context.
-   * @param {Mocker} mocker
-   */
-  static initDummyXHRForUnitTest(mocker: Mocker) {
-    // use require here to avoid static analysis
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    global.XMLHttpRequest = global.XMLHttpRequest || require('../dummy/xhr').default;
-    return new XMLHttpRequestInterceptor(mocker);
-  }
-
-  /**
    * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
    * Logic of intercepting XMLHttpRequest object.
    */

@@ -1,69 +1,52 @@
-import cache from '../tool/plugin/cache.js';
-import faker from '../tool/plugin/faker.js';
-import { isNodejs } from './common/utils';
-import InterceptorFetch from './interceptor/fetch';
-import InterceptorWxRequest from './interceptor/wx-request';
-import InterceptorXhr from './interceptor/xml-http-request';
+import fs from 'fs';
+import path from 'path';
+import { parseCommentTags } from '../tool/lib/comment.js';
+import Browser from './browser';
+import { getCallerFile, isNodejs } from './common/utils';
+import Dummy from './dummy';
+import NodeHttpAndHttps from './interceptor/node/http-and-https';
+import MockItem from './mocker/mock-item.js';
 import Mocker from './mocker/mocker';
 
-export default class Index {
-  private static isEnabled = true;
+/**
+* Note: this method is only for a nodejs envrioment(test environment).
+* Use a mock file & add it to global mock data configuration.
+* @param {string} file
+*/
+Mocker.prototype.use = function use(file: string) {
+  let absoluteFile = file;
+  if (!path.isAbsolute(file)) {
+    const callerFile = getCallerFile();
+    if (!callerFile) {
+      throw new Error('Expected "file" to be a absolute path.');
+    }
+    absoluteFile = path.resolve(callerFile, '..', file);
+  }
+  if (!fs.existsSync(absoluteFile)) {
+    throw new Error(`${absoluteFile} does not exist.`);
+  }
+  const tags = parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
+  // To avoid "Critical dependency: the request of a dependency is an expression" error
+  tags.body = require(absoluteFile);
+  return this.mock(tags);
+};
+
+export default class Index extends Browser{
   /**
    * Auto detect request environment and setup request mock for wx.request, fetch and XHR.
    * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
   static setup(proxyServer = ''): Mocker {
-    const mocker = new Mocker(proxyServer);
+    const mocker = Browser.setup(proxyServer);
 
-    if (this.isEnabled && typeof wx !== 'undefined' && typeof wx.request === 'function') {
-      InterceptorWxRequest.setup(mocker, proxyServer);
-    }
-
-    if (this.isEnabled && typeof window !== 'undefined' && typeof window.XMLHttpRequest === 'function') {
-      InterceptorXhr.setup(mocker, proxyServer);
-    }
-
-    if (this.isEnabled && typeof window !== 'undefined' && typeof window.fetch === 'function') {
-      InterceptorFetch.setup(mocker, proxyServer);
-    }
 
     // for http.get, https.get, http.request, https.request in node environment
     if (this.isEnabled && isNodejs()) {
       // use require here to avoid static analysis
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
+      NodeHttpAndHttps.setup(mocker, proxyServer);
     }
 
-    return mocker;
-  }
-
-  /**
-   * Setup request mock for wx.request.
-   * @param {string} proxyServer A proxy server which is used by proxy mode.
-   */
-  static setupForWx(proxyServer = ''): Mocker {
-    const mocker = new Mocker(proxyServer);
-    this.isEnabled && InterceptorWxRequest.setup(mocker, proxyServer);
-    return mocker;
-  }
-
-  /**
-   * Setup request mock for XMLHttpRequest.
-   * @param {string} proxyServer A proxy server which is used by proxy mode.
-   */
-  static setupForXhr(proxyServer = ''): Mocker {
-    const mocker = new Mocker(proxyServer);
-    this.isEnabled && InterceptorXhr.setup(mocker, proxyServer);
-    return mocker;
-  }
-
-  /**
-   * Setup request mock for fetch.
-   * @param {string} proxyServer A proxy server which is used by proxy mode.
-   */
-  static setupForFetch(proxyServer = ''): Mocker {
-    const mocker = new Mocker(proxyServer);
-    this.isEnabled && InterceptorFetch.setup(mocker, proxyServer);
     return mocker;
   }
 
@@ -76,43 +59,11 @@ export default class Index {
     const mocker = new Mocker(proxyServer);
     // use require here to avoid static analysis
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    this.isEnabled && require('./interceptor/node/http-and-https').default.setup(mocker, proxyServer);
+    this.isEnabled && NodeHttpAndHttps.setup(mocker, proxyServer);
     return mocker;
   }
 
-  /**
-   * Enable mock function temporarily.
-   * Not available in proxy mode.
-   */
-  static enable(): Mocker {
-    this.isEnabled = true;
-    return Mocker.getInstance().enable();
-  }
 
-  /**
-   * Disable mock function temporarily.
-   * Not available in proxy mode.
-   */
-  static disable(): Mocker {
-    this.isEnabled = false;
-    return Mocker.getInstance().disable();
-  }
-
-  /**
-   * Enable verbose log.
-   * Not available in proxy mode.
-   */
-  static enableLog(): Mocker {
-    return Mocker.getInstance().enableLog();
-  }
-
-  /**
-   * Disable verbose log.
-   * Not available in proxy mode.
-   */
-  static disableLog(): Mocker {
-    return Mocker.getInstance().disableLog();
-  }
 
   /**
    * Setup request mock for unit test.
@@ -126,29 +77,20 @@ export default class Index {
       throw new Error('Invalid type, valid types are "wx", "xhr", "fetch", "node" and "all".');
     }
 
-    const mocker = new Mocker();
-
     if (type === 'wx' || type === 'all') {
-      InterceptorWxRequest.initDummyWxRequestForUnitTest(mocker);
+      Dummy.initDummyWxRequestForUnitTest();
     }
 
     if (type === 'xhr' || type === 'all') {
-      InterceptorXhr.initDummyXHRForUnitTest(mocker);
+      Dummy.initDummyXHRForUnitTest();
     }
 
     if (type === 'fetch' || type === 'all') {
-      InterceptorFetch.initDummyFetchForUnitTest(mocker);
+      Dummy.initDummyFetchForUnitTest();
     }
 
-    if (type === 'node' || type === 'all') {
-      // use require here to avoid static analysis
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./interceptor/node/http-and-https').default.setup(mocker);
-    }
-
-    return mocker;
+    return this.setupForNode();
   }
-  static faker = faker;
-  static cache = cache;
+
   static default = Index; // for backward compatibility
 }

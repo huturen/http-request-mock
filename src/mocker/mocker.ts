@@ -1,16 +1,15 @@
-import { parseCommentTags } from '../../tool/lib/comment';
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import { Logs, Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
-  private static instance: Mocker;
-  private mockConfigData: MockConfigData;
-  private disabled = false;
-  private log = false;
-  private proxyServer = '';
-  private proxyMode = 'none';
+  protected static instance: Mocker;
+  protected mockConfigData: MockConfigData;
+  protected disabled = false;
+  protected log = false;
+  protected proxyServer = '';
+  protected proxyMode = 'none';
 
   constructor(proxyServer = '') {
     if (Mocker.instance) {
@@ -122,54 +121,13 @@ export default class Mocker {
   }
 
   /**
-   * Note: this method is only for a nodejs envrioment(test environment).
+   * Note: this method is only for a nodejs envrionment(test environment).
    * Use a mock file & add it to global mock data configuration.
    * @param {string} file
    */
   public use(file: string) {
-    // use require here to avoid static analysis
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('fs');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const path = require('path');
-    let absoluteFile = file;
-    if (!path.isAbsolute(file)) {
-      const callerFile = this.getCallerFile();
-      if (!callerFile) {
-        throw new Error('Expected "file" to be a absolute path.');
-      }
-      absoluteFile = path.resolve(callerFile, '..', file);
-    }
-    if (!fs.existsSync(absoluteFile)) {
-      throw new Error(`${absoluteFile} does not exist.`);
-    }
-    const tags = parseCommentTags(absoluteFile) as unknown as Partial<MockItem>;
-    // To avoid "Critical dependency: the request of a dependency is an expression" error
-    tags.body = eval('require')(absoluteFile);
-    return this.mock(tags);
+    throw new Error(`Can not use mock case: ${file}, only for a nodejs envrionment`);
   }
-
-  /**
-   * Get caller file from error stack
-   */
-  private getCallerFile() {
-    const oldPrepareStackTrace = Error.prepareStackTrace;
-    Error.prepareStackTrace = (_, stack)  => stack;
-    const stack = new Error().stack as unknown as Record<string, { getFileName: () => string }>;
-    Error.prepareStackTrace = oldPrepareStackTrace;
-
-
-    if (stack !== null && typeof stack === 'object') {
-      for(let i = 0; i < 50; i++) {
-        const file = stack[i] ? stack[i].getFileName() : undefined;
-        const next = stack[i + 1] ? stack[i + 1].getFileName() : undefined;
-        if (file !== next && file === __filename) {
-          return next;
-        }
-      }
-    }
-  }
-
 
   /**
    * Check specified mock item & add it to global mock data configuration.

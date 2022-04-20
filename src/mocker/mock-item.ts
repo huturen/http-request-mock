@@ -1,5 +1,5 @@
 import Bypass from '../common/bypass';
-import { getQuery, isDynamicImported, isPromise, queryObject2String } from '../common/utils';
+import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
 import { Disable, DynamicImported, Header, Method, RequestInfo } from '../types';
 
 export default class MockItem {
@@ -57,7 +57,7 @@ export default class MockItem {
     }
     if (isPromise(body)) {
       (body as Promise<unknown>).then((data) => {
-        this.body = isDynamicImported(data) ? (data as DynamicImported).default : data;
+        this.body = isImported(data) ? (data as DynamicImported).default : data;
       });
     } {
       this.body = body;

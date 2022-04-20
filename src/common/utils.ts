@@ -163,6 +163,31 @@ export function isPromise(object: unknown){
   }
 }
 
-export function isDynamicImported(obj: unknown) {
+/**
+ * Check if an object is imported
+ */
+export function isImported(obj: unknown) {
   return obj && typeof obj === 'object' && ('default' in obj);
+}
+
+
+/**
+ * Get caller file from error stack
+ */
+export function getCallerFile() {
+  const oldPrepareStackTrace = Error.prepareStackTrace;
+  Error.prepareStackTrace = (_, stack)  => stack;
+  const stack = new Error().stack as unknown as Record<string, { getFileName: () => string }>;
+  Error.prepareStackTrace = oldPrepareStackTrace;
+
+
+  if (stack !== null && typeof stack === 'object') {
+    for(let i = 0; i < 50; i++) {
+      const file = stack[i] ? stack[i].getFileName() : undefined;
+      const next = stack[i + 1] ? stack[i + 1].getFileName() : undefined;
+      if (file !== next && file === __filename) {
+        return next;
+      }
+    }
+  }
 }

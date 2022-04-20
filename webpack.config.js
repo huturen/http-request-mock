@@ -2,7 +2,6 @@
 // This file is used to generate UMD & ESM bundles.
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 const copyDir = require('copy-dir');
 const WatchExternalFilesPlugin = require('webpack-watch-files-plugin').default;
 const { convertJsType } = require('./tool/lib/convertor');
@@ -25,7 +24,7 @@ module.exports = env => {
     mode: 'production',  // development, production
     optimization: { minimize: false },
     devtool: 'source-map',
-    entry: './src/index.ts',
+    entry: './src/browser.ts',
     // devtool: 'inline-source-map',
 
     module: {
@@ -40,30 +39,11 @@ module.exports = env => {
 
     resolve: {
       extensions: ['.tsx', '.ts', '.js'],
-      fallback: {
-        'fs': false,
-        'tls': false,
-        'net': false,
-        'util': false,
-        'path': false,
-        'zlib': false,
-        'http': false,
-        'https': false,
-        'stream': false,
-        'crypto': false,
-        'url': false,
-      }
     },
     plugins: [
       // add js files in tool direcotry to watch list
       new WatchExternalFilesPlugin({
         files: [ './tool/**/*.js', ]
-      }),
-      // ignore some dependencies of nodejs
-      new webpack.IgnorePlugin({
-        checkResource(resource) {
-          return /dummy\/(fetch|wx-request|xhr)/.test(resource) || /\/node\/http-and-https/.test(resource);
-        },
       }),
       // copy "tool" to dist
       {
@@ -82,7 +62,7 @@ module.exports = env => {
         apply: (compiler) => {
           compiler.hooks.done.tap('After', () => {
             if (target !== 'esm') {
-              // For backward compatibility with require: it's not good, but it works.
+              // for backward compatibility
               const index = resolve('./dist/src/index.js');
               fs.writeFileSync(index, fs.readFileSync(index, 'utf8') + '\nmodule.exports = Index;');
               return;

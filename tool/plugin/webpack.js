@@ -268,9 +268,9 @@ module.exports = class HttpRequestMockMockPlugin {
     codes = !this.environment ? codes : codes
       .replace('__hrm_environment_key__', this.environment[0])
       .replace('__hrm_environment_val__', this.environment[1])
-      .replace('__hrm_index_entry__', this.getIndexEntry)
       .replace(/\/\* __hrf_env_if__ \*\//g, '');
 
+    codes = codes.replace('__hrm_index_entry__', this.getIndexEntry);
     codes = codes.replace('__hrm_proxy_server__', this.proxyServer ? `"${this.proxyServer}"` : '');
 
     const items = [];

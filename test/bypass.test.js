@@ -4,7 +4,8 @@ import xhrAdapter from 'axios/lib/adapters/xhr';
 import http from 'http';
 import https from 'https';
 import Bypass from '../src/common/bypass';
-import * as fallback from '../src/dummy/fallback';
+// Use * as simpleRequest" to simplify codes
+import * as simpleRequest from '../src/common/request';
 import HttpRequestMock from '../src/index';
 import XMLHttpRequestInterceptor from '../src/interceptor/xml-http-request';
 
@@ -15,7 +16,7 @@ describe('test bypassing', () => {
   beforeEach(() => {
     console.error = jest.fn();
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockResolvedValue({
+    simpleRequest.default = jest.fn().mockResolvedValue({
       body: 'fake-body',
       response: {
         statusCode: 200,
@@ -26,7 +27,7 @@ describe('test bypassing', () => {
   });
   afterEach(() => {
     console.error.mockRestore();
-    fallback.default.mockRestore();
+    simpleRequest.default.mockRestore();
   });
 
   it('xhr(shipped with jsdom) should support to bypass a mock request', async () => {
@@ -67,7 +68,7 @@ describe('test bypassing', () => {
       }
     });
     const res = await axios.get('https://www.api.com/xhr2-bypass');
-    expect(fallback.default).toBeCalled();
+    expect(simpleRequest.default).toBeCalled();
     expect(bypass).toBeInstanceOf(Bypass);
     expect(res.data).toBe('fake-body');
   });
@@ -86,7 +87,7 @@ describe('test bypassing', () => {
       }
     });
     const res = await fetch('https://www.api.com/fetch-bypass').then(res => res.text());
-    expect(fallback.default).toBeCalled();
+    expect(simpleRequest.default).toBeCalled();
     expect(bypass).toBeInstanceOf(Bypass);
     expect(res).toBe('fake-body');
   });
@@ -108,7 +109,7 @@ describe('test bypassing', () => {
     wx.request({
       url: 'https://www.api.com/wxrequest-bypass',
       success() {
-        expect(fallback.default).toBeCalled();
+        expect(simpleRequest.default).toBeCalled();
         expect(bypass).toBeInstanceOf(Bypass);
         done();
       }

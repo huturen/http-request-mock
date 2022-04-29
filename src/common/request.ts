@@ -2,6 +2,8 @@ import http, { IncomingMessage } from 'http';
 import https from 'https';
 import { URL } from 'url';
 import * as zlib from 'zlib';
+import { AnyObject } from './../types';
+import { tryToParseJson } from './utils';
 
 /**
  * In nodejs environment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock
@@ -15,15 +17,16 @@ import * as zlib from 'zlib';
  * @param {object} headers
  * @param {any} body
  * @param {object} opts
- * @returns
  */
-export default function fallback(
+export default function request(requestConfig: {
   url: string | URL,
   method: string,
-  headers: Record<string, string>,
-  body: unknown,
-  opts: Record<string, string> = {}
-): Promise<{body: string, response: IncomingMessage}> {
+  headers?: Record<string, string>,
+  body?: unknown,
+  opts?: Record<string, string>
+}): Promise<{body: string, json: AnyObject, response: IncomingMessage}> {
+  const {url, method, headers = {}, body, opts = {} } = requestConfig;
+
   return new Promise((resolve, reject) => {
     const isHttps = isHttpsUrl(url);
     const protocol = isHttps ? https : http;
@@ -34,8 +37,8 @@ export default function fallback(
       ...opts
     };
     const req = protocol.request(url, reqOpts, (response: IncomingMessage) => {
-      getResponseBody(response).then(body => {
-        resolve({ body, response });
+      getResponseBody(response).then(({ body, json }) => {
+        resolve({ body, json, response });
       }).catch(err => {
         req.emit('error', err);
       });
@@ -70,7 +73,7 @@ function isHttpsUrl(url: string | URL) {
   return false;
 }
 
-function getResponseBody(response: IncomingMessage): Promise<string> {
+function getResponseBody(response: IncomingMessage): Promise<{ body: string, json: AnyObject }> {
   const stream = response.headers['content-encoding'] === 'gzip'
     ? response.pipe(zlib.createGunzip())
     : response;
@@ -85,7 +88,7 @@ function getResponseBody(response: IncomingMessage): Promise<string> {
     stream.on('data', chunk => (body += chunk));
 
     stream.once('end', () => {
-      resolve(body);
+      resolve({ body, json: tryToParseJson(body, null) });
       stream.removeAllListeners();
     });
   });

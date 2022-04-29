@@ -131,13 +131,6 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const mockItem:MockItem | null  = this.matchMockRequest(url, method);
     if (!mockItem) return false;
 
-    const remoteInfo = mockItem?.getRemoteInfo(url);
-    if (remoteInfo) {
-      const { headers, agent, agents, auth } = options;
-      const remoteOptions = { method: remoteInfo.method || method, headers, agent, agents, auth };
-      return { url, options: remoteOptions, callback, isNodeRequestOpts: true } as NodeRequestOpts;
-    }
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import Bypass from '../common/bypass';
-import { sleep } from '../common/utils';
+import { sleep, tryToParseJson } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { FetchRequest, Method, RequestInfo } from '../types';
+import { FetchRequest, FetchResponse, Method, RemoteResponse, RequestInfo } from '../types';
+import { AnyObject } from './../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
@@ -32,10 +33,9 @@ export default class FetchInterceptor extends Base{
   private intercept() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
-    this.global.fetch = function(input: string | FetchRequest, init: Record<string, string>) {
-
+    this.global.fetch = function(input: string | FetchRequest, init: AnyObject) {
       let url: string;
-      let params: Record<string, string | Record<string, string> | unknown>;
+      let params: FetchRequest | AnyObject;
       // https://developer.mozilla.org/en-US/docs/Web/API/Request
       // Note: the first argument of fetch maybe a Request object.
       if (typeof input === 'object') {
@@ -50,26 +50,61 @@ export default class FetchInterceptor extends Base{
 
       return new Promise((resolve, reject) => {
         const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);
+        if (!mockItem) {
+          me.fetch(requestUrl, params).then(resolve).catch(reject);
+          return;
+        }
 
+        const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as Method });
         const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
         if (remoteInfo) {
           params.method = remoteInfo.method || method;
-          me.fetch(remoteInfo.url, params).then(resolve).catch(reject);
+          me.fetch(remoteInfo.url, params).then((fetchResponse: FetchResponse) => {
+            me.sendRemoteResult(fetchResponse, mockItem, requestInfo, resolve);
+          }).catch(reject);
+          return;
         }
-        else if (mockItem) {
-          const requestInfo = me.getRequestInfo({ url: requestUrl, method, ...params });
-          me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
-            if (isBypassed) {
-              me.fetch(requestUrl, params).then(resolve).catch(reject);
-            }
-          });
-        }
-        else {
-          me.fetch(requestUrl, params).then(resolve).catch(reject);
-        }
+
+        me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
+          if (isBypassed) {
+            me.fetch(requestUrl, params).then(resolve).catch(reject);
+          }
+        });
       });
     };
     return this;
+  }
+
+  /**
+   * Set remote result.
+   * @param {FetchResponse} fetchResponse
+   * @param {MockItem} mockItem
+   * @param {RequestInfo} requestInfo
+   * @param {Function} resolve
+   */
+  private sendRemoteResult(
+    fetchResponse: FetchResponse,
+    mockItem: MockItem,
+    requestInfo: RequestInfo,
+    resolve: Function
+  ) {
+    const headers: Record<string, string> = {};
+    if (typeof Headers === 'function' && fetchResponse.headers instanceof Headers) {
+      fetchResponse.headers.forEach((val: string, key: string) => {
+        headers[key.toLocaleLowerCase()] = val;
+      });
+    }
+    fetchResponse.text().then((text) => {
+      const json = tryToParseJson(text);
+      const remoteResponse: RemoteResponse = {
+        status: fetchResponse.status,
+        headers,
+        response: json || text,
+        responseText: text,
+        responseJson: json,
+      };
+      this.doMockRequest(mockItem, requestInfo, resolve, remoteResponse);
+    });
   }
 
   /**
@@ -78,13 +113,18 @@ export default class FetchInterceptor extends Base{
    * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private async doMockRequest(mockItem: MockItem, requestInfo: RequestInfo, resolve: Function) {
+  private async doMockRequest(
+    mockItem: MockItem,
+    requestInfo: RequestInfo,
+    resolve: Function,
+    remoteResponse: RemoteResponse | null = null
+  ) {
     let isBypassed = false;
     if (mockItem.delay && mockItem.delay > 0) {
       await sleep(+mockItem.delay);
-      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve, remoteResponse);
     } else {
-      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, resolve, remoteResponse);
     }
     return isBypassed;
   }
@@ -95,11 +135,18 @@ export default class FetchInterceptor extends Base{
    * @param {RequestInfo} requestInfo
    * @param {Function} resolve
    */
-  private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, resolve: Function) {
-    const body = await mockItem.sendBody(requestInfo);
-
+  private async doMockResponse(
+    mockItem: MockItem,
+    requestInfo: RequestInfo,
+    resolve: Function,
+    remoteResponse: RemoteResponse | null = null
+  ) {
+    const body = await mockItem.sendBody(requestInfo, remoteResponse);
     const now = Date.now();
     if (body instanceof Bypass) {
+      if (remoteResponse) {
+        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+      }
       return true;
     }
     const spent = (Date.now() - now) + (mockItem.delay || 0);
@@ -123,7 +170,7 @@ export default class FetchInterceptor extends Base{
 
     const headers = typeof Headers === 'function'
       ? new Headers({ ...mockItem.header, 'x-powered-by': 'http-request-mock' })
-      : { ...mockItem.header, 'x-powered-by': 'http-request-mock' };
+      : Object.entries({ ...mockItem.header, 'x-powered-by': 'http-request-mock' });
 
     const body = typeof Blob === 'function'
       ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
@@ -134,7 +181,6 @@ export default class FetchInterceptor extends Base{
       Object.defineProperty(response, 'url', { value: requestInfo.url });
       return response;
     }
-
     const response = {
       body,
       bodyUsed: false,

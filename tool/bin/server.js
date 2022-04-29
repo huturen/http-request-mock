@@ -3,6 +3,7 @@ const http = require('http');
 const httpProxy = require('http-proxy');
 const path = require('path');
 const { log } = require('../lib/misc.js');
+const simpleRequest = require('../../src/common/request').default;
 
 const proxy = httpProxy.createProxyServer({});
 
@@ -129,17 +130,11 @@ class Server {
     if (!mockItem) {
       return this.doProxy(req, res, request.url);
     }
-    const remoteInfo = mockItem.getRemoteInfo(request.url);
-    if (remoteInfo) {
-      req.method = remoteInfo.method || request.method;
-      return this.doProxy(req, res, remoteInfo.url);
-    }
 
     const mockData = mockItem.response || mockItem.body;
-    const response = typeof mockData === 'function' ? mockData : () => mockData;
+    const mockResponse = typeof mockData === 'function' ? mockData : () => mockData;
 
-    mockItem.times--;
-    if (mockItem.times <= 0) {
+    if (mockItem.times-- <= 0) {
       res.setHeader('http-request-mock-times-out', 1);
       return this.doProxy(req, res, request.url);
     }
@@ -148,14 +143,41 @@ class Server {
       await new Promise(resolve => setTimeout(resolve, mockItem.delay));
     }
 
+    const remoteInfo = mockItem.getRemoteInfo(request.url);
+    let remoteResponse = null;
+    if (remoteInfo) {
+      try {
+        const { body, json, response } = await simpleRequest({
+          url: remoteInfo.url,
+          method: remoteInfo.method || request.method,
+          body: request.body,
+        });
+        remoteResponse = {
+          status: response.statusCode,
+          headers: response.headers,
+          response: json || body,
+          responseText: body,
+          responseJson: json,
+        };
+      } catch(err) {
+        log(`Get remote result error: ${err.message}`);
+        return this.serverError(res, `Server Error: ${err.message}`);
+      }
+    }
+
     let result = '';
     try {
-      result = await response.bind(mockItem)(request, mockItem);
+      result = remoteResponse
+        ? await mockResponse.bind(mockItem)(remoteResponse, request, mockItem)
+        : await mockResponse.bind(mockItem)(request, mockItem);
     } catch(err) {
       return this.serverError(res, `Server Error: ${err.message}`);
     }
 
     if (result instanceof mockItem.bypass().constructor) {
+      if (remoteResponse) {
+        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+      }
       log('bypass mock for: ', request.url);
       return this.doProxy(req, res, request.url);
     }

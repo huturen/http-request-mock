@@ -1,9 +1,9 @@
 import Bypass from '../common/bypass';
-import { sleep, tryToParseObject } from '../common/utils';
+import { sleep, tryToParseJson, tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, XMLHttpRequestInstance } from '../types';
+import { Method, RemoteResponse, XMLHttpRequestInstance } from '../types';
 import Base from './base';
 
 export default class XMLHttpRequestInterceptor extends Base {
@@ -66,12 +66,6 @@ export default class XMLHttpRequestInterceptor extends Base {
           const requestUrl = me.getFullRequestUrl(url, method);
           const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
 
-          // remoteInfo has a higher priority than BypassMock
-          const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
-          if (remoteInfo) {
-            return original.call(this, remoteInfo.method || method, remoteInfo.url, async, user, password);
-          }
-
           if (!this.bypassMock) {
             if (mockItem) {
               // 'this' points XMLHttpRequest instance.
@@ -102,8 +96,16 @@ export default class XMLHttpRequestInterceptor extends Base {
         return (body: unknown) => {
           if (this.isMockRequest) {
             if (body !== null && body !== undefined) {
+              this.requestInfo.rawBody = body;
               this.requestInfo.body = tryToParseObject(body);
             }
+
+            // remoteInfo has a higher priority than BypassMock
+            const remoteInfo = this.mockItem?.getRemoteInfo(this.requestInfo.url);
+            if (remoteInfo) {
+              return me.sendRemoteResult(this, remoteInfo);
+            }
+
             return me.doMockRequest(this).then(isBypassed => {
               if (isBypassed) {
                 this.isMockRequest = false;
@@ -121,19 +123,60 @@ export default class XMLHttpRequestInterceptor extends Base {
   }
 
   /**
+   * Set remote result.
+   * @param {XMLHttpRequestInstance} xhr
+   * @param {Record<string, string>} remoteInfo
+   */
+  private sendRemoteResult(xhr: XMLHttpRequestInstance, remoteInfo: Record<string, string>) {
+    const [ method, , async, user, password ] = xhr.requestArgs;
+
+    const newXhr = new XMLHttpRequest();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    newXhr.bypassMock = true;
+    newXhr.onreadystatechange = () => {
+      if (newXhr.readyState === 4) {
+        const remoteResponse: RemoteResponse = {
+          status: newXhr.status,
+          headers: newXhr.getAllResponseHeaders().split('\r\n').reduce((res: Record<string, string>, item: string) => {
+            const [key, val] = item.split(':');
+            if (key) {
+              res[key.toLowerCase()] = val.trim();
+            }
+            return res;
+          }, {} as Record<string, string>),
+          response: newXhr.response,
+          responseText: newXhr.responseText,
+          responseJson: tryToParseJson(newXhr.responseText)
+        };
+        this.doMockRequest(xhr, remoteResponse);
+      }
+    };
+    newXhr.open(
+      remoteInfo.method || method as string,
+      remoteInfo.url,
+      async as boolean,
+      user as string,
+      password as string
+    );
+    newXhr.send(xhr.requestInfo.rawBody as Document); // raw body
+    return xhr;
+  }
+
+  /**
    * Make mock request.
    * @param {XMLHttpRequestInstance} xhr
    * @param {MockItemInfo} mockItem
    * @param {RequestInfo} requestInfo
    */
-  private async doMockRequest(xhr: XMLHttpRequestInstance) {
+  private async doMockRequest(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     let isBypassed = false;
     const { mockItem } = xhr;
     if (mockItem.delay && mockItem.delay > 0) {
       await sleep(+mockItem.delay);
-      isBypassed = await this.doMockResponse(xhr);
+      isBypassed = await this.doMockResponse(xhr, remoteResponse);
     } else {
-      isBypassed = await this.doMockResponse(xhr);
+      isBypassed = await this.doMockResponse(xhr, remoteResponse);
     }
     return isBypassed;
   }
@@ -144,12 +187,17 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {MockItemInfo} mockItem
    * @param {RequestInfo} requestInfo
    */
-  private async doMockResponse(xhr: XMLHttpRequestInstance) {
+  private async doMockResponse(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     const { mockItem, requestInfo } = xhr;
 
     const now = Date.now();
-    const body = await mockItem.sendBody(requestInfo);
+    const body = remoteResponse
+      ? await mockItem.sendBody(requestInfo, remoteResponse)
+      : await mockItem.sendBody(requestInfo);
     if (body instanceof Bypass) {
+      if (remoteResponse) {
+        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+      }
       return true;
     }
     const spent = (Date.now() - now) + (mockItem.delay || 0);
@@ -391,7 +439,6 @@ export default class XMLHttpRequestInterceptor extends Base {
     const original = this.getGetter('response');
     Object.defineProperty(this.xhr, 'response', {
       get: function() {
-        // console.log('interceptResponse', this.getAllResponseHeaders());
         if (this.isMockRequest) {
           if (this.mockResponse instanceof NotResolved) return null;
 

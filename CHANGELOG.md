@@ -1,4 +1,7 @@
 ### Changelog
+[2022-04-30]
+1. feat: support for customizing data returned from remote requests which are marked by @remote
+
 [2022-04-18]
 1. feat: add ESM module
 

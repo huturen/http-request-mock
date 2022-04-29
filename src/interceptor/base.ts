@@ -110,9 +110,7 @@ export default class BaseInterceptor {
       return url;
     }
 
-    const remoteInfo = mockItem?.getRemoteInfo(url);
-    const target = remoteInfo ? remoteInfo.url : url;
-    const proxyUrl = `http://${this.proxyServer}` + target.replace(/^(https?):\/\//, '/$1/');
+    const proxyUrl = `http://${this.proxyServer}${url.replace(/^(https?):\/\//, '/$1/')}`;
     if (this.proxyMode === 'marked') {
       return mockItem.proxy ? proxyUrl : url;
     }

@@ -50,6 +50,15 @@ export interface RequestInfo {
   query: object; // url search query
   headers?: object; // request header
   body?: unknown; // post body
+  rawBody?: unknown; // post body
+}
+
+export interface RemoteResponse {
+  status: number;
+  headers: Record<string, string | string[] | undefined>; // remote response headers
+  response: unknown;
+  responseText: string;
+  responseJson: AnyObject;
 }
 
 export interface MixedRequestInfo {
@@ -67,7 +76,6 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
   mockItem: MockItem;
   mockResponse: unknown;
   requestInfo: RequestInfo;
-  // requestArgs: any[];
   requestArgs: (Method | string | boolean | null)[],
 }
 
@@ -95,6 +103,16 @@ export interface WxRequestTask {
   onHeadersReceived: (callback: Function) => unknown;
   offHeadersReceived: (callback: Function) => unknown;
 }
+
+// https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+export interface WxResponse {
+  data: unknown;
+  statusCode: number;
+  header: Record<string, string>,
+  cookies: string[],
+  profile: Record<string, unknown>,
+}
+
 export interface ClientRequestType extends http.ClientRequest{
   nativeInstance: null | http.ClientRequest;
   nativeReqestMethod: Function;
@@ -142,13 +160,34 @@ export interface DynamicImported {
 }
 
 
-// types:
-export type FetchRequest = {
+export interface FetchRequest {
   url: string;
   method: string;
   headers: Record<string, string>;
   body: unknown;
-};
+}
+
+export interface FetchResponse {
+  body: unknown;
+  bodyUsed: boolean;
+  headers: Headers,
+  ok: boolean;
+  redirected: false;
+  status: number;
+  statusText: string;
+  url: string,
+  type: string;
+  // response data depends on prepared data
+  json: () => Promise<AnyObject>;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+  blob: () => Promise<unknown>;
+  formData: () => Promise<unknown>;
+  text: () => Promise<string>;
+  // other methods that may be used
+  clone: () => FetchResponse,
+  error: () => FetchResponse,
+  redirect: () => FetchResponse,
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Logs = Array<number | string | Record<string, any> | Logs[]>;

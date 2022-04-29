@@ -1,13 +1,15 @@
 import { IncomingMessage } from 'http';
+import simpleRequest from '../common/request';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import { WxRequestOpts } from '../types';
-import fallback from './fallback';
 
 export default function dummyWxRequest(wxReqOpts : WxRequestOpts) {
   const { url, method, data, header, dataType, responseType, success, fail, complete } = wxReqOpts;
 
   const body = (data && (method + '').toUpperCase() !== 'GET') ? data : null;
-  fallback(url, method as string, header, body).then((res: {body: string, response: IncomingMessage}) => {
+  simpleRequest({
+    url, method: method as string, headers: header, body
+  }).then((res: {body: string, response: IncomingMessage}) => {
     if (typeof success === 'function') {
       let data;
       if (dataType === 'json') {

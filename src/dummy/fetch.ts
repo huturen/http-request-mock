@@ -1,26 +1,30 @@
 import { IncomingMessage } from 'http';
+import simpleRequest from '../common/request';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import { FetchRequest } from '../types';
-import fallback from './fallback';
+import { AnyObject, FetchRequest } from '../types';
 
-export default function dummyFetch(input: string | FetchRequest, init: Record<string, unknown>) {
+export default function dummyFetch(input: string | FetchRequest, init: AnyObject) {
   let url: string | FetchRequest;
-  let params: Record<string, unknown>;
+  let params: FetchRequest | AnyObject;
   // https://developer.mozilla.org/en-US/docs/Web/API/Request
   // Note: the first argument of fetch maybe a Request object.
   if (typeof input === 'object') {
     url = input.url;
-    params = input;
+    params = input as FetchRequest;
   } else {
     url = input;
     params = init || {};
   }
 
-  return fallback(url, params.method as string, params.headers as Record<string, string>, params.body)
-    .then((res: {body: string, response: IncomingMessage}) => {
-      return getResponse(url as string, res.body, res.response);
-    });
+  return simpleRequest({
+    url, method:
+    params.method as string,
+    headers: params.headers as Record<string, string>,
+    body: params.body
+  }).then((res: {body: string, response: IncomingMessage}) => {
+    return getResponse(url as string, res.body, res.response);
+  });
 }
 
 function getResponse(url: string, responseBody: string, responseObject: IncomingMessage) {

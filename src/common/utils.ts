@@ -43,7 +43,9 @@ export function isObject(obj: unknown) {
  * @param {unknown} body
  */
 export function tryToParseObject(body: unknown) {
-  if (typeof body === 'string'  && body[0] === '{' && body[body.length-1] === '}') {
+  const isObjLiked = typeof body === 'string' && body[0] === '{' && body[body.length-1] === '}';
+  const isArrLiked = typeof body === 'string' && body[0] === '[' && body[body.length-1] === ']';
+  if (isObjLiked || isArrLiked) {
     try {
       return JSON.parse(body);
     } catch(e) {
@@ -51,6 +53,18 @@ export function tryToParseObject(body: unknown) {
     }
   } else {
     return body;
+  }
+}
+
+/**
+ * Try to parse a JSON string
+ * @param {unknown} body
+ */
+export function tryToParseJson(str: string, defaultVal = null) {
+  try {
+    return JSON.parse(String(str));
+  } catch(e) {
+    return defaultVal;
   }
 }
 

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import Bypass from '../common/bypass';
-import { isObject, sleep } from '../common/utils';
+import { isObject, sleep, tryToParseJson } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, RequestInfo, WxRequestOpts, WxRequestTask } from '../types';
+import { Method, RemoteResponse, RequestInfo, WxRequestOpts, WxRequestTask, WxResponse } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -41,13 +41,14 @@ export default class WxRequestInterceptor extends Base {
 
         const mockItem: MockItem | null = this.matchMockRequest(wxRequestOpts.url, wxRequestOpts.method);
         const remoteInfo = mockItem?.getRemoteInfo(wxRequestOpts.url);
-        if (remoteInfo) {
+        const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
+
+        if (mockItem && remoteInfo) {
           wxRequestOpts.url = remoteInfo.url;
           wxRequestOpts.method = <Method>remoteInfo.method || wxRequestOpts.method;
-          return this.wxRequest(wxRequestOpts); // fallback to original wx.request
+          return this.sendRemoteResult(wxRequestOpts, mockItem, requestInfo);
         }
 
-        const requestInfo: RequestInfo = this.getRequestInfo(wxRequestOpts);
         if (/^get$/i.test(wxRequestOpts.method) && isObject(wxRequestOpts.data)) {
           requestInfo.query = { ...requestInfo.query, ...wxRequestOpts.data };
         } else {
@@ -79,18 +80,50 @@ export default class WxRequestInterceptor extends Base {
   }
 
   /**
+   * Set remote result.
+   * @param {WxRequestOpts} wxRequestOpts
+   * @param {MockItem} mockItem
+   * @param {RequestInfo} requestInfo
+   */
+  private sendRemoteResult(wxRequestOpts: WxRequestOpts, mockItem: MockItem, requestInfo: RequestInfo) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const me = this;
+    // fallback to original wx.request
+    this.wxRequest({
+      ...wxRequestOpts,
+      success(wxResponse: WxResponse) {
+        const remoteResponse: RemoteResponse = {
+          status: wxResponse.statusCode,
+          headers: wxResponse.header,
+          response: wxResponse.data,
+          responseText: typeof wxResponse.data === 'string' ? wxResponse.data : JSON.stringify(wxResponse.data),
+          responseJson: typeof wxResponse.data === 'string' ? tryToParseJson(wxResponse.data) : wxResponse.data
+        };
+
+        me.doMockRequest(mockItem, requestInfo, wxRequestOpts, remoteResponse);
+      }
+    });
+    return this.getRequstTask();
+  }
+
+  /**
    * Make mock request.
    * @param {MockItem} mockItem
    * @param {RequestInfo} requestInfo
    * @param {WxRequestOpts} wxRequestOpts
    */
-  private async doMockRequest(mockItem: MockItem, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+  private async doMockRequest(
+    mockItem: MockItem,
+    requestInfo: RequestInfo,
+    wxRequestOpts: WxRequestOpts,
+    remoteResponse: RemoteResponse | null = null
+  ) {
     let isBypassed = false;
     if (mockItem.delay && mockItem.delay > 0) {
       await sleep(+mockItem.delay);
-      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts, remoteResponse);
     } else {
-      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts);
+      isBypassed = await this.doMockResponse(mockItem, requestInfo, wxRequestOpts, remoteResponse);
     }
     return isBypassed;
   }
@@ -101,10 +134,18 @@ export default class WxRequestInterceptor extends Base {
    * @param {RequestInfo} requestInfo
    * @param {WxRequestOpts} wxRequestOpts
    */
-  private async doMockResponse(mockItem: MockItem, requestInfo: RequestInfo, wxRequestOpts: WxRequestOpts) {
+  private async doMockResponse(
+    mockItem: MockItem,
+    requestInfo: RequestInfo,
+    wxRequestOpts: WxRequestOpts,
+    remoteResponse: RemoteResponse | null = null
+  ) {
     const now = Date.now();
-    const body = await mockItem.sendBody(requestInfo);
+    const body = await mockItem.sendBody(requestInfo, remoteResponse);
     if (body instanceof Bypass) {
+      if (remoteResponse) {
+        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+      }
       return true;
     }
     const spent = (Date.now() - now) + (mockItem.delay || 0);
@@ -121,7 +162,7 @@ export default class WxRequestInterceptor extends Base {
    * @param {unknown} responseBody
    * @param {MockItem} mockItem
    */
-  getWxResponse(responseBody: unknown, mockItem: MockItem) {
+  getWxResponse(responseBody: unknown, mockItem: MockItem): WxResponse {
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
     const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as never[]);
     return {

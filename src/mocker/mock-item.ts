@@ -1,6 +1,7 @@
 import Bypass from '../common/bypass';
 import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
 import { Disable, DynamicImported, Header, Method, RequestInfo } from '../types';
+import { RemoteResponse } from './../types';
 
 export default class MockItem {
   public url: RegExp | string;
@@ -68,10 +69,15 @@ export default class MockItem {
     return new Bypass;
   }
 
-  public async sendBody(requestInfo: RequestInfo) {
-    const body = typeof this.body === 'function'
-      ? await this.body.bind(this)(requestInfo, this)
-      : this.body;
+  public async sendBody(requestInfo: RequestInfo, remoteResponse: RemoteResponse | null = null) {
+    let body;
+    if (typeof this.body === 'function') {
+      body = remoteResponse
+        ? await this.body.bind(this)(remoteResponse, requestInfo, this)
+        : await this.body.bind(this)(requestInfo, this);
+    } else {
+      body = this.body;
+    }
 
     return body;
   }

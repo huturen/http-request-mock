@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
+import simpleRequest from '../common/request';
 import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
-import fallback from './fallback';
 
 export default class dummyXMLHttpRequest {
   'http-request-mock': true; // make a flag to distinguish
@@ -37,7 +37,7 @@ export default class dummyXMLHttpRequest {
     const opts: Record<string, string> = user && password ? {
       auth: `${user}:${password}`,
     } : {};
-    fallback(url as string, method as string, this.reqHeaders, body, opts)
+    simpleRequest( {url: url as string, method: method as string, headers: this.reqHeaders, body, opts })
       .then((res: {body: string, response: IncomingMessage}) => {
         this._responseBody = res.body;
         this._readyState = 4;

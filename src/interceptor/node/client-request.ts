@@ -3,11 +3,13 @@ import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
 import Bypass from '../../common/bypass';
+import simpleRequest from '../../common/request';
 import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
 import { ClientRequestOptions, ClientRequestType, RequestInfo } from '../../types';
+import { RemoteResponse } from './../../types';
 
 /**
  * ClientRequest constructor
@@ -193,7 +195,7 @@ function ClientRequest(
    */
   this.sendResponseResult = (endCallback: Function, ...endArgs: unknown[]) => {
     const now = Date.now();
-    this.mockItemResolver((mockItem: MockItem, mocker: Mocker) => {
+    this.mockItemResolver(async (mockItem: MockItem, mocker: Mocker) => {
       const requestInfo = <RequestInfo>{
         url: this.url,
         method: this.options.method || 'GET',
@@ -201,8 +203,33 @@ function ClientRequest(
         headers: this.getRequestHeaders(),
         body: this.bufferToString(this.requestBody)
       };
-      mockItem.sendBody(requestInfo).then((responseBody) => {
+
+      let remoteResponse: RemoteResponse | null = null;
+      const remoteInfo = mockItem?.getRemoteInfo(url);
+      if (remoteInfo) {
+        try {
+          const { body, json, response } = await simpleRequest({
+            url: remoteInfo.url,
+            method: remoteInfo.method || this.options.method || 'GET',
+            body: this.requestBody
+          });
+          remoteResponse = {
+            status: response.statusCode as number,
+            headers: response.headers,
+            response: json || body,
+            responseText: body,
+            responseJson: json,
+          };
+        } catch(err) {
+          this.sendError('Get remote result error: ' + (err as Error).message);
+          return false;
+        }
+      }
+      mockItem.sendBody(requestInfo, remoteResponse).then((responseBody) => {
         if (responseBody instanceof Bypass) {
+          if (remoteResponse) {
+            throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+          }
           return this.fallbackToNativeRequest(...endArgs);
         }
         const spent = Date.now() - now;

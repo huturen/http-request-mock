@@ -1,12 +1,14 @@
 import { expect, jest } from '@jest/globals';
 import http from 'http';
 import https from 'https';
+// Use * as simpleRequest" to simplify codes
+import * as simpleRequest from '../src/common/request';
 import { isArrayBuffer, str2arrayBuffer } from '../src/common/utils';
-import * as fallback from '../src/dummy/fallback';
 import dummyFetch from '../src/dummy/fetch';
 import dummyWxRequest from '../src/dummy/wx-request';
 import dummyXhr from '../src/dummy/xhr';
 
+const originalSimpleRequestDefaultObject = simpleRequest.default;
 let times = 0;
 const xhrRequest = (url, method, body = null, opts = {}) => {
   return new Promise((resolve, reject) => {
@@ -57,7 +59,6 @@ const wxRequest = (opts) => {
     });
   });
 };
-const fallbackDefault = fallback.default;
 
 // axios.defaults.adapter = httpAdapter; //
 describe('test fake request object', () => {
@@ -70,7 +71,7 @@ describe('test fake request object', () => {
       }
     };
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockResolvedValue(fakeResponse);
+    simpleRequest.default = jest.fn().mockResolvedValue(fakeResponse);
     const res = await dummyFetch(new URL('http://www.example.com'));
     const body = await res.text();
     expect((res.headers instanceof Headers) && res.headers.get('abc') === 'xyz').toBe(true);
@@ -106,7 +107,7 @@ describe('test fake request object', () => {
     const res4 = await dummyFetch('http://www.example.com');
     expect(res4).toBeInstanceOf(global.Response);
 
-    fallback.default.mockRestore();
+    simpleRequest.default.mockRestore();
   });
 
   it('dummyXhr method should simulate capabilities of XMLHttpRequest request object', async () => {
@@ -118,7 +119,7 @@ describe('test fake request object', () => {
       }
     };
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockResolvedValue(fakeResponse);
+    simpleRequest.default = jest.fn().mockResolvedValue(fakeResponse);
     const xhr = await xhrRequest('http://www.example.com', 'post', {abc: 123});
     expect(xhr.response).toMatchObject({msg:'fake-body'});
     expect(typeof xhr.getAllResponseHeaders() === 'string').toBe(true);
@@ -179,11 +180,11 @@ describe('test fake request object', () => {
     expect(xhr8.status).toBe(0);
 
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockRejectedValue(new Error('fake'));
+    simpleRequest.default = jest.fn().mockRejectedValue(new Error('fake'));
     const xhr9 = await xhrRequest('http://www.example.com', 'post').catch(e => e);
     expect(xhr9 instanceof Error).toBe(true);
 
-    fallback.default.mockRestore();
+    simpleRequest.default.mockRestore();
   });
 
   it('dummyWxRequest method should simulate capabilities of wx.request object', async () => {
@@ -195,7 +196,7 @@ describe('test fake request object', () => {
       }
     };
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockResolvedValue(fakeResponse);
+    simpleRequest.default = jest.fn().mockResolvedValue(fakeResponse);
     const res = await wxRequest({ data: '{"abc":123}' });
     expect(res.data).toMatchObject({msg:'fake-body'});
 
@@ -224,15 +225,15 @@ describe('test fake request object', () => {
     expect(err).toBeInstanceOf(Error);
 
     // eslint-disable-next-line no-import-assign
-    fallback.default = jest.fn().mockRejectedValue(new Error('fake'));
+    simpleRequest.default = jest.fn().mockRejectedValue(new Error('fake'));
     const err2 = await wxRequest({url: 'https://www.example.com'}).catch(e => e);
     expect(err2 instanceof Error).toBe(true);
 
     expect(dummyWxRequest({url: 'https://www.example.com'}).abort()).toBe(undefined);
-    fallback.default.mockRestore();
+    simpleRequest.default.mockRestore();
   });
 
-  it('fallabck method should trigger a fallback request using nodejs native http/https module', async () => {
+  it('request method should trigger a fallback request using nodejs native http/https module', async () => {
     const on = jest.fn((key, fn) => {
       (key === 'error') && fn(new Error('fake'));
     });
@@ -248,7 +249,6 @@ describe('test fake request object', () => {
           if (url === 'http://www.example.com') {
             (key === 'error') && fn(new Error('fake'));
           }
-
         },
         on(key, fn){
           (key === 'data') && fn('fake-body');
@@ -267,10 +267,16 @@ describe('test fake request object', () => {
     const [oriHttpsRequest, oriHttpRequest] = [https.request, http.request];
     https.request = request;
     http.request = request;
-    await fallbackDefault('https://www.example.com', null, null, 'abc=123').catch(() => void(0));
+
+    await originalSimpleRequestDefaultObject({ url: 'https://www.example.com', body: 'abc=123' }).catch(() => void(0));
     expect(https.request).toBeCalled();
 
-    await fallbackDefault('http://www.example.com', 'get', {}, 123).catch(e => {
+    await originalSimpleRequestDefaultObject({
+      url: 'http://www.example.com',
+      method: 'get',
+      header: {},
+      body: '123'
+    }).catch(e => {
       expect(e instanceof Error).toBe(true);
     });
     expect(http.request).toBeCalled();

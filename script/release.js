@@ -20,17 +20,21 @@ if (output !== 'https://registry.npmjs.org') {
   process.exit(1);
 }
 
-const packageLock = fs.readFileSync(path.resolve(__dirname, '../package-lock.json'), 'utf8');
-if (packageLock.includes(Buffer.from('dGVuY2VudA==', 'base64').toString())) {
+const packageLock = path.resolve(__dirname, '../package-lock.json');
+const sensitiveWord = Buffer.from('dGVuY2VudA==', 'base64').toString('utf8');
+if (fs.readFileSync(packageLock, 'utf8').includes(sensitiveWord)) {
   console.log('Invalid host envrionment.');
+  spawnSync(`grep '${sensitiveWord}' ${packageLock}`, opts);
   process.exit(1);
 }
+
+spawnSync('sleep 1', opts);
 
 console.log('Building...');
 const build = spawnSync('npm run build', opts);
 if (build.status !== 0) {
   console.log('Build error, exit code: ' + build.status);
-  process.exit(0);
+  process.exit(1);
 }
 spawnSync('sleep 1', opts);
 

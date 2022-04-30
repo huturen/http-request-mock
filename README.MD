@@ -116,7 +116,7 @@ There are some problems you may encounter when using the other mocking libraries
 * **Fake data**: Easy to generate massive amounts of fake data, automatically and programmatically.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
 * **Protobuf**: Support for generating mock data by proto files.
-* **Remote**: Support for using remote mock data, you can dynamically modify the data from the remote requests.
+* **Remote**: Support for using remote mock data, where you can dynamically modify the data returned from the remote.
 
 
 ## Installation

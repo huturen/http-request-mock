@@ -34,7 +34,7 @@ if (build.status !== 0) {
 }
 spawnSync('sleep 1', opts);
 
-const publishCmd = `npm publish ${path.resolve(__dirname, '../dist')}`;
+const publishCmd = `cd ${path.resolve(__dirname, '../dist')} && npm publish`;
 console.log('cmd:', publishCmd);
 spawnSync(publishCmd, { ...opts, stdio: 'inherit' });
 

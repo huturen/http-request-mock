@@ -8,8 +8,9 @@ cache:
   directories:
     - node_modules
 
-before_deploy: npm run build
-deploy: npm run release
+before_deploy:
+  - npm run release # make a dist folder
+  - cd dist
 
 deploy:
   provider: npm

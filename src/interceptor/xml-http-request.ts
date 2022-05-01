@@ -131,9 +131,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     const [ method, , async, user, password ] = xhr.requestArgs;
 
     const newXhr = new XMLHttpRequest();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    newXhr.bypassMock = true;
+    Object.assign(newXhr, { isMockRequest: false, bypassMock: true });
     newXhr.onreadystatechange = () => {
       if (newXhr.readyState === 4) {
         const remoteResponse: RemoteResponse = {

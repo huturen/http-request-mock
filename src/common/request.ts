@@ -29,14 +29,14 @@ export default function request(requestConfig: {
 
   return new Promise((resolve, reject) => {
     const isHttps = isHttpsUrl(url);
-    const protocol = isHttps ? https : http;
     const reqOpts = {
       useNativeModule: true,
       method: (method || 'GET').toUpperCase(),
       headers: headers || {},
       ...opts
     };
-    const req = protocol.request(url, reqOpts, (response: IncomingMessage) => {
+    const { request: requestMethod } = isHttps ? https : http;
+    const req = requestMethod(url, reqOpts, (response: IncomingMessage) => {
       getResponseBody(response).then(({ body, json }) => {
         resolve({ body, json, response });
       }).catch(err => {

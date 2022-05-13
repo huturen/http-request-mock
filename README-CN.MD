@@ -127,15 +127,13 @@ const HttpRequestMock = require('http-request-mock');
 
 **CDN**:
 
-也可在浏览器中直接引用, 提供了`unpkg` 和 `cdnjs` 的CDN做为备选:
+也可在浏览器中直接引用:
 
 
 ```html
 <!-- unpkg -->
-<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
+<script src="https://unpkg.com/http-request-mock/http-request-mock.js"></script>
 
-<!-- cdnjs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.5.10/http-request-mock.js"></script>
 ```
 
 

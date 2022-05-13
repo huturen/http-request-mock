@@ -134,14 +134,11 @@ const HttpRequestMock = require('http-request-mock');
 
 **CDN**:
 
-The UMD build is also available on `unpkg` and `cdnjs`:
+The UMD build is also available on `unpkg`:
 
 ```html
 <!-- unpkg -->
-<script src="https://unpkg.com/http-request-mock/dist/http-request-mock.js"></script>
-
-<!-- cdnjs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/http-request-mock/1.5.10/http-request-mock.js"></script>
+<script src="https://unpkg.com/http-request-mock/http-request-mock.js"></script>
 ```
 
 

@@ -136,7 +136,7 @@ module.exports = {
    */
   name(cn = false) {
     if (cn) {
-      return randArr(chinese.firstNames) + randArr(chinese.lastNames, this.rand(1, 2)).join('');
+      return randArr(chinese.firstNames) + randArr(chinese.lastNames, { length: this.rand(1, 2)}).join('');
     }
     return randFullName({ withAccents: false });
   },

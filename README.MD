@@ -38,9 +38,8 @@ Integration Cases:
   [Github](https://github.com/huturen/http-request-mock-unit-test)
 
 
-It mocks http requests issued by axios, jquery, superagent, ky, node-fetch, got, request
-or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native
-HTTP/HTTPS module requests in low level.
+It mocks http requests issued by axios, jquery, superagent, node-fetch, got, (… you name it) by intercepting
+XMLHttpRequest, fetch, and nodejs native HTTP/HTTPS module requests at the low level.
 
 1. XMLHttpRequest
 2. fetch
@@ -104,16 +103,15 @@ There are some problems you may encounter when using the other mocking libraries
 
 
 ## Features
-
-* **Non-hacking**: You don't have to change your business code.
+* **Business-code-unaware**: Does not interfere with code writing. Keep your code unaware of whether something is mocked or not.
 * **Interceptor**: It can be used as an interceptor. You can decide how to handle requests.
-* **All in one**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
-* **More 3rd-party libraries support**: It supports axios, jquery, superagent, ky, node-fetch, got, request...
-* **Unit test capability**: It can be worked in jest, mocha and ava environment.
+* **All in one**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, and wx.request.
+* **More 3rd-party libraries support**: It supports axios, jquery, superagent, ky, node-fetch, got, (you name it).
+* **Unit test capability**: It can be worked in jest, mocha, and ava environments.
 * **Dynamic mocking**: Dynamically resolve response based on request query, payloads...
 * **Flexible route matching**: Supports RegExp matching and partial string matching.
-* **Delaying mocking**: Supports to simulate network latency.
-* **Fake data**: Easy to generate massive amounts of fake data, automatically and programmatically.
+* **Delaying mocking**: Support for simulating network latency.
+* **Fake data**: Easy to generate massive amounts of fake data.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
 * **Protobuf**: Support for generating mock data by proto files.
 * **Remote**: Support for using remote mock data, where you can dynamically modify the data returned from the remote.
@@ -546,7 +544,7 @@ Check specified mock item & add it to global mock data configuration.
 ```javascript
 interface MockItemInfo {
   url: RegExp | string;
-  method?: Method; // GET, POST, PUT, PATCH, DELETE or HEAD
+  method?: HttpVerb; // GET, POST, PUT, PATCH, DELETE or HEAD
   header?: Header, // response header
   delay?: number;
   disable?: Disable; // yes or no
@@ -597,8 +595,7 @@ Make a mock item that matches an HTTP GET, POST, PUT, PATCH, DELETE or HEAD  req
 
 ## Unit test
 
-This library comes with built-in unit test capability and can be used in jest and mocha envrioment.
-The unit tests of this library are also based on itself.
+http-request-mock comes with built-in unit test capability and can be used in jest and mocha environments.
 
 An example of jest：
 ```javascript

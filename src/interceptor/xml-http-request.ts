@@ -3,7 +3,7 @@ import { sleep, tryToParseJson, tryToParseObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, RemoteResponse, XMLHttpRequestInstance } from '../types';
+import { HttpVerb, RemoteResponse, XMLHttpRequestInstance } from '../types';
 import Base from './base';
 
 export default class XMLHttpRequestInterceptor extends Base {
@@ -57,7 +57,7 @@ export default class XMLHttpRequestInterceptor extends Base {
     Object.defineProperty(this.xhr, 'open', {
       get: function() {
         return (
-          method: Method,
+          method: HttpVerb,
           url: string,
           async = true,
           user: string | null = null,

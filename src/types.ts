@@ -46,7 +46,7 @@ export interface MockConfigData {
 }
 export interface RequestInfo {
   url: string;
-  method: Method;
+  method: HttpVerb;
   query: object; // url search query
   headers?: object; // request header
   body?: unknown; // post body
@@ -63,7 +63,7 @@ export interface RemoteResponse {
 
 export interface MixedRequestInfo {
   url: string;
-  method: Method;
+  method: HttpVerb;
   query?: object; // url search query
   headers?: object; // request header
   header?: object; // request header
@@ -76,7 +76,7 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
   mockItem: MockItem;
   mockResponse: unknown;
   requestInfo: RequestInfo;
-  requestArgs: (Method | string | boolean | null)[],
+  requestArgs: (HttpVerb | string | boolean | null)[],
 }
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
@@ -87,7 +87,7 @@ export interface WxObject {
 
 export interface WxRequestOpts {
   url: string;
-  method: Method;
+  method: HttpVerb;
   data: Record<string, string>;
   header: Record<string, string>; // request header
   dataType: string;
@@ -188,6 +188,9 @@ export interface FetchResponse {
   error: () => FetchResponse,
   redirect: () => FetchResponse,
 }
+
+export type HttpVerb = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'ANY' |
+  'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'any';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Logs = Array<number | string | Record<string, any> | Logs[]>;

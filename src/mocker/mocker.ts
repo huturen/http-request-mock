@@ -1,6 +1,6 @@
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import { Logs, Method, MockConfigData, MockItemExt, RequestInfo } from '../types';
+import { Logs, HttpVerb, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
@@ -163,7 +163,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.GET, body, delay, status, header, times });
+    this.mock({ url, method: 'GET', body, delay, status, header, times });
     return this;
   }
 
@@ -186,7 +186,7 @@ export default class Mocker {
   }) {
     const { delay, status, times, header } = opts;
 
-    this.mock({ url, method: Method.POST, body, delay, status, header, times });
+    this.mock({ url, method: 'POST', body, delay, status, header, times });
     return this;
   }
 
@@ -208,7 +208,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.PUT, body, delay, status, header, times });
+    this.mock({ url, method: 'PUT', body, delay, status, header, times });
     return this;
   }
 
@@ -230,7 +230,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.PATCH, body, delay, status, header, times });
+    this.mock({ url, method: 'PATCH', body, delay, status, header, times });
     return this;
   }
 
@@ -252,7 +252,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.DELETE, body, delay, status, header, times });
+    this.mock({ url, method: 'DELETE', body, delay, status, header, times });
     return this;
   }
 
@@ -279,7 +279,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.HEAD, body: '', delay, status, header, times });
+    this.mock({ url, method: 'HEAD', body: '', delay, status, header, times });
     return this;
   }
 
@@ -301,7 +301,7 @@ export default class Mocker {
     header: {}
   }) {
     const { delay, status, times, header } = opts;
-    this.mock({ url, method: Method.ANY, body, delay, status, header, times });
+    this.mock({ url, method: 'ANY', body, delay, status, header, times });
     return this;
   }
 
@@ -312,7 +312,7 @@ export default class Mocker {
    * @param {string} reqMethod
    * @return null | MockItem
    */
-  public matchMockItem(reqUrl: string, reqMethod: Method | undefined): MockItem | null {
+  public matchMockItem(reqUrl: string, reqMethod: HttpVerb | undefined): MockItem | null {
     if (this.disabled) {
       return null;
     }

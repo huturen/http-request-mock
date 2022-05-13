@@ -98,7 +98,7 @@
 
 本库提供了以下特性:
 
-* **无侵入**: 不侵入源代码来实现mock处理。
+* **业务代码无感**: 不干扰业务代码书写。业务代码对mock无感知，mock之前和之后的代码是一致的，不必为了mock而妥协部分写法。
 * **拦截器**: 可以做为请求拦截器使用，你来决定怎么处理请求。
 * **多合一**: XMLHttpRequest, fetch, https.get, http.get, https.request, http.request, wx.request.
 * **更多的第3方请求库支持**: 支持主流第3方请求库，如：axios, jquery, superagent, ky, node-fetch, got, request...
@@ -534,7 +534,7 @@ Check specified mock item & add it to global mock data configuration.
 ```javascript
 interface MockItemInfo {
   url: RegExp | string;
-  method?: Method; // GET, POST, PUT, PATCH, DELETE or HEAD
+  method?: HttpVerb; // GET, POST, PUT, PATCH, DELETE or HEAD
   header?: Header, // response header
   delay?: number;
   disable?: Disable; // yes or no

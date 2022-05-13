@@ -1,7 +1,7 @@
 import { getQuery, tryToParseObject } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, MixedRequestInfo, RequestInfo } from '../types';
+import { HttpVerb, MixedRequestInfo, RequestInfo } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
@@ -49,7 +49,7 @@ export default class BaseInterceptor {
    * @param {string} reqUrl
    * @param {string} reqMethod
    */
-  protected matchMockRequest(reqUrl: string, reqMethod: Method | undefined): MockItem | null {
+  protected matchMockRequest(reqUrl: string, reqMethod: HttpVerb | undefined): MockItem | null {
     // ignore matching when it is a server mode
     if (this.proxyServer && reqUrl.indexOf(`http://${this.proxyServer}`) === 0) {
       return null;
@@ -80,7 +80,7 @@ export default class BaseInterceptor {
    * Get full request url.
    * @param {string} url
    */
-  getFullRequestUrl(url: string, method: Method) {
+  getFullRequestUrl(url: string, method: HttpVerb) {
     if (/^https?:\/\//i.test(url)) {
       return this.checkProxyUrl(url, method);
     }
@@ -100,7 +100,7 @@ export default class BaseInterceptor {
    * Return a proxy url if in a proxy mode otherwise return the original url.
    * @param {string} url
    */
-  public checkProxyUrl(url: string, method: Method) {
+  public checkProxyUrl(url: string, method: HttpVerb) {
     if (!['matched', 'marked'].includes(this.proxyMode) || !this.proxyServer) {
       return url;
     }

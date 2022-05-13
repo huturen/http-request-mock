@@ -4,7 +4,7 @@ import { sleep, tryToParseJson } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { FetchRequest, FetchResponse, Method, RemoteResponse, RequestInfo } from '../types';
+import { FetchRequest, FetchResponse, HttpVerb, RemoteResponse, RequestInfo } from '../types';
 import { AnyObject } from './../types';
 import Base from './base';
 
@@ -45,7 +45,7 @@ export default class FetchInterceptor extends Base{
         url = input;
         params = init || {};
       }
-      const method = (params && params.method ? params.method : 'GET') as unknown as Method;
+      const method = (params && params.method ? params.method : 'GET') as unknown as HttpVerb;
       const requestUrl = me.getFullRequestUrl(url, method);
 
       return new Promise((resolve, reject) => {
@@ -55,7 +55,7 @@ export default class FetchInterceptor extends Base{
           return;
         }
 
-        const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as Method });
+        const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as HttpVerb });
         const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
         if (remoteInfo) {
           params.method = remoteInfo.method || method;

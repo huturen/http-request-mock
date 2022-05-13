@@ -1,12 +1,12 @@
 import Bypass from '../common/bypass';
 import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
-import { Disable, DynamicImported, Header, Method, RequestInfo } from '../types';
+import { Disable, DynamicImported, Header, HttpVerb, RequestInfo } from '../types';
 import { RemoteResponse } from './../types';
 
 export default class MockItem {
   public url: RegExp | string;
   public regexp: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
-  public method: Method;
+  public method: HttpVerb;
   public header: Header; // response header
   public delay: number;
   public body: unknown; // response body
@@ -30,8 +30,8 @@ export default class MockItem {
     }
     this.url = mockItem.url;
     this.method = /^(get|post|put|patch|delete|head|any)$/i.test(mockItem.method || '')
-      ? <Method> mockItem.method?.toUpperCase()
-      : <Method> 'ANY';
+      ? <HttpVerb> mockItem.method?.toUpperCase()
+      : <HttpVerb> 'ANY';
 
     this.header = typeof mockItem.header === 'object' ? mockItem.header : {};
     this.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;

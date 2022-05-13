@@ -5,7 +5,7 @@ import urlUtil from 'url';
 import { isNodejs, isObject } from '../../common/utils';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
-import { ClientRequestType, Method, NodeRequestOpts } from '../../types';
+import { ClientRequestType, HttpVerb, NodeRequestOpts } from '../../types';
 import Base from '../base';
 import ClientRequest from './client-request';
 
@@ -127,7 +127,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
       throw new TypeError(`[ERR_INVALID_URL]: Invalid URL: ${url}`);
     }
 
-    const method = (options.method || 'GET') as Method;
+    const method = (options.method || 'GET') as HttpVerb;
     const mockItem:MockItem | null  = this.matchMockRequest(url, method);
     if (!mockItem) return false;
 

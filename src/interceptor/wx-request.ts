@@ -3,7 +3,7 @@ import Bypass from '../common/bypass';
 import { isObject, sleep, tryToParseJson } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { Method, RemoteResponse, RequestInfo, WxRequestOpts, WxRequestTask, WxResponse } from '../types';
+import { HttpVerb, RemoteResponse, RequestInfo, WxRequestOpts, WxRequestTask, WxResponse } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -45,7 +45,7 @@ export default class WxRequestInterceptor extends Base {
 
         if (mockItem && remoteInfo) {
           wxRequestOpts.url = remoteInfo.url;
-          wxRequestOpts.method = <Method>remoteInfo.method || wxRequestOpts.method;
+          wxRequestOpts.method = <HttpVerb>remoteInfo.method || wxRequestOpts.method;
           return this.sendRemoteResult(wxRequestOpts, mockItem, requestInfo);
         }
 

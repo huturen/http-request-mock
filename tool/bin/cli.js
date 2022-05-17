@@ -43,10 +43,9 @@ module.exports = new class CommandToolLine {
     if (program.proto) {
       return this.proto();
     }
-    if (program.proxy === 'matched' && program.proxy === 'marked') {
+    if (/^([\w-]+\.?)+$/.test(program.proxy)) {
       return this.proxy();
     }
-    program.help();
   }
 
   /**
@@ -133,7 +132,7 @@ module.exports = new class CommandToolLine {
       return;
     }
 
-    const proxyServer = program.proxy === 'matched' || program.proxy === 'marked'
+    const proxyServer = /^([\w-]+\.?)+$/.test(program.proxy)
       ? await server.init({
         type: program.type,
         mockDir: dir,
@@ -194,7 +193,8 @@ module.exports = new class CommandToolLine {
    * [marked] All requests marked by @proxy will be proxied to a proxy server.
    */
   proxy() {
-    if (program.proxy === 'matched' && program.proxy === 'marked') {
+
+    if (/^([\w-]+\.?)+$/.test(program.proxy)) {
       const dir = path.resolve(this.appRoot, program.directory);
       server.init({ type: program.type, mockDir: dir, environment: program.environment, proxyMode: program.proxy });
     }
@@ -339,6 +339,7 @@ module.exports = new class CommandToolLine {
         ' This feature is designed for browser, so do not use it in a nodjs project.\n'+spaces+
         ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
         ' [matched] All requests matched by @url will be proxied to a proxy server.\n'+spaces+
+        ' [proxy host alias] The same as [matched], but with the specified proxy host.\n'+spaces+
         ' [marked] All requests marked by @proxy will be proxied to a proxy server.',
         'none'
       )

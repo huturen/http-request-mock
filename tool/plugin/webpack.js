@@ -27,8 +27,12 @@ module.exports = class HttpRequestMockMockPlugin {
    *                        [http-request-mock.esm.mjs] for ESM
    *
    * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server which
-   *                           recives incoming requests on localhost. Mock files will be run in a node environment.
+   *                           receives incoming requests on localhost. Mock files will be run in a node environment.
    *                           [matched] Proxy requests which are matched your defined mock items.
+   *                           [proxy host alias] The same as [matched], but with the specified proxy host.
+   *                                              Such as: proxyMode=local.api.com, the proxy url will become
+   *                                              http://local.api.com/api instead of http://localhost:9001/api
+   *                                              This is for some edge cases that need to set a alias proxy host.
    *                           [marked] Proxy requests which are marked by @proxy. (default: "none")
    */
   constructor({
@@ -54,12 +58,17 @@ module.exports = class HttpRequestMockMockPlugin {
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
 
     this.type = ['es6', 'esm', 'commonjs', 'cjs'].includes(type) ? type : 'cjs';
+
+    const defaultIndexEntry = ['commonjs', 'cjs'].includes(this.type)
+      ? 'http-request-mock.js'
+      : 'http-request-mock.esm.mjs';
+
     this.getIndexEntry = ['src/index.js', 'http-request-mock.js', 'http-request-mock.esm.mjs'].includes(index)
       ? `http-request-mock/${index}`
-      : 'http-request-mock';
+      : `http-request-mock/${defaultIndexEntry}`;
     this.environment = '';
 
-    const isProxyMode = proxyMode === 'matched' || proxyMode === 'marked';
+    const isProxyMode = /^([\w-]+\.?)+$/.test(proxyMode);
     if (['es6', 'esm'].includes(type) && isProxyMode) {
       throw new Error('[proxyMode] does not compatible with the type of es6(ESM).');
     }
@@ -87,7 +96,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * Initialize proxy server in a proxy mode.
    */
   async initProxyServer() {
-    if (this.proxyMode === 'matched' || this.proxyMode === 'marked') {
+    if (this.proxyMode) {
       const address = await server.init({
         type: this.type,
         proxyMode: this.proxyMode,
@@ -108,7 +117,7 @@ module.exports = class HttpRequestMockMockPlugin {
     const setMsg = entry => {
       injected = true;
       const dependency = path.relative(this.dir, this.runtimeFile);
-      log(`Injected mock dependency[${dependency}] for ${entry}`);
+      log(`Injected mock dependency[${dependency}] into ${entry}`);
     };
     const doInject = (entries, level = 0) => {
       if (injected) return;

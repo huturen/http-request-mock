@@ -1,9 +1,10 @@
 /* eslint-env node */
+const stream = require('stream');
 const http = require('http');
 const httpProxy = require('http-proxy');
 const path = require('path');
-const { log } = require('../lib/misc.js');
-const simpleRequest = require('../../src/common/request').default;
+const { log, tryToParseJson } = require('../lib/misc.js');
+const zlib = require('zlib');
 
 const proxy = httpProxy.createProxyServer({});
 
@@ -15,7 +16,6 @@ const defaultHeaders = {
   'access-control-expose-headers': '*',
   'access-control-allow-credentials': 'true',
 };
-let mockDirectory = null;
 const listeningAddress = [];
 
 class Server {
@@ -52,13 +52,13 @@ class Server {
       process.env[key] = val;
     }
 
-    mockDirectory = mockDir;
+    this.mockDirectory = mockDir;
     let port = 9001;
     while(port <= this.maxPort) {
       const server = http.createServer(this.requestListener.bind(this));
       const res = await new Promise((resolve) => {
         server.once('error', (err) => {
-          log(`${err.message}, retring ${++port}.`);
+          log(`${err.message}, retrying ${++port}.`);
           resolve(false);
         });
         server.listen(port, () => {
@@ -95,7 +95,7 @@ class Server {
       }
     });
     try {
-      const runtime = require.resolve(path.resolve(mockDirectory, '.runtime.js'));
+      const runtime = require.resolve(path.resolve(this.mockDirectory, '.runtime.js'));
       require(runtime).reset();
       delete require.cache[runtime];
       require(runtime);
@@ -112,7 +112,7 @@ class Server {
   async requestListener(req, res) {
     let mocker = null;
     try {
-      mocker = require(path.resolve(mockDirectory, '.runtime.js'));
+      mocker = require(path.resolve(this.mockDirectory, '.runtime.js'));
     } catch(err) {
       log('.runtime.js error: ', err);
       return this.serverError(res);
@@ -131,9 +131,6 @@ class Server {
       return this.doProxy(req, res, request.url);
     }
 
-    const mockData = mockItem.response || mockItem.body;
-    const mockResponse = typeof mockData === 'function' ? mockData : () => mockData;
-
     if (mockItem.times-- <= 0) {
       res.setHeader('http-request-mock-times-out', 1);
       return this.doProxy(req, res, request.url);
@@ -143,46 +140,61 @@ class Server {
       await new Promise(resolve => setTimeout(resolve, mockItem.delay));
     }
 
+    // send header before body
+    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
+
     const remoteInfo = mockItem.getRemoteInfo(request.url);
-    let remoteResponse = null;
-    if (remoteInfo) {
-      try {
-        const { body, json, response } = await simpleRequest({
-          url: remoteInfo.url,
-          method: remoteInfo.method || request.method,
-          body: request.body,
-        });
-        remoteResponse = {
-          status: response.statusCode,
-          headers: response.headers,
-          response: json || body,
-          responseText: body,
-          responseJson: json,
-        };
-      } catch(err) {
-        log(`Get remote result error: ${err.message}`);
-        return this.serverError(res, `Server Error: ${err.message}`);
-      }
+    if (!remoteInfo) {
+      return this.doMockResponse(req, res, request, mockItem);
     }
+
+    return this.doProxy(req, res, remoteInfo.url, async (proxyRes, responseBody) => {
+      const responseJson = tryToParseJson(responseBody);
+
+      return this.doRemoteMockResponse(res, request, mockItem, {
+        status: proxyRes.statusCode,
+        headers: proxyRes.headers,
+        response: responseJson || responseBody,
+        responseText: responseBody,
+        responseJson,
+      });
+    });
+  }
+
+  async doMockResponse(req, res, request, mockItem) {
+    const mockData = mockItem.response || mockItem.body;
+    const mockResponse = typeof mockData === 'function' ? mockData : () => mockData;
 
     let result = '';
     try {
-      result = remoteResponse
-        ? await mockResponse.bind(mockItem)(remoteResponse, request, mockItem)
-        : await mockResponse.bind(mockItem)(request, mockItem);
+      result = await mockResponse.bind(mockItem)(request, mockItem);
     } catch(err) {
       return this.serverError(res, `Server Error: ${err.message}`);
     }
 
     if (result instanceof mockItem.bypass().constructor) {
-      if (remoteResponse) {
-        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
-      }
       log('bypass mock for: ', request.url);
       return this.doProxy(req, res, request.url);
     }
-    res.writeHead(mockItem.status, { ...mockItem.header, ...defaultHeaders });
     return res.end(typeof result === 'string' ? result : JSON.stringify(result), 'utf8');
+  }
+
+  async doRemoteMockResponse(res, request, mockItem, remoteResponse) {
+    const mockData = mockItem.response || mockItem.body;
+    const mockResponse = typeof mockData === 'function' ? mockData : () => mockData;
+
+    let result = '';
+    try {
+      result = await mockResponse.bind(mockItem)(remoteResponse, request, mockItem);
+    } catch(err) {
+      this.serverError(res, `Server Error: ${err.message}`);
+      return '';
+    }
+
+    if (result instanceof mockItem.bypass().constructor) {
+      throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+    }
+    return result;
   }
 
   /**
@@ -227,10 +239,7 @@ class Server {
     str.push(`<div><p>${from} -> ${to}</div></p>`);
     str.push('</body></html>');
 
-    res.writeHead(200, {
-      ...defaultHeaders,
-      'content-type': 'text/html;charset=utf-8',
-    });
+    res.writeHead(200, { ...defaultHeaders });
     res.end(str.join('\n'), 'utf8');
     return true;
   }
@@ -292,18 +301,56 @@ class Server {
    * @param {string} url
    * @returns
    */
-  doProxy(req, res, url) {
+  doProxy(req, res, url, handler) {
     const { protocol, host, pathname, search } = new URL(url);
     req.url = `${pathname}${search}`;
-    return proxy.web(req, res, {
-      changeOrigin: true,
-      target: `${protocol}//${host}`,
-      headers: { ...defaultHeaders },
-      cookieDomainRewrite: '',
-      followRedirects: true,
-    }, function(err) {
-      log(`proxy error[${url}]: `, err.message);
-      this.serverError(res, 'proxy error: ' + err.message);
+
+    return new Promise((resolve) => {
+      proxy.once('proxyRes', (proxyRes, req, res) => {
+        const buf = [];
+        const myTransform = new stream.Transform({
+          construct(callback) {
+            this.buf = [];
+            callback();
+          },
+          transform(chunk, encoding, callback) {
+            buf.push(chunk);
+            callback();
+          },
+          async flush(callback) {
+            const body = await handler(proxyRes, Buffer.concat(buf).toString());
+            this.push(Buffer.from(typeof body === 'string' ? body : JSON.stringify(body)));
+            callback();
+          }
+        });
+
+        if (typeof handler === 'function') {
+          // http://nodejs.cn/api/zlib/compressing_http_requests_and_responses.html
+          // ignore pipe for 204(No Content)
+          const zipHeaders = ['gzip', 'compress', 'deflate'];
+          if (zipHeaders.includes(proxyRes.headers['content-encoding']) && proxyRes.statusCode !== 204) {
+            proxyRes.pipe(zlib.createUnzip()).pipe(myTransform).pipe(res);
+          } else if (proxyRes.headers['content-encoding'] === 'br' && proxyRes.statusCode !== 204) {
+            proxyRes.pipe(zlib.createBrotliDecompress()).pipe(myTransform).pipe(res);
+          } else {
+            proxyRes.pipe(myTransform).pipe(res);
+          }
+        } else {
+          proxyRes.pipe(res);
+        }
+      });
+
+      proxy.web(req, res, {
+        changeOrigin: true,
+        target: `${protocol}//${host}`,
+        cookieDomainRewrite: '',
+        followRedirects: true,
+        selfHandleResponse : true
+      }, (err) => {
+        log(`proxy error[${url}]: `, err.message);
+        this.serverError(res, 'proxy error: ' + err.message);
+        resolve(false);
+      });
     });
   }
 

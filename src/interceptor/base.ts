@@ -16,8 +16,12 @@ export default class BaseInterceptor {
   constructor(mocker: Mocker, proxyServer = '') {
     this.mocker = mocker;
 
-    if (/^(matched|marked)@localhost:\d+$/.test(proxyServer)) {
+    if (/^(([\w-]+\.?)+)@localhost:\d+$/.test(proxyServer)) {
       [this.proxyMode, this.proxyServer] = proxyServer.split('@');
+      if (!['matched', 'marked'].includes(this.proxyMode)) {
+        this.proxyServer = this.proxyMode; // proxy host alias
+        this.proxyMode = 'matched';
+      }
     }
 
     this.global = BaseInterceptor.getGlobal();

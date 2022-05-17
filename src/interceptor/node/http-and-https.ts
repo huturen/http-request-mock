@@ -118,8 +118,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
    */
   private getClientRequest(args: unknown[]): NodeRequestOpts | ClientRequestType | boolean {
     const { url, options, callback } = this.getRequestOpts(args);
-    if (options.useNativeModule) {
-      delete options.useNativeModule; // not a standard option
+    if (options.useNativeModule) { // not a standard option
       return false;
     }
 

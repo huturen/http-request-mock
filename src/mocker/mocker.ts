@@ -126,7 +126,7 @@ export default class Mocker {
    * @param {string} file
    */
   public use(file: string) {
-    throw new Error(`Can not use mock case: ${file}, only for a nodejs envrionment`);
+    throw new Error(`Can not use mock case: ${file}, only for a nodejs environment`);
   }
 
   /**

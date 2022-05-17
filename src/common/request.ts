@@ -4,6 +4,7 @@ import { URL } from 'url';
 import * as zlib from 'zlib';
 import { AnyObject } from './../types';
 import { tryToParseJson } from './utils';
+import Stream from 'stream';
 
 /**
  * In nodejs environment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock
@@ -74,9 +75,14 @@ function isHttpsUrl(url: string | URL) {
 }
 
 function getResponseBody(response: IncomingMessage): Promise<{ body: string, json: AnyObject }> {
-  const stream = response.headers['content-encoding'] === 'gzip'
-    ? response.pipe(zlib.createGunzip())
-    : response;
+  let stream: Stream;
+  if (['gzip', 'compress', 'deflate'].includes(response.headers['content-encoding'] || '')) {
+    stream = response.pipe(zlib.createGunzip());
+  } else if ('br' === response.headers['content-encoding']) {
+    stream = response.pipe(zlib.createBrotliDecompress());
+  } else {
+    stream = response;
+  }
 
   return new Promise((resolve, reject) => {
     stream.once('error', (error) => {
@@ -84,10 +90,11 @@ function getResponseBody(response: IncomingMessage): Promise<{ body: string, jso
       reject(error);
     });
 
-    let body = '';
-    stream.on('data', chunk => (body += chunk));
+    const buf: Buffer[] = [];
+    stream.on('data', chunk => buf.push(chunk));
 
     stream.once('end', () => {
+      const body = Buffer.concat(buf).toString();
       resolve({ body, json: tryToParseJson(body, null) });
       stream.removeAllListeners();
     });

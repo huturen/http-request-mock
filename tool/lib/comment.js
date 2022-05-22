@@ -14,7 +14,7 @@ module.exports = {
  */
 function parseCommentTags(file) {
   const tags = getFileCommentTags(file);
-  const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times', 'remote', 'proxy'];
+  const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times', 'remote', 'deProxy'];
   const res = {};
   const header = {};
 
@@ -40,7 +40,8 @@ function parseCommentTags(file) {
   res.status = /^[1-5][0-9][0-9]$/.test(res.status) ? +res.status : undefined;
   res.disable = res.disable !== undefined && /^(yes|true|1|)$/i.test(res.disable) ? 'yes' : (res.disable || undefined);
   res.remote = /^((get|post|put|patch|delete|head)\s+)?https?:\/\/[^\s]+$/i.test(res.remote) ? res.remote : undefined;
-  res.proxy = res.proxy !== undefined ? true : undefined;
+  res.deProxy = res.deProxy !== undefined ? true : undefined;
+
 
   if (isRegExp(res.url)) {
     res.regexp = str2RegExp(res.url, true);

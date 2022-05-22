@@ -414,8 +414,8 @@ module.exports = {
 | Option          | Required | Description                                                      |
 | :-----          | :----    | :----                                                            |
 | **entry**       | yes      | Application entry file, must be a Regexp object                   |
-| **dir**         | yes      | Mock directory, must be an absulte path                          |
-| **enable**      | no       | Whether or not to enable this plugin, defaut: true               |
+| **dir**         | yes      | Mock directory                                                   |
+| **enable**      | no       | Whether or not to enable this plugin, default: true               |
 | **watch**       | no       | A callback that is triggered when a mock data file is changed     |
 | **proxyMode**   | no       | Proxy mode. Valid values are 'marked' and 'matched'              |
 
@@ -474,12 +474,12 @@ Options:
                                      Possible values are: es6, cjs(alias of commonjs).
                                      (default: "cjs")
   -p, --proxy [mode]                 Proxy mode. In proxy mode, http-request-mock will start
-                                     a proxy server which recives incoming requests on localhost.
+                                     a proxy server which receives incoming requests on localhost.
                                      The mock files will be run in a nodejs environment.
                                      This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
                                      [matched] All requests matched by @url will be proxied to a proxy server.
-                                     [marked] All requests marked by @proxy will be proxied to a proxy server. (default: "none")
+                                     [middleware] For the middleware plugin. (default: "none")
   --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```
@@ -654,12 +654,6 @@ it('should match object`', async () => {
  * Remote mock data.
  * In browser, the specified remote url must conform to the cross-domain specification.
  * @remote https://remote.api.com/some/mock/data
- *
- * Marked proxy mode, which the mock definitions will be run in a nodejs environment.
- * This feature is designed for browser, so do not use it in a nodjs project.
- * Only available when proxy mode is enabled by webpack plugin(proxyMode=marked) or CLI(--proxy marked).
- * Note: this feature is still under experimental stage.
- * @proxy
  */
 // Response body to be mocked.
 // It supports to export an object, function, async function, sting or any other types.

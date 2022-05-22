@@ -1,4 +1,9 @@
 ### Changelog
+[2022-05-22]
+1. feat: add webpack-dev-server middleware plugin
+2. chore: remove @proxy tag
+3. chore: add @deProxy tag
+
 [2022-04-30]
 1. feat: support for customizing data returned from remote requests which are marked by @remote
 

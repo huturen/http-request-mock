@@ -406,10 +406,10 @@ module.exports = {
 | 选项          | 配置      | 说明                                                     |
 | :-----        | :----    | :----                                                   |
 | **entry**     | 必填      | 正则对象，用于匹配入口文件                                  |
-| **dir**       | 必填      | 绝对路径，mock文件夹用于存放mock配置文件                     |
+| **dir**       | 必填      | mock文件夹用于存放mock用例件                               |
 | **enable**    | 可选      | 是否启用该插件，默认 true                                  |
 | **watch**     | 可选      | 回调函数，mock配置文件修改是触发，回调参数为变更的mock文件      |
-| **proxyMode** | 可选      | 代理模式，有效值为： marked 或 matched                      |
+| **proxyMode** | 可选      | 代理模式，有效值为： matched 或 middleware                 |
 
 
 #### 使用命令行工具整合项目
@@ -466,12 +466,12 @@ Options:
                                      Possible values are: es6, cjs(alias of commonjs).
                                      (default: "cjs")
   -p, --proxy [mode]                 Proxy mode. In proxy mode, http-request-mock will start
-                                     a proxy server which recives incoming requests on localhost.
+                                     a proxy server which receives incoming requests on localhost.
                                      The mock files will be run in a nodejs environment.
                                      This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
                                      [matched] All requests matched by @url will be proxied to a proxy server.
-                                     [marked] All requests marked by @proxy will be proxied to a proxy server. (default: "none")
+                                     [middleware] For the middleware plugin. (default: "none")
   --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```
@@ -638,12 +638,6 @@ it('should match object`', async () => {
  * 远程mock数据
  * 在浏览器中，指定的远程url必须符合跨域规范。
  * @remote https://remote.api.com/some/mock/data
- *
- * 标记代理模式, mock定义的内容将在nodejs环境中运行。
- * 此特性为浏览器下专用，所以，不要在一个nodejs项目中使用它。
- * 只有当代理模式打开时才有效, 可通过webpack插件(proxyMode=marked) 或者 命令行工具(--proxy marked)打开。
- * 注意: 此特性尚处于实验阶段。
- * @proxy
  */
 // http响应内容，支持静态对象，函数，或者 异步函数,
 // 如果导出的的是函数，入参数为请求对象信息，返回内容即为模拟响应内容。

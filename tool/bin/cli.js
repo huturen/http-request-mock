@@ -2,28 +2,25 @@
 /* eslint-env node */
 
 const { spawn } = require('child_process');
-const chokidar = require('chokidar');
 const program = require('commander');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const pkg = require('../../package.json');
-const { log } = require('../lib/misc.js');
+const { entryPoints, log, getAppRoot, watchDir } = require('../lib/misc.js');
 const protoParser = require('../lib/proto-parser.js');
 const WebpackPlugin = require('../plugin/webpack.js');
 const server = require('./server.js');
 
 module.exports = new class CommandToolLine {
   constructor() {
-    this.appRoot = this.getAppRoot();
+    this.appRoot = getAppRoot();
     this.setOptions();
 
     program.environment = program.environment && /^\w+=\w+$/.test(program.environment)
       ? program.environment
       : '';
-    program.index = ['src/index.js', 'http-request-mock.js', 'http-request-mock.esm.mjs'].includes(program.index)
-      ? program.index
-      : '';
+    program.index = entryPoints.includes(program.index) ? program.index : '';
     this.main();
   }
 
@@ -43,7 +40,7 @@ module.exports = new class CommandToolLine {
     if (program.proto) {
       return this.proto();
     }
-    if (/^([\w-]+\.?)+$/.test(program.proxy)) {
+    if (program.proxy === 'matched') {
       return this.proxy();
     }
   }
@@ -124,7 +121,6 @@ module.exports = new class CommandToolLine {
    * ths specified command will be executed together with watching.'
    */
   async watch() {
-    console.log('this.appRoot:', this.appRoot);
     const dir = path.resolve(this.appRoot, program.directory);
     if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
       log(`There is no a .runtime.js file in the mock directory: ${dir}.`);
@@ -132,14 +128,14 @@ module.exports = new class CommandToolLine {
       return;
     }
 
-    const proxyServer = /^([\w-]+\.?)+$/.test(program.proxy)
+    const proxyServer = program.proxy === 'matched'
       ? await server.init({
         type: program.type,
         mockDir: dir,
         environment: program.environment,
         proxyMode: program.proxy
       })
-      : null;
+      : '';
     log(`Watching: ${dir}`);
     const webpack = new WebpackPlugin({
       dir,
@@ -154,29 +150,7 @@ module.exports = new class CommandToolLine {
       webpack.proxyServer = program.proxy + '@' + proxyServer;
     }
 
-    const pathsSet = new Set();
-    let timer = null;
-    webpack.setRuntimeConfigFile(); // update .runtime.js before watching
-
-    chokidar.watch(dir, {ignoreInitial: true}).on('all', (event, filePath) => {
-      const filename = path.basename(filePath);
-      // Only watch file that matches /^[\w][-\w]*\.js$/
-      if (event === 'addDir' || event === 'error') return;
-      if(filename && !/^[\w][-\w]*\.js$/.test(filename)) return;
-
-      if (pathsSet.has(filePath)) return;
-      pathsSet.add(filePath);
-
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        const runtime = webpack.setRuntimeConfigFile();
-        proxyServer && server.reload([...pathsSet]);
-
-        console.log(' ');
-        log(`${path.relative(path.resolve(dir, '..'), runtime)} has been updated.`);
-        pathsSet.clear();
-      }, 100);
-    });
+    watchDir(webpack, dir, (files) => proxyServer && server.reload(files));
 
     if (typeof program.watch === 'string') {
       spawn(program.watch, { cwd: this.appRoot, env: process.env, stdio: 'inherit', detached: false, shell: true });
@@ -185,16 +159,14 @@ module.exports = new class CommandToolLine {
 
   /**
    * -p, --proxy [mode]:
-   *'Proxy mode. In proxy mode, http-request-mock will start a proxy server which recives
+   *'Proxy mode. In proxy mode, http-request-mock will start a proxy server which receives
    * incoming requests on localhost. The mock files will be run in a nodejs environment.
    * This feature is designed for browser, so do not use it in a nodjs project.
    * Note: proxy mode is still under experimental stage, only for experts.
    * [matched] All requests matched by @url will be proxied to a proxy server.
-   * [marked] All requests marked by @proxy will be proxied to a proxy server.
    */
   proxy() {
-
-    if (/^([\w-]+\.?)+$/.test(program.proxy)) {
+    if (/^(matched)$/.test(program.proxy)) {
       const dir = path.resolve(this.appRoot, program.directory);
       server.init({ type: program.type, mockDir: dir, environment: program.environment, proxyMode: program.proxy });
     }
@@ -274,19 +246,6 @@ module.exports = new class CommandToolLine {
   }
 
   /**
-   * Get root directory of current application
-   */
-  getAppRoot() {
-    if (!/\bnode_modules\b/.test(__dirname)) return process.cwd();
-
-    const root = __dirname.split('node_modules')[0];
-    const json = path.resolve(root, 'package.json');
-    if (!fs.existsSync(json)) return process.cwd();
-
-    return fs.readFileSync(json, 'utf8').includes('"http-request-mock"') ? root : process.cwd();
-  }
-
-  /**
    * Set command line options
    */
   setOptions() {
@@ -329,18 +288,18 @@ module.exports = new class CommandToolLine {
         ' Possible values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.\n'+spaces+
         ' [src/index.js] for commonJS\n'+spaces+
         ' [http-request-mock.js] for UMD\n'+spaces+
-        ' [http-request-mock.esm.mjs] for ESM\n'
+        ' [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.\n'+spaces+
+        ' [http-request-mock.esm.mjs] for ESM\n'+spaces+
+        ' [http-request-mock.pure.esm.mjs] for ESM An alternative version without faker and cache plugins for ESM.\n'
       )
       .option(
         '-p, --proxy [mode]',
         'Proxy mode. In proxy mode, http-request-mock will start\n'+spaces+
-        ' a proxy server which recives incoming requests on localhost.\n'+spaces+
+        ' a proxy server which receives incoming requests on localhost.\n'+spaces+
         ' The mock files will be run in a nodejs environment.\n'+spaces+
         ' This feature is designed for browser, so do not use it in a nodjs project.\n'+spaces+
         ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
-        ' [matched] All requests matched by @url will be proxied to a proxy server.\n'+spaces+
-        ' [proxy host alias] The same as [matched], but with the specified proxy host.\n'+spaces+
-        ' [marked] All requests marked by @proxy will be proxied to a proxy server.',
+        ' [matched] All requests matched by @url will be proxied to a proxy server.',
         'none'
       )
       .option(

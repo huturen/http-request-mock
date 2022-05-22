@@ -15,7 +15,8 @@ export default class Mocker {
     if (Mocker.instance) {
       return Mocker.instance;
     }
-    if (/^(matched|marked)@localhost:\d+$/.test(proxyServer)) {
+
+    if (/^(matched@localhost:\d+)|(middleware@\/)$/.test(proxyServer)) {
       [this.proxyMode, this.proxyServer] = proxyServer.split('@');
     }
 
@@ -121,7 +122,7 @@ export default class Mocker {
   }
 
   /**
-   * Note: this method is only for a nodejs envrionment(test environment).
+   * Note: this method is only for a nodejs environment(test environment).
    * Use a mock file & add it to global mock data configuration.
    * @param {string} file
    */
@@ -306,7 +307,7 @@ export default class Mocker {
   }
 
   /**
-   * Check whether the specified request url matchs a defined mock item.
+   * Check whether the specified request url matches a defined mock item.
    * If a match is found, return the matched mock item, otherwise a null is returned.
    * @param {string} reqUrl
    * @param {string} reqMethod

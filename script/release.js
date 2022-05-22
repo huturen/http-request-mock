@@ -10,7 +10,9 @@ const opts = {
   stdio: 'pipe',
   detached: false,
   shell: true,
-  encoding: 'utf8'
+  encoding: 'utf8',
+  // https://nodejs.org/api/child_process.html#child_processspawnsynccommand-args-options
+  maxBuffer: Number.MAX_SAFE_INTEGER,
 };
 
 const res = spawnSync('npm config get registry', opts);
@@ -23,7 +25,7 @@ if (output !== 'https://registry.npmjs.org') {
 const packageLock = path.resolve(__dirname, '../package-lock.json');
 const sensitiveWord = Buffer.from('dGVuY2VudA==', 'base64').toString('utf8');
 if (fs.readFileSync(packageLock, 'utf8').includes(sensitiveWord)) {
-  console.log('Invalid host envrionment.');
+  console.log('Invalid host environment.');
   spawnSync(`grep '${sensitiveWord}' ${packageLock}`, opts);
   process.exit(1);
 }

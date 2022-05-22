@@ -12,5 +12,8 @@ const opts = {
 };
 
 spawn('tsc -w', opts);
-spawn('webpack --watch --stats-error-details --env target=umd', opts);
-spawn('webpack --watch --stats-error-details --env target=esm', opts);
+spawn('webpack --watch --stats-error-details --env target=umd --env entry=mixed', opts);
+spawn('webpack --watch --stats-error-details --env target=umd --env entry=pure', opts);
+
+spawn('webpack --watch --stats-error-details --env target=esm --env entry=mixed', opts);
+spawn('webpack --watch --stats-error-details --env target=esm --env entry=pure', opts);

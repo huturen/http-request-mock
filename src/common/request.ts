@@ -1,10 +1,10 @@
-import http, { IncomingMessage } from 'http';
-import https from 'https';
+import { IncomingMessage } from 'http';
 import { URL } from 'url';
 import * as zlib from 'zlib';
 import { AnyObject } from './../types';
 import { tryToParseJson } from './utils';
 import Stream from 'stream';
+import { http, https } from 'follow-redirects';
 
 /**
  * In nodejs environment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock

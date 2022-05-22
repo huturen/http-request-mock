@@ -12,12 +12,12 @@ export default class MockItem {
   public body: unknown; // response body
   public response: unknown; // response body, for backward compatibility
   public remote: string; // url of remote mock data
-  public proxy: boolean; // marked proxy mode
   public status: number; // http status code
 
   public disable: Disable;
   public times: number;
   public key: string;
+  public deProxy = false; // Use this option to make the mock use case run in the browser instead of nodejs.
 
   /**
    * Format specified mock item.
@@ -43,7 +43,7 @@ export default class MockItem {
     if (mockItem.remote && /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote)) {
       this.remote = mockItem.remote;
     }
-    this.proxy = !!mockItem.proxy;
+    this.deProxy = !!mockItem.deProxy;
     this.key = `${this.url}-${this.method}`;
   }
 

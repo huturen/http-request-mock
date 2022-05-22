@@ -16,12 +16,8 @@ export default class BaseInterceptor {
   constructor(mocker: Mocker, proxyServer = '') {
     this.mocker = mocker;
 
-    if (/^(([\w-]+\.?)+)@localhost:\d+$/.test(proxyServer)) {
+    if (/^(matched@localhost:\d+)|(middleware@\/)$/.test(proxyServer)) {
       [this.proxyMode, this.proxyServer] = proxyServer.split('@');
-      if (!['matched', 'marked'].includes(this.proxyMode)) {
-        this.proxyServer = this.proxyMode; // proxy host alias
-        this.proxyMode = 'matched';
-      }
     }
 
     this.global = BaseInterceptor.getGlobal();
@@ -48,14 +44,16 @@ export default class BaseInterceptor {
   }
 
   /**
-   * Check whether the specified request url matchs a defined mock item.
+   * Check whether the specified request url matches a defined mock item.
    * If a match is found, return mock meta information, otherwise a null is returned.
    * @param {string} reqUrl
    * @param {string} reqMethod
    */
   protected matchMockRequest(reqUrl: string, reqMethod: HttpVerb | undefined): MockItem | null {
-    // ignore matching when it is a server mode
-    if (this.proxyServer && reqUrl.indexOf(`http://${this.proxyServer}`) === 0) {
+    // ignore matching when it is a proxy mode
+    if (this.proxyMode === 'matched' && reqUrl.indexOf(`http://${this.proxyServer}`) === 0) {
+      return null;
+    } else if (this.proxyMode === 'middleware' && reqUrl.indexOf(this.getMiddlewareHost()) === 0) {
       return null;
     }
     const mockItem: MockItem | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
@@ -105,7 +103,7 @@ export default class BaseInterceptor {
    * @param {string} url
    */
   public checkProxyUrl(url: string, method: HttpVerb) {
-    if (!['matched', 'marked'].includes(this.proxyMode) || !this.proxyServer) {
+    if (!['matched', 'middleware'].includes(this.proxyMode) || !this.proxyServer) {
       return url;
     }
 
@@ -114,12 +112,16 @@ export default class BaseInterceptor {
       return url;
     }
 
-    const proxyUrl = `http://${this.proxyServer}${url.replace(/^(https?):\/\//, '/$1/')}`;
-    if (this.proxyMode === 'marked') {
-      return mockItem.proxy ? proxyUrl : url;
-    }
+    const proxyUrl = this.proxyMode === 'middleware'
+      ? `${this.getMiddlewareHost()}${url.replace(/^(https?):\/\//, '/$1/')}`
+      : `http://${this.proxyServer}${url.replace(/^(https?):\/\//, '/$1/')}`;
 
-    return proxyUrl;
+    return mockItem.deProxy ? url : proxyUrl;
+  }
+
+  public getMiddlewareHost() {
+    const { protocol, host } = window.location;
+    return `${protocol}//${host}`;
   }
 }
 

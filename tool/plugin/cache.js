@@ -1,5 +1,7 @@
 /**
  * Set the specified mockData into localeStorage cache when it changes.
+ * In proxy mode, cached data will be reset after the server restarts.
+ *
  * @param {string} cacheKey
  * @param {object | array} mockData
  */

@@ -26,9 +26,11 @@ execute('tsc');
 
 console.log('---------------------------------');
 
-execute('webpack --env target=umd');
+execute('webpack --env target=umd --env entry=mixed');
+execute('webpack --env target=umd --env entry=pure');
 
 console.log('=================================');
 
-execute('webpack --env target=esm');
+execute('webpack --env target=esm --env entry=mixed');
+execute('webpack --env target=esm --env entry=pure');
 

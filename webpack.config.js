@@ -16,15 +16,17 @@ const copyOpts = {
 
 // build umd & esm versions for browser
 // main: cjs -> nodejs
-// module: esm -> vite, modern browsers
-// browser: umd -> other legacy browsers
+// module: esm -> vite & modern browsers
+// browser: umd -> the majority browsers
 module.exports = env => {
   const target = env.target === 'esm' ? 'esm' : 'umd';
+  const entry = env.entry === 'pure' ? 'pure' : 'mixed';
+
   return {
     mode: 'production',  // development, production
     optimization: { minimize: false },
     devtool: 'source-map',
-    entry: './src/browser.ts',
+    entry: entry === 'pure' ? './src/browser.pure.ts' : './src/browser.ts',
     // devtool: 'inline-source-map',
 
     module: {
@@ -72,18 +74,17 @@ module.exports = env => {
             convertJsType('esm', {
               [resolve('./tool/plugin/faker.js')]: resolve('./dist/tool/plugin/faker.mjs'),
               [resolve('./tool/plugin/cache.js')]: resolve('./dist/tool/plugin/cache.mjs'),
-              [resolve('./tool/plugin/webpack.js')]: resolve('./dist/tool/plugin/webpack.mjs'),
             });
 
             // Copy a redundant plugin directory for backward compatibility.
             console.log('Copy a redundant plugin directory for backward compatibility.');
             copyDir.sync(resolve('./dist/tool/plugin'), resolve('./dist/plugin'), copyOpts);
 
+            const middlewareJs = resolve('./dist/plugin/middleware.js');
             const webpackJs = resolve('./dist/plugin/webpack.js');
-            const webpackMjs = resolve('./dist/plugin/webpack.mjs');
             const replaceRegs = [/(['"`])..\/(bin|tpl|lib)\//g, '$1../tool/$2/'];
+            fs.writeFileSync(middlewareJs, fs.readFileSync(middlewareJs, 'utf8').replace(...replaceRegs));
             fs.writeFileSync(webpackJs, fs.readFileSync(webpackJs, 'utf8').replace(...replaceRegs));
-            fs.writeFileSync(webpackMjs, fs.readFileSync(webpackMjs, 'utf8').replace(...replaceRegs));
           });
         }
       },
@@ -93,14 +94,14 @@ module.exports = env => {
     target: 'web',
     output: target === 'esm'
       ? {
-        filename: 'http-request-mock.esm.mjs',
+        filename: entry === 'pure' ? 'http-request-mock.pure.esm.mjs' : 'http-request-mock.esm.mjs',
         path: path.resolve(__dirname, 'dist'),
         library: {
           type: 'module'
         }
       }
       : {
-        filename: 'http-request-mock.js',
+        filename: entry === 'pure' ? 'http-request-mock.pure.js' : 'http-request-mock.js',
         path: path.resolve(__dirname, 'dist'),
         library: 'HttpRequestMock',
         globalObject: 'typeof self !== \'undefined\' ? self : this',

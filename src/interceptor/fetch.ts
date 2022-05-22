@@ -47,6 +47,7 @@ export default class FetchInterceptor extends Base{
       }
       const method = (params && params.method ? params.method : 'GET') as unknown as HttpVerb;
       const requestUrl = me.getFullRequestUrl(url, method);
+      console.log('url:', url, requestUrl);
 
       return new Promise((resolve, reject) => {
         const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);

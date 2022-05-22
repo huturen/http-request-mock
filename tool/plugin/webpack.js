@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const server = require('../bin/server');
 const { parseCommentTags } = require('../lib/comment');
-const { log } = require('../lib/misc');
+const { entryPoints, log, getAppRoot, resolve, formatPath } = require('../lib/misc');
 const { convertJsType } = require('../lib/convertor');
 const PLUGIN_NAME = 'HttpRequestMockMockPlugin';
 module.exports = class HttpRequestMockMockPlugin {
@@ -12,7 +12,6 @@ module.exports = class HttpRequestMockMockPlugin {
    *
    * @param {regexp} entry Required, entry file into which mock dependencies will be injected.
    * @param {string} dir Required, mock directory which contains all mock files & the runtime mock config entry file.
-   *                     Must be an absolute path.
    * @param {function} watch Optional, callback when some mock file is changed.
    * @param {boolean} enable Optional, whether or not to enable this plugin. Default value depends: NODE_ENV.
    *                         The default value will depend on your environment variable NODE_ENV if not specified:
@@ -21,19 +20,17 @@ module.exports = class HttpRequestMockMockPlugin {
    *                      Valid values are: es6(alias of ESM), cjs(alias of commonjs).
    *
    * @param {string} index Optional, Index entry, automatic detection by default.
-   *                        Valid values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
-   *                        [src/index.js] for commonJS
-   *                        [http-request-mock.js] for UMD
-   *                        [http-request-mock.esm.mjs] for ESM
+   *           Valid values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
+   *           [src/index.js] for commonJS
+   *           [http-request-mock.js] for UMD
+   *           [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.
+   *           [http-request-mock.esm.mjs] for ESM
+   *           [http-request-mock.pure.esm.mjs] for ESM An alternative version without faker and cache plugins for ESM.
    *
-   * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will start a proxy server which
-   *                           receives incoming requests on localhost. Mock files will be run in a node environment.
+   * @param {string} proxyMode Optional, proxy mode. In proxy mode, http-request-mock will use a proxy server to
+   *                           receive incoming requests. Mock files will be run in a node environment.
    *                           [matched] Proxy requests which are matched your defined mock items.
-   *                           [proxy host alias] The same as [matched], but with the specified proxy host.
-   *                                              Such as: proxyMode=local.api.com, the proxy url will become
-   *                                              http://local.api.com/api instead of http://localhost:9001/api
-   *                                              This is for some edge cases that need to set a alias proxy host.
-   *                           [marked] Proxy requests which are marked by @proxy. (default: "none")
+   *                           [middleware] For the middleware plugin. (default: "none")
    */
   constructor({
     entry,
@@ -45,15 +42,15 @@ module.exports = class HttpRequestMockMockPlugin {
     proxyMode = 'none',
   }) {
     if (!(entry instanceof RegExp)) {
-      throw new Error('The HttpRequestMockMockPlugin expects [entry] to be a valid RegExp Object.');
+      throw new Error('The HttpRequestMockWebpackPlugin expects [entry] to be a valid RegExp Object.');
     }
 
-    if (!dir || !path.isAbsolute(dir) || !fs.existsSync(dir)) {
-      throw new Error('The HttpRequestMockMockPlugin expects [dir] to be a valid absolute dir.');
+    this.dir = resolve(path.isAbsolute(dir) ? dir : path.resolve(getAppRoot(), dir));
+    if (!dir || !fs.existsSync(this.dir)) {
+      throw new Error('The HttpRequestMockWebpackPlugin expects [dir] to be a valid directory.');
     }
 
     this.entry = entry;
-    this.dir = this.resolve(dir);
     this.watch = watch;
     this.enable = enable === undefined ? (process.env.NODE_ENV === 'development') : (!!enable);
 
@@ -63,19 +60,19 @@ module.exports = class HttpRequestMockMockPlugin {
       ? 'http-request-mock.js'
       : 'http-request-mock.esm.mjs';
 
-    this.getIndexEntry = ['src/index.js', 'http-request-mock.js', 'http-request-mock.esm.mjs'].includes(index)
+    this.getIndexEntry = entryPoints.includes(index)
       ? `http-request-mock/${index}`
       : `http-request-mock/${defaultIndexEntry}`;
     this.environment = '';
 
-    const isProxyMode = /^([\w-]+\.?)+$/.test(proxyMode);
+    const isProxyMode = /^(matched|middleware)$/.test(proxyMode);
     if (['es6', 'esm'].includes(type) && isProxyMode) {
       throw new Error('[proxyMode] does not compatible with the type of es6(ESM).');
     }
 
     this.proxyServer = '';
     this.proxyMode  = isProxyMode ? proxyMode : '';
-    this.runtimeFile = this.resolve(this.dir, '.runtime.js');
+    this.runtimeFile = resolve(this.dir, '.runtime.js');
   }
 
   /**
@@ -97,7 +94,7 @@ module.exports = class HttpRequestMockMockPlugin {
    */
   async initProxyServer() {
     if (this.proxyMode) {
-      const address = await server.init({
+      const address = this.proxyMode === 'middleware' ? '/' : await server.init({
         type: this.type,
         proxyMode: this.proxyMode,
         mockDir: this.dir,
@@ -168,7 +165,7 @@ module.exports = class HttpRequestMockMockPlugin {
    * @param {string} path
    */
   testPath(regexp, path) {
-    return regexp.test(path) || (process.platform === 'win32' && regexp.test(this.formatPath(path)));
+    return regexp.test(path) || (process.platform === 'win32' && regexp.test(formatPath(path)));
   }
 
   /**
@@ -181,7 +178,7 @@ module.exports = class HttpRequestMockMockPlugin {
       // https://github.com/webpack/webpack/issues/12507
       let changedFiles = [];
       if (comp.modifiedFiles) {
-        changedFiles = Array.from(comp.modifiedFiles).map(this.formatPath);
+        changedFiles = Array.from(comp.modifiedFiles).map(formatPath);
       } else {
         changedFiles = this.getChangedFiles(compiler);
       }
@@ -226,7 +223,7 @@ module.exports = class HttpRequestMockMockPlugin {
 
     const watcher = watchFileSystem.watcher || watchFileSystem.wfs.watcher;
 
-    return Object.keys(watcher.mtimes || {}).map(this.formatPath);
+    return Object.keys(watcher.mtimes || {}).map(formatPath);
   }
 
   /**
@@ -236,13 +233,13 @@ module.exports = class HttpRequestMockMockPlugin {
   getAllMockFiles(level = []){
     if (level.length > 5) return [];
 
-    const dir = this.resolve(this.dir, ...level);
+    const dir = resolve(this.dir, ...level);
     const files = fs.readdirSync(dir, { withFileTypes: true });
     const res = [];
 
     for (const file of files) {
       if (file.isFile() && /^[0-9A-Za-z][-\w]*\.js$/.test(file.name)) {
-        res.push(this.resolve(dir, file.name));
+        res.push(resolve(dir, file.name));
       } else if (file.isDirectory()) {
         res.push(...this.getAllMockFiles(level.concat(file.name)));
       }
@@ -295,8 +292,8 @@ module.exports = class HttpRequestMockMockPlugin {
       file = /^\./.test(file) ? file : ('./'+file);
 
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
-      const { method, delay, status, header, times, remote, proxy } = tags;
-      const mockItem = { url: '', method, body: '', delay, status, times, header, remote, proxy };
+      const { method, delay, status, header, times, remote, deProxy } = tags;
+      const mockItem = { url: '', method, body: '', delay, status, times, header, remote, deProxy };
       const info = JSON.stringify(mockItem, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, isCjs ? `"body": require('${file}'),` : `"body": import('${file}'),` );
@@ -307,24 +304,5 @@ module.exports = class HttpRequestMockMockPlugin {
       files,
       this.environment ? codes : codes.replace(/\/\* __hrf_env_if__ \*\/.*\n/mg, '').replace(/^ {2}/gm, '')
     ];
-  }
-
-
-  /**
-   * Resolve path but treat '\' as '/' on windows
-   * @param  {any} args
-   * @returns
-   */
-  resolve(...args) {
-    return this.formatPath(path.resolve(...args));
-  }
-
-  /**
-   * Treat '\' as '/' on windows
-   * @param  {string} path
-   * @returns
-   */
-  formatPath(path) {
-    return process.platform === 'win32' ? (path+'').replace(/\\/g, '/') : path;
   }
 };

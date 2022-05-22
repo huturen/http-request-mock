@@ -290,7 +290,7 @@ module.exports = new class CommandToolLine {
         ' [http-request-mock.js] for UMD\n'+spaces+
         ' [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.\n'+spaces+
         ' [http-request-mock.esm.mjs] for ESM\n'+spaces+
-        ' [http-request-mock.pure.esm.mjs] for ESM An alternative version without faker and cache plugins for ESM.\n'
+        ' [http-request-mock.pure.esm.mjs] An alternative version without faker and cache plugins for ESM.\n'
       )
       .option(
         '-p, --proxy [mode]',

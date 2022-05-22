@@ -13,6 +13,10 @@ A quick demo: [https://huturen.github.io/http-request-mock-docs/plain-html/](htt
 
 
 Integration Cases:
+- Integration with webpack-dev-server:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
+
 - Integration with vue by webpack plugin:
   [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
@@ -417,7 +421,7 @@ module.exports = {
 | **dir**         | yes      | Mock directory                                                   |
 | **enable**      | no       | Whether or not to enable this plugin, default: true               |
 | **watch**       | no       | A callback that is triggered when a mock data file is changed     |
-| **proxyMode**   | no       | Proxy mode. Valid values are 'marked' and 'matched'              |
+| **proxyMode**   | no       | Proxy mode. Valid values: marked                                |
 
 #### Integration By Command Line Tool
 
@@ -471,15 +475,22 @@ Options:
                                      ths specified command will be executed together with watching.
   -j, --inject <app-entry-file>      Inject .runtime.js into the specified entry relative to the working directory.
   -t, --type [module-type]           The module type of .runtime.js.
-                                     Possible values are: es6, cjs(alias of commonjs).
+                                     Possible values are: es6(alias of ESM), cjs(alias of commonjs).
                                      (default: "cjs")
+  --index [index-entry]              Index entry, automatic detection by default.
+                                     Possible values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
+                                     [src/index.js] for commonJS
+                                     [http-request-mock.js] for UMD
+                                     [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.
+                                     [http-request-mock.esm.mjs] for ESM
+                                     [http-request-mock.pure.esm.mjs] An alternative version without faker and cache plugins for ESM.
+
   -p, --proxy [mode]                 Proxy mode. In proxy mode, http-request-mock will start
                                      a proxy server which receives incoming requests on localhost.
                                      The mock files will be run in a nodejs environment.
                                      This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
-                                     [matched] All requests matched by @url will be proxied to a proxy server.
-                                     [middleware] For the middleware plugin. (default: "none")
+                                     [matched] All requests matched by @url will be proxied to a proxy server. (default: "none")
   --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```

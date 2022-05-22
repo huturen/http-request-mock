@@ -196,12 +196,13 @@ function ClientRequest(
   this.sendResponseResult = (endCallback: Function, ...endArgs: unknown[]) => {
     const now = Date.now();
     this.mockItemResolver(async (mockItem: MockItem, mocker: Mocker) => {
+      const method = this.options.method || 'GET';
       const requestInfo = <RequestInfo>{
         url: this.url,
-        method: this.options.method || 'GET',
+        method,
         query: getQuery(this.url),
         headers: this.getRequestHeaders(),
-        body: this.bufferToString(this.requestBody)
+        body: method === 'GET' ? undefined : this.bufferToString(this.requestBody)
       };
 
       let remoteResponse: RemoteResponse | null = null;

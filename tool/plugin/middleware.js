@@ -12,18 +12,11 @@ const {
   watchDir,
   doProxy,
   getRequestBody,
+  defaultHeadersForProxyServer,
 } = require('../lib/misc.js');
 
 const proxy = httpProxy.createProxyServer({});
-
-const defaultHeaders = {
-  'x-powered-by': 'http-request-mock',
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': '*',
-  'access-control-allow-headers': '*',
-  'access-control-expose-headers': '*',
-  'access-control-allow-credentials': 'true',
-};
+const defaultHeaders = defaultHeadersForProxyServer;
 const cache = {};
 
 /**

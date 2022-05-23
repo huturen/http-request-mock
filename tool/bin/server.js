@@ -9,19 +9,13 @@ const {
   reloadRuntime,
   doProxy,
   getRequestBody,
-  parseQuery
+  parseQuery,
+  defaultHeadersForProxyServer
 } = require('../lib/misc.js');
 
 const proxy = httpProxy.createProxyServer({});
+const defaultHeaders = defaultHeadersForProxyServer;
 
-const defaultHeaders = {
-  'x-powered-by': 'http-request-mock',
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': '*',
-  'access-control-allow-headers': '*',
-  'access-control-expose-headers': '*',
-  'access-control-allow-credentials': 'true',
-};
 const listeningAddress = [];
 
 class Server {

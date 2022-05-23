@@ -12,9 +12,19 @@ const entryPoints = [
   'http-request-mock.esm.mjs',
   'http-request-mock.pure.esm.mjs'
 ];
+const defaultHeadersForProxyServer = {
+  'x-powered-by': 'http-request-mock',
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': '*',
+  'access-control-allow-headers': '*',
+  'access-control-expose-headers': '*',
+  'access-control-allow-credentials': 'true',
+  'content-type': 'application/json',
+};
 
 module.exports = {
   entryPoints,
+  defaultHeadersForProxyServer,
   log,
   tryToParseJson,
   setLocalStorage,
@@ -210,7 +220,6 @@ function getRequestBody(request) {
       .on('end', () => {
         let body = Buffer.concat(buf).toString();
         if (body) {
-          console.log('request.headers:', request.headers);
           try {
             body = JSON.parse(body);
           } catch (err) {
@@ -252,7 +261,7 @@ function doProxy(proxyInstance, req, res, url, handler) {
   return new Promise((resolve, reject) => {
     proxyInstance.once('proxyRes', (proxyRes, _, res) => {
       const transform = responseTransform(proxyRes, handler);
-      proxyRes.once('end', resolve(true));
+      proxyRes.once('end', () => resolve(true));
 
       // http://nodejs.cn/api/zlib/compressing_http_requests_and_responses.html
       // ignore pipe for 204(No Content)

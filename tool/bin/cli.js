@@ -110,6 +110,8 @@ module.exports = new class CommandToolLine {
       '/* eslint-enable */',
     ].join('\n');
 
+    // It may throw an error when writing a file, which user cares.
+    // So, no try-catch here, let it be.
     fs.writeFileSync(appEntryFile, codes+'\n'+entryContent);
     log(`[.runtime.js] dependency has been injected into [\x1b[32m${appEntryFile}\x1b[0m].`);
     log('Please check your application entry file.');
@@ -209,6 +211,8 @@ module.exports = new class CommandToolLine {
       // replace the first line
       content.splice(0, 1, 'const faker = require(\'http-request-mock/plugin/faker.js\').shadow;');
 
+      // It may throw an error when writing a file, which user cares.
+      // So, no try-catch here, let it be.
       fs.writeFileSync(filePath, content.join('\n'));
     } catch(err) {
       console.log('Failed to generate proto config file: ' + err.message);

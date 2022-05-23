@@ -195,10 +195,10 @@ class Middleware {
    * Watch mock directory & update .runtime.js.
    */
   async watch() {
-    if (!fs.existsSync(path.resolve(this.mockDirectory, '.runtime.js'))) {
+    const runtime = path.resolve(this.mockDirectory, '.runtime.js');
+    if (!fs.existsSync(runtime)) {
       log(`There is no a .runtime.js file in the mock directory: ${this.mockDirectory}.`);
-      log('Please use command(npx http-request-mock-cli -i) to initialize it.');
-      return;
+      log(`Generating [${runtime}]...`);
     }
 
     log(`Watching: ${this.mockDirectory}`);
@@ -243,8 +243,8 @@ module.exports = function ({ app, mockDir, index, environment = 'NODE_ENV=develo
   }
 
   const middleware = new Middleware({ mockDir: absoluteDir, index, environment });
-  log(`"${'.runtime.js'}" should be required/imported at the top of your application entry point.`);
   watch && middleware.watch();
+  log(`"${'.runtime.js'}" should be required/imported at the top of your application entry point.`);
   console.log(' '); // To avoid empty log of watching
 
   app.all('*', async function (req, res, next) {

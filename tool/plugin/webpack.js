@@ -258,6 +258,8 @@ module.exports = class HttpRequestMockMockPlugin {
     }
 
     convertJsType(this.type, files);
+    // It may throw an error when writing a file, which user cares.
+    // So, no try-catch here, let it be.
     fs.writeFileSync(this.runtimeFile, codes);
 
     return this.runtimeFile;

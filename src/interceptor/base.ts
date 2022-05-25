@@ -53,13 +53,17 @@ export default class BaseInterceptor {
     // ignore matching when it is a proxy mode
     if (this.proxyMode === 'matched' && reqUrl.indexOf(`http://${this.proxyServer}`) === 0) {
       return null;
-    } else if (this.proxyMode === 'middleware' && reqUrl.indexOf(this.getMiddlewareHost()) === 0) {
-      return null;
     }
     const mockItem: MockItem | null =  this.mocker.matchMockItem(reqUrl, reqMethod);
     if (mockItem && mockItem.times !== undefined) {
       mockItem.times -= 1;
     }
+
+    // "mockItem" should be returned if current request is under proxy mode of middleware and is marked by @deProxy
+    if (this.proxyMode === 'middleware' && reqUrl.indexOf(this.getMiddlewareHost()) === 0) {
+      return mockItem && mockItem.deProxy ? mockItem : null;
+    }
+
     return mockItem;
   }
 

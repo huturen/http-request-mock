@@ -19,7 +19,6 @@ const defaultHeadersForProxyServer = {
   'access-control-allow-headers': '*',
   'access-control-expose-headers': '*',
   'access-control-allow-credentials': 'true',
-  'content-type': 'application/json',
 };
 
 module.exports = {

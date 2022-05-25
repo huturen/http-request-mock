@@ -93,8 +93,6 @@ class Middleware {
       await new Promise(resolve => setTimeout(resolve, mockItem.delay));
     }
 
-    res.status(mockItem.status).set({ ...defaultHeaders, ...mockItem.header });
-
     const remoteInfo = mockItem.getRemoteInfo(request.url);
     if (!remoteInfo) {
       return this.doMockResponse(req, res, next, request, mockItem);
@@ -106,7 +104,7 @@ class Middleware {
     return this.doProxy(req, res, next, remoteInfo.url, async (proxyRes, responseBody) => {
       const responseJson = tryToParseJson(responseBody);
 
-      return this.doRemoteMockResponse(next, request, mockItem, {
+      return this.doRemoteMockResponse(res, next, request, mockItem, {
         status: proxyRes.statusCode,
         headers: proxyRes.headers,
         response: responseJson || responseBody,
@@ -131,10 +129,11 @@ class Middleware {
       log('bypass mock for: ', request.url);
       return this.doProxy(req, res, next, request.url);
     }
+    res.status(mockItem.status).set({ ...defaultHeaders, ...mockItem.header });
     return res.end(typeof result === 'string' ? result : JSON.stringify(result), 'utf8');
   }
 
-  async doRemoteMockResponse(next, request, mockItem, remoteResponse) {
+  async doRemoteMockResponse(res, next, request, mockItem, remoteResponse) {
     const mockData = mockItem.response || mockItem.body;
     const mockResponse = typeof mockData === 'function' ? mockData : () => mockData;
 
@@ -149,6 +148,7 @@ class Middleware {
     if (result instanceof mockItem.bypass().constructor) {
       throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
     }
+    res.status(mockItem.status).set({ ...defaultHeaders, ...mockItem.header });
     return result;
   }
 
@@ -186,6 +186,9 @@ class Middleware {
    * @returns
    */
   async doProxy(req, res, next, url, handler) {
+    if (typeof handler !== 'function' && !res.headersSent) {
+      res.set({ ...defaultHeaders });
+    }
     return doProxy(proxy, req, res, url, handler).catch(err => {
       next(err);
     });

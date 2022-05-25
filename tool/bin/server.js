@@ -114,16 +114,12 @@ class Server {
     }
 
     if (mockItem.times-- <= 0) {
-      res.setHeader('http-request-mock-times-out', 1);
       return this.doProxy(req, res, request.url);
     }
 
     if (mockItem.delay > 0) {
       await new Promise(resolve => setTimeout(resolve, mockItem.delay));
     }
-
-    // send header before body
-    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
 
     const remoteInfo = mockItem.getRemoteInfo(request.url);
     if (!remoteInfo) {
@@ -161,6 +157,7 @@ class Server {
       log('bypass mock for: ', request.url);
       return this.doProxy(req, res, request.url);
     }
+    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
     return res.end(typeof result === 'string' ? result : JSON.stringify(result), 'utf8');
   }
 
@@ -179,6 +176,7 @@ class Server {
     if (result instanceof mockItem.bypass().constructor) {
       throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
     }
+    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
     return result;
   }
 
@@ -263,6 +261,11 @@ class Server {
    * @returns
    */
   async doProxy(req, res, url, handler) {
+    if (typeof handler !== 'function' && !res.headersSent) {
+      Object.entries(defaultHeaders).forEach(([key, val]) => {
+        res.setHeader(key, val);
+      });
+    }
     return doProxy(proxy, req, res, url, handler).catch(err => {
       this.serverError(res, 'proxy error: ' + err.message);
     });

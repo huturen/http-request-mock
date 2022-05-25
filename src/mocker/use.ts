@@ -8,11 +8,12 @@ import Mocker from './mocker';
 export default class Use {
   static init() {
     /**
-    * Note: this method is only for a nodejs envrioment(test environment).
+    * Note: this method is only for a nodejs environment(test environment).
     * Use a mock file & add it to global mock data configuration.
     * @param {string} file
+    * @param {boolean} returnTags
     */
-    Mocker.prototype.use = function use(file: string) {
+    Mocker.prototype.use = function use(file: string, returnTags = false) {
       let absoluteFile = file;
       if (!path.isAbsolute(file)) {
         const callerFile = Use.getCallerFile();
@@ -28,7 +29,7 @@ export default class Use {
       // To avoid "Critical dependency: the request of a dependency is an expression" error
       tags.body = require(absoluteFile);
       tags.body = isImported(tags.body) ? (tags.body as {default: unknown}).default : tags.body;
-      return this.mock(tags);
+      return returnTags ? tags : this.mock(tags);
     };
   }
 

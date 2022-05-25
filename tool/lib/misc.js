@@ -167,9 +167,8 @@ function watchDir(webpackInstance, mockDirectory, reloadFunction) {
     timer = setTimeout(() => {
       const runtime = webpackInstance.setRuntimeConfigFile();
       reloadFunction([...pathsSet]);
-
-      console.log(' ');
       log(`${path.relative(path.resolve(mockDirectory, '..'), runtime)} has been updated.`);
+      console.log(' ');
       pathsSet.clear();
     }, 100);
   });

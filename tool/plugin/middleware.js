@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const httpProxy = require('http-proxy');
 const WebpackPlugin = require('./webpack.js');
+const HttpRequestMock = require('../../src/index').default;
+const mocker = HttpRequestMock.setupForNode();
+
 const {
   log,
   tryToParseJson,
@@ -29,8 +32,9 @@ class Middleware {
    * @param {string} mockDir
    * @param {string} index
    * @param {string} environment
+   * @param {boolean} matchRequestsByDirectoryStructure
    */
-  constructor({ mockDir, index, environment = 'NODE_ENV=development' }) {
+  constructor({ mockDir, index, environment = 'NODE_ENV=development', matchRequestsByDirectoryStructure = false }) {
     if (cache.middlewareInstance) return cache.middlewareInstance;
     cache.middlewareInstance = this;
 
@@ -38,6 +42,7 @@ class Middleware {
     this.runtime = path.resolve(this.mockDirectory, '.runtime.js');
     this.index = index;
     this.environment = /^\w+=\w+$/.test(environment) ? environment.split('=') : '';
+    this.matchRequestsByDirectoryStructure = matchRequestsByDirectoryStructure;
 
     setLocalStorage();
 
@@ -61,8 +66,79 @@ class Middleware {
    * Set middleware listener
    * @param {object} req
    * @param {object} res
+   * @param {function} next
    */
   async setMiddlewareListener(req, res, next) {
+    return this.matchRequestsByDirectoryStructure
+      ? await this.matchRequestsByDirectory(req, res, next)
+      : await this.matchRequestsByRuntime(req, res, next);
+  }
+
+  /**
+   * Match requests by directory conventions
+   * @param {object} req
+   * @param {object} res
+   * @param {function} next
+   */
+  async matchRequestsByDirectory(req, res, next) {
+    const requestUrl = req.url;
+    const requestMethod = req.method.toLocaleUpperCase();
+    const requestPath = String(req.path || '').replace(/\.\./g, '.');
+
+    const mockFile = path.resolve(this.mockDirectory, `.${requestPath}.js`);
+    if (!fs.existsSync(mockFile)) return next();
+
+    try {
+      mocker.mock({...mocker.use(mockFile, true), url: requestPath });
+    } catch(err) {
+      return next(err);
+    }
+
+    const mockItem = mocker.matchMockItem(requestUrl, requestMethod);
+    if (!mockItem) return next();
+    if (mockItem.times-- <= 0) return next();
+
+    const request = {
+      url: requestUrl,
+      method: requestMethod,
+      headers: req.headers,
+      query: req.query,
+      body: await getRequestBody(req),
+    };
+
+    if (mockItem.delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, mockItem.delay));
+    }
+
+    const remoteInfo = mockItem.getRemoteInfo(request.url);
+    if (!remoteInfo) {
+      return this.doMockResponse(req, res, next, request, mockItem);
+    }
+
+    if (remoteInfo.method) {
+      req.method = remoteInfo.method;
+    }
+
+    return this.doProxy(req, res, next, remoteInfo.url, async (proxyRes, responseBody) => {
+      const responseJson = tryToParseJson(responseBody);
+
+      return this.doRemoteMockResponse(res, next, request, mockItem, {
+        status: proxyRes.statusCode,
+        headers: proxyRes.headers,
+        response: responseJson || responseBody,
+        responseText: responseBody,
+        responseJson,
+      });
+    });
+  }
+
+  /**
+   * Match requests by .runtime.js
+   * @param {object} req
+   * @param {object} res
+   * @param {function} next
+   */
+  async matchRequestsByRuntime(req, res, next) {
     let mocker = null;
     try {
       mocker = require(this.runtime);
@@ -239,9 +315,18 @@ class Middleware {
  *           [http-request-mock.esm.mjs] for ESM
  *           [http-request-mock.pure.esm.mjs] for ESM An alternative version without faker and cache plugins for ESM.
  * @param {string} environment optional
+ * @param {boolean} matchRequestsByDirectoryStructure optional, for some edge cases, it is used to
+ *                                                    mock the API under the same domain.
  * @param {boolean} watch optional
  */
-module.exports = function ({ app, mockDir, index, environment = 'NODE_ENV=development', watch = true}) {
+module.exports = function ({
+  app,
+  mockDir,
+  index,
+  environment = 'NODE_ENV=development',
+  matchRequestsByDirectoryStructure = false,
+  watch = true
+}) {
   const absoluteDir = path.isAbsolute(mockDir) ? mockDir : path.resolve(getAppRoot(), mockDir);
 
   if (!mockDir || !fs.existsSync(absoluteDir)) {
@@ -251,10 +336,13 @@ module.exports = function ({ app, mockDir, index, environment = 'NODE_ENV=develo
     throw new Error('The HttpRequestMockMiddlewarePlugin expects [app] to be an object of webpack-dev-server.');
   }
 
-  const middleware = new Middleware({ mockDir: absoluteDir, index, environment });
+  const middleware = new Middleware({ mockDir: absoluteDir, index, environment, matchRequestsByDirectoryStructure });
   watch && middleware.watch();
-  log(`"${'.runtime.js'}" should be required/imported at the top of your application entry point.`);
-  console.log(' '); // To avoid empty log of watching
+
+  if (!matchRequestsByDirectoryStructure) {
+    log(`"${'.runtime.js'}" should be required/imported at the top of your application entry point.`);
+  }
+  console.log(' '); // To avoid empty log 
 
   app.all('*', async function (req, res, next) {
     middleware.setMiddlewareListener(req, res, next);

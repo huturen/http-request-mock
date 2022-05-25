@@ -78,13 +78,16 @@ module.exports = env => {
 
             // Copy a redundant plugin directory for backward compatibility.
             console.log('Copy a redundant plugin directory for backward compatibility.');
-            copyDir.sync(resolve('./dist/tool/plugin'), resolve('./dist/plugin'), copyOpts);
 
-            const middlewareJs = resolve('./dist/plugin/middleware.js');
-            const webpackJs = resolve('./dist/plugin/webpack.js');
-            const replaceRegs = [/(['"`])..\/(bin|tpl|lib)\//g, '$1../tool/$2/'];
-            fs.writeFileSync(middlewareJs, fs.readFileSync(middlewareJs, 'utf8').replace(...replaceRegs));
-            fs.writeFileSync(webpackJs, fs.readFileSync(webpackJs, 'utf8').replace(...replaceRegs));
+            fs.existsSync(resolve('./dist/plugin')) || fs.mkdirSync(resolve('./dist/plugin'));
+            for(const name of fs.readdirSync(resolve('./dist/tool/plugin/'))) {
+              const [source, plugin] = [resolve('./dist/plugin/' + name), `'../tool/plugin/${name}'`];
+              if (/\.js$/.test(name)) {
+                fs.writeFileSync(source, `module.exports = require(${plugin});`);
+              } else if (/\.mjs/.test(name)) {
+                fs.writeFileSync(source, `import { default as mod } from ${plugin};\nexport default mod;`);
+              }
+            }
           });
         }
       },

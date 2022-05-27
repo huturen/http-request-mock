@@ -13,10 +13,6 @@ A quick demo: [https://huturen.github.io/http-request-mock-docs/plain-html/](htt
 
 
 Integration Cases:
-- Integration with webpack-dev-server:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
-
 - Integration with vue by webpack plugin:
   [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
@@ -32,6 +28,10 @@ Integration Cases:
 - Integration with nodejs:
   [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
   [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+
+- Integration with webpack-dev-server:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
 
 - A CURD demo (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
   [Website](https://huturen.github.io/http-request-mock-curd/#/dashboard),

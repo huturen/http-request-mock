@@ -34,6 +34,7 @@ class Server {
       console.error(err, 'Uncaught Exception thrown');
       process.exit(1);
     });
+    process.setMaxListeners(0);
   }
 
   /**
@@ -272,7 +273,7 @@ class Server {
         res.setHeader(key, val);
       });
     }
-    return doProxy(proxy, req, res, url, handler).catch(err => {
+    return doProxy({proxyInstance: proxy, req, res, url, handler}).catch(err => {
       this.serverError(res, 'proxy error: ' + err.message);
     });
   }

@@ -38,8 +38,7 @@ module.exports = {
    * @param {number} min
    * @param {number} max
    */
-  rand(min = 0,
-    max = Number.MAX_SAFE_INTEGER) {
+  rand(min = 0, max = Number.MAX_SAFE_INTEGER) {
     return randNumber({ min, max });
   },
 

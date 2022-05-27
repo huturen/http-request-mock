@@ -54,7 +54,7 @@ function log(...args) {
 function tryToParseJson(str, defaultVal = null) {
   try {
     return JSON.parse(String(str));
-  } catch(e) {
+  } catch (e) {
     return defaultVal;
   }
 }
@@ -93,12 +93,13 @@ function setLocalStorage() {
  * @param {string[]} files
  */
 function reloadRuntime(mockDirectory, files = []) {
-  files.forEach(file => {
+  files.forEach((file) => {
+    const relativeFile = path.relative(mockDirectory, file);
     try {
       delete require.cache[require.resolve(path.resolve(file))];
-      log('reload mock file:', path.basename(file));
-    } catch(e) {
-      log(`reload mock file ${path.basename(file)} error: `, e.message);
+      log('reload mock file:', relativeFile);
+    } catch (e) {
+      log(`reload mock file ${relativeFile} error: `, e.message);
     }
   });
   try {
@@ -108,8 +109,8 @@ function reloadRuntime(mockDirectory, files = []) {
 
     delete require.cache[runtime];
     require(runtime);
-  } catch(e) {
-    log('reload .runtime.js error: ', e.message);
+  } catch (err) {
+    log('reload .runtime.js error: ', err);
   }
 }
 
@@ -154,24 +155,25 @@ function watchDir(webpackInstance, mockDirectory, reloadFunction) {
   let timer = null;
   webpackInstance.setRuntimeConfigFile(); // update .runtime.js before watching
 
-  chokidar.watch(mockDirectory, {ignoreInitial: true}).on('all', (event, filePath) => {
-    const filename = path.basename(filePath);
-    // Only watch file that matches /^[\w][-\w]*\.js$/
-    if (event === 'addDir' || event === 'error') return;
-    if(filename && !/^[\w][-\w]*\.js$/.test(filename)) return;
+  chokidar
+    .watch(mockDirectory, { ignoreInitial: true })
+    .on('all', (event, filePath) => {
+      const filename = path.basename(filePath);
+      // Only watch file that matches /^[\w][-\w]*\.js$/
+      if (event === 'addDir' || event === 'error') return;
+      if (filename && !/^[\w][-\w]*\.js$/.test(filename)) return;
 
-    if (pathsSet.has(filePath)) return;
-    pathsSet.add(filePath);
+      if (pathsSet.has(filePath)) return;
+      pathsSet.add(filePath);
 
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const runtime = webpackInstance.setRuntimeConfigFile();
-      reloadFunction([...pathsSet]);
-      log(`${path.relative(path.resolve(mockDirectory, '..'), runtime)} has been updated.`);
-      console.log(' ');
-      pathsSet.clear();
-    }, 100);
-  });
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        webpackInstance.setRuntimeConfigFile();
+        reloadFunction([...pathsSet]);
+        console.log(' ');
+        pathsSet.clear();
+      }, 100);
+    });
 }
 
 /**
@@ -252,7 +254,7 @@ function parseQuery(search) {
  * @param {function | undefined} handler
  * @returns
  */
-function doProxy(proxyInstance, req, res, url, handler) {
+function doProxy({proxyInstance, req, res, url, handler, headers}) {
   const { protocol, host, pathname, search } = new URL(url);
   req.url = `${pathname}${search}`;
 
@@ -273,13 +275,18 @@ function doProxy(proxyInstance, req, res, url, handler) {
       }
     });
 
-    proxyInstance.web(req, res, {
+    const opts = {
       changeOrigin: true,
       target: `${protocol}//${host}`,
       cookieDomainRewrite: '',
       followRedirects: true,
-      selfHandleResponse : true
-    }, (err) => {
+      selfHandleResponse: true,
+    };
+    // headers: object with extra headers to be added to target requests.
+    if (headers && typeof headers === 'object') {
+      opts.headers = headers;
+    }
+    proxyInstance.web(req, res, opts, (err) => {
       log(`proxy error[${url}]: `, err.message);
       reject(err);
     });

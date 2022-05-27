@@ -46,7 +46,7 @@ export default class Mocker {
    * @param {string} key
    * @param {MockItem} val
    */
-  private addMockItem(key: string, val: MockItem) {
+  protected addMockItem(key: string, val: MockItem) {
     this.mockConfigData[key] = val;
     return this;
   }

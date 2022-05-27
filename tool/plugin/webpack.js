@@ -20,7 +20,7 @@ module.exports = class HttpRequestMockMockPlugin {
    *                      Valid values are: es6(alias of ESM), cjs(alias of commonjs).
    *
    * @param {string} index Optional, Index entry, automatic detection by default.
-   *           Valid values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
+   *           Valid values are:
    *           [src/index.js] for commonJS
    *           [http-request-mock.js] for UMD
    *           [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.
@@ -63,6 +63,10 @@ module.exports = class HttpRequestMockMockPlugin {
     this.getIndexEntry = entryPoints.includes(index)
       ? `http-request-mock/${index}`
       : `http-request-mock/${defaultIndexEntry}`;
+    if (['commonjs', 'cjs'].includes(this.type) && this.getIndexEntry.includes('.esm.')) {
+      throw new Error(`Invalid entry index, ${this.getIndexEntry} does not compatibility with "${this.type}"`);
+    }
+
     this.environment = '';
 
     const isProxyMode = /^(matched|middleware)$/.test(proxyMode);

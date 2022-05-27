@@ -2,19 +2,18 @@ import Browser from './browser';
 import { isNodejs } from './common/utils';
 import Dummy from './dummy';
 import NodeHttpAndHttps from './interceptor/node/http-and-https';
-import Mocker from './mocker/mocker';
-import Use from './mocker/use';
+import Mocker from './mocker/mocker-for-node';
 
 
-Use.init();
 export default class Index extends Browser{
   /**
    * Auto detect request environment and setup request mock for wx.request, fetch and XHR.
    * @param {string} proxyServer A proxy server which is used by proxy mode.
    */
   static setup(proxyServer = ''): Mocker {
-    const mocker = Browser.setup(proxyServer);
+    const mocker = new Mocker(proxyServer);
 
+    Browser.setup(proxyServer);
 
     // for http.get, https.get, http.request, https.request in node environment
     if (this.isEnabled && isNodejs()) {
@@ -47,7 +46,7 @@ export default class Index extends Browser{
    */
   static setupForUnitTest(type: 'wx' | 'xhr' | 'fetch' | 'node' | 'all') : Mocker {
     if (!isNodejs()) {
-      throw new Error('"setupForUnitTest" is only for nodejs envrioment.');
+      throw new Error('"setupForUnitTest" is only for nodejs environment.');
     }
     if (!['wx', 'xhr', 'fetch', 'node', 'all'].includes(type)) {
       throw new Error('Invalid type, valid types are "wx", "xhr", "fetch", "node" and "all".');

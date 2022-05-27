@@ -72,8 +72,8 @@ module.exports = env => {
 
             console.log('Generating ESM plugins...');
             convertJsType('esm', {
-              [resolve('./tool/plugin/faker.js')]: resolve('./dist/tool/plugin/faker.mjs'),
-              [resolve('./tool/plugin/cache.js')]: resolve('./dist/tool/plugin/cache.mjs'),
+              [resolve('./tool/plugin/faker.js')]: resolve('./dist/tool/plugin/faker.esm.mjs'),
+              [resolve('./tool/plugin/cache.js')]: resolve('./dist/tool/plugin/cache.esm.mjs'),
             });
 
             // Copy a redundant plugin directory for backward compatibility.
@@ -81,11 +81,11 @@ module.exports = env => {
 
             fs.existsSync(resolve('./dist/plugin')) || fs.mkdirSync(resolve('./dist/plugin'));
             for(const name of fs.readdirSync(resolve('./dist/tool/plugin/'))) {
-              const [source, plugin] = [resolve('./dist/plugin/' + name), `'../tool/plugin/${name}'`];
+              const [dist, plugin] = [resolve('./dist/plugin/' + name), `'../tool/plugin/${name}'`];
               if (/\.js$/.test(name)) {
-                fs.writeFileSync(source, `module.exports = require(${plugin});`);
+                fs.writeFileSync(dist, `module.exports = require(${plugin});`);
               } else if (/\.mjs/.test(name)) {
-                fs.writeFileSync(source, `import { default as mod } from ${plugin};\nexport default mod;`);
+                fs.writeFileSync(dist, `import { default as mod } from ${plugin};\nexport default mod;`);
               }
             }
           });

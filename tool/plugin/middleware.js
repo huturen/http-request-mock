@@ -3,8 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const httpProxy = require('http-proxy');
 const WebpackPlugin = require('./webpack.js');
-const HttpRequestMock = require('../../src/index').default;
-const mocker = HttpRequestMock.setupForNode();
+const Mocker = require('../../src/mocker/mocker-for-node').default;
+
+const mocker = new Mocker();
 
 const {
   log,
@@ -34,13 +35,20 @@ class Middleware {
    * @param {string} environment
    * @param {boolean} matchRequestsByDirectoryStructure
    */
-  constructor({ mockDir, index, environment = 'NODE_ENV=development', matchRequestsByDirectoryStructure = false }) {
+  constructor({
+    mockDir,
+    index,
+    headers = {},
+    environment = 'NODE_ENV=development',
+    matchRequestsByDirectoryStructure = false
+  }) {
     if (cache.middlewareInstance) return cache.middlewareInstance;
     cache.middlewareInstance = this;
 
     this.mockDirectory = mockDir;
     this.runtime = path.resolve(this.mockDirectory, '.runtime.js');
     this.index = index;
+    this.headers = headers;
     this.environment = /^\w+=\w+$/.test(environment) ? environment.split('=') : '';
     this.matchRequestsByDirectoryStructure = matchRequestsByDirectoryStructure;
 
@@ -89,7 +97,8 @@ class Middleware {
     if (!fs.existsSync(mockFile)) return next();
 
     try {
-      mocker.mock({...mocker.use(mockFile, true), url: requestPath });
+      // "@deProxy" does not compatibility with "matchRequestsByDirectoryStructure" option.
+      mocker.mock({ ...mocker.use(mockFile, true), url: requestPath, deProxy: false });
     } catch(err) {
       return next(err);
     }
@@ -271,7 +280,7 @@ class Middleware {
     if (typeof handler !== 'function' && !res.headersSent) {
       res.set({ ...defaultHeaders });
     }
-    return doProxy(proxy, req, res, url, handler).catch(err => {
+    return doProxy({ proxyInstance: proxy, headers: this.headers, req, res, url, handler }).catch(err => {
       next(err);
     });
   }
@@ -309,23 +318,19 @@ class Middleware {
  * @param {string} mockDir required
  * @param {string} index optional Index entry, automatic detection by default.
  *           Valid values are: src/index.js, http-request-mock.js and http-request-mock.esm.mjs.
- *           [src/index.js] for commonJS
  *           [http-request-mock.js] for UMD
  *           [http-request-mock.pure.js] An alternative version without faker and cache plugins for UMD.
- *           [http-request-mock.esm.mjs] for ESM
- *           [http-request-mock.pure.esm.mjs] for ESM An alternative version without faker and cache plugins for ESM.
  * @param {string} environment optional
  * @param {boolean} matchRequestsByDirectoryStructure optional, for some edge cases, it is used to
  *                                                    mock the API under the same domain.
- * @param {boolean} watch optional
  */
 module.exports = function ({
   app,
   mockDir,
   index,
+  headers = {}, // headers: object with extra headers to be added to target requests.
   environment = 'NODE_ENV=development',
   matchRequestsByDirectoryStructure = false,
-  watch = true
 }) {
   const absoluteDir = path.isAbsolute(mockDir) ? mockDir : path.resolve(getAppRoot(), mockDir);
 
@@ -335,16 +340,26 @@ module.exports = function ({
   if (!app || typeof app !== 'function') {
     throw new Error('The HttpRequestMockMiddlewarePlugin expects [app] to be an object of webpack-dev-server.');
   }
+  const entries = ['http-request-mock.js', 'http-request-mock.pure.js'];
+  if (index && !entries.includes(index)) {
+    const msg = [
+      'The HttpRequestMockMiddlewarePlugin expects [index] to be a valid http-request-mock entry index.',
+      'Valid values are: ' + entries.join(', ')
+    ];
+    throw new Error(msg.join('\n'));
+  }
 
-  const middleware = new Middleware({ mockDir: absoluteDir, index, environment, matchRequestsByDirectoryStructure });
-  watch && middleware.watch();
+  const middleware = new Middleware({
+    mockDir: absoluteDir, index, headers, environment, matchRequestsByDirectoryStructure
+  });
+  middleware.watch();
 
   if (!matchRequestsByDirectoryStructure) {
-    log(`"${'.runtime.js'}" should be required/imported at the top of your application entry point.`);
+    log(`"${'.runtime.js'}" should be required/imported/injected at the top of your application entry point.`);
   }
-  console.log(' '); // To avoid empty log 
+  console.log(' '); // To avoid empty log
 
-  app.all('*', async function (req, res, next) {
+  app.all('*', (req, res, next) => {
     middleware.setMiddlewareListener(req, res, next);
   });
 };

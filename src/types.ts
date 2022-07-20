@@ -26,7 +26,7 @@ export interface AnyObject {
 }
 
 export interface Query {
-  [key: string]: string
+  [key: string]: string | string[]
 }
 
 export interface Header {

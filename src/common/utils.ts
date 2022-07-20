@@ -1,10 +1,52 @@
 
 import { Query } from '../types';
+
+/**
+ * Get query parameters from the specified request url.
+ * https://www.sitepoint.com/get-url-parameters-with-javascript/
+ *
+ * @param {string} reqUrl
+ */
+export function getQuery(reqUrl: string) : Query {
+  // no protocol, domain, path and hash tag
+  const query = reqUrl.replace(/^.*?\?/g, '').replace(/#.*$/g, '');
+
+  const obj: Record<string, string | string[]> = {};
+  if (query) {
+    const parts = query.split('&');
+
+    for (let i = 0; i < parts.length; i++) {
+      const [key, val = ''] = parts[i].split('=');
+
+      // for keys which ends with square brackets, such as list[] or list[1]
+      if (key.match(/\[(\d+)?\]$/)) {
+        const field = key.replace(/\[(\d+)?\]/, '');
+        obj[field] = obj[field] || [];
+
+        if (key.match(/\[\d+\]$/)) {
+          // set array index, if it's an indexed array e.g. list[2]
+          (obj[field] as string[])[Number(/\[(\d+)\]/.exec(key)?.[1])] = val;
+        } else {
+          (obj[field] as string[]).push(val);
+        }
+      } else {
+        if (key in obj) {
+          obj[key] = ([] as string[]).concat(obj[key] as string | string[] , val);
+        } else {
+          obj[key] = val;
+        }
+      }
+    }
+  }
+
+  return obj;
+}
+
 /**
  * Get query parameters from the specified request url.
  * @param {string} reqUrl
  */
-export function getQuery(reqUrl: string) : Query{
+export function getQuery2(reqUrl: string) : Query{
   return /\?/.test(reqUrl)
     ? reqUrl
       .replace(/.*?\?/g, '') // no protocol, domain and path
@@ -157,7 +199,7 @@ export function currentDatetime() {
 }
 
 /**
- * Check current envrioment: nodejs or not.
+ * Check current environment: nodejs or not.
  * Note: arrow function is required.
  */
 export function isNodejs() {

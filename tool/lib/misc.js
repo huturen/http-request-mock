@@ -238,8 +238,23 @@ function getRequestBody(request) {
  * @param {object|string} search
  */
 function parseQuery(search) {
-  return [...new URLSearchParams(search).entries()].reduce((res, [k, v]) => {
-    res[k] = v;
+  return [...new URLSearchParams(search).entries()].reduce((res, [key, val]) => {
+    // for keys which ends with square brackets, such as list[] or list[1]
+    if (key.match(/\[(\d+)?\]$/)) {
+      const field = key.replace(/\[(\d+)?\]/, '');
+      res[field] = res[field] || [];
+      if (key.match(/\[\d+\]$/)) {
+        res[field][Number(/\[(\d+)\]/.exec(key)[1])] = val;
+      } else {
+        res[field].push(val);
+      }
+      return res;
+    }
+    if (key in res) {
+      res[key] = [].concat(res[key] , val);
+    } else {
+      res[key] = val;
+    }
     return res;
   }, {});
 }

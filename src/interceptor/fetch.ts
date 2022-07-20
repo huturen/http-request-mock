@@ -47,7 +47,6 @@ export default class FetchInterceptor extends Base{
       }
       const method = (params && params.method ? params.method : 'GET') as unknown as HttpVerb;
       const requestUrl = me.getFullRequestUrl(url, method);
-      console.log('url:', url, requestUrl);
 
       return new Promise((resolve, reject) => {
         const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);
@@ -170,8 +169,8 @@ export default class FetchInterceptor extends Base{
     const statusText = HTTPStatusCodes[status] || '';
 
     const headers = typeof Headers === 'function'
-      ? new Headers({ ...mockItem.header, 'x-powered-by': 'http-request-mock' })
-      : Object.entries({ ...mockItem.header, 'x-powered-by': 'http-request-mock' });
+      ? new Headers({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' })
+      : Object.entries({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' });
 
     const body = typeof Blob === 'function'
       ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])

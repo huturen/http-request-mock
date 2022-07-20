@@ -117,12 +117,12 @@ describe('mock jquery requests', () => {
     ]);
   });
 
-  it('header config itme should support to customize response headers', async () => {
+  it('should support to customize response headers', async () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
       body: 'headers',
-      header: {
+      headers: {
         custom: 'a-customized-header',
         another: 'another-header'
       }

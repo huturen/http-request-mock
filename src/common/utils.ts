@@ -9,7 +9,7 @@ import { Query } from '../types';
  */
 export function getQuery(reqUrl: string) : Query {
   // no protocol, domain, path and hash tag
-  const query = reqUrl.replace(/^.*?\?/g, '').replace(/#.*$/g, '');
+  const query = (reqUrl || '').replace(/^.*?\?/g, '').replace(/#.*$/g, '');
 
   const obj: Record<string, string | string[]> = {};
   if (query) {
@@ -43,31 +43,19 @@ export function getQuery(reqUrl: string) : Query {
 }
 
 /**
- * Get query parameters from the specified request url.
- * @param {string} reqUrl
- */
-export function getQuery2(reqUrl: string) : Query{
-  return /\?/.test(reqUrl)
-    ? reqUrl
-      .replace(/.*?\?/g, '') // no protocol, domain and path
-      .replace(/#.*$/g, '') // no hash tag
-      .split('&')
-      .reduce((res : Query, item: string) => {
-        const [k,v] = item.split('=');
-        res[k] = (v || '').trim();
-        return res;
-      }, {})
-    : {};
-}
-
-/**
  * Convert query object to search string.
  * @param {object} queryObj
  */
-export function queryObject2String(queryObj: Record<string, string>) : string{
+export function queryObject2String(queryObj: Query) : string{
   const str: string[] = [];
   for(const key in queryObj) {
-    str.push(key + '=' + queryObj[key]);
+    if (Array.isArray(queryObj[key])) {
+      for(const val of queryObj[key]) {
+        str.push(key + '=' + val);
+      }
+    } else {
+      str.push(key + '=' + queryObj[key]);
+    }
   }
   return str.join('&');
 }

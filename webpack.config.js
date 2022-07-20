@@ -43,7 +43,7 @@ module.exports = env => {
       extensions: ['.tsx', '.ts', '.js'],
     },
     plugins: [
-      // add js files in tool direcotry to watch list
+      // add js files in tool directory to watch list
       new WatchExternalFilesPlugin({
         files: [ './tool/**/*.js', ]
       }),

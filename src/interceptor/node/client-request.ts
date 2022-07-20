@@ -238,7 +238,7 @@ function ClientRequest(
 
         this.response.statusCode = mockItem.status;
         this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
-        this.response.headers = { ...mockItem.header, 'x-powered-by': 'http-request-mock' };
+        this.response.headers = { ...mockItem.headers, 'x-powered-by': 'http-request-mock' };
         this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
           return res.concat(item as never);
         }, []);

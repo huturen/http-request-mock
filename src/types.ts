@@ -34,7 +34,8 @@ export interface Header {
 }
 
 export interface MockItemExt {
-  header?: Header, // response header
+  header?: Header, // response header, the same as headers, just for backward compatibility
+  headers?: Header, // response header
   disable?: Disable;
   delay?: number;
   times?: number;

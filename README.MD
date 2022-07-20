@@ -163,7 +163,7 @@ mocker.mock({
   method: 'get', // get, post, put, patch or delete
   delay: 0,
   status: 200,
-  header: { // respone headers
+  headers: { // respone headers
     'content-type': 'application/json',
     'some-header': 'value',
   },
@@ -248,7 +248,7 @@ const mocker = HttpRequestMock.setup();
 mocker.mock({
   url: 'www.api.com/status404',
   status: 404,
-  header: {
+  headers: {
     'content-type': 'application/json',
     'some-header': 'header-value',
   }
@@ -553,7 +553,7 @@ Check specified mock item & add it to global mock data configuration.
 interface MockItemInfo {
   url: RegExp | string;
   method?: HttpVerb; // GET, POST, PUT, PATCH, DELETE or HEAD
-  header?: Header, // response header
+  headers?: Header, // response headers
   delay?: number;
   disable?: Disable; // yes or no
   times?: number;
@@ -568,7 +568,7 @@ Make a mock item that matches an HTTP GET request.
 
 ```javascript
 interface MockItemExt {
-  header?: Header, // response header
+  headers?: Header, // response headers
   disable?: Disable; // yes or no
   delay?: number;
   times?: number;

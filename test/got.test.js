@@ -39,7 +39,7 @@ describe('mock requests which are triggered by request library', () => {
 
   it('url config item should support RegExp matching', async () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'}, {
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });
@@ -53,7 +53,7 @@ describe('mock requests which are triggered by request library', () => {
       url: 'http://www.api.com/delay',
       delay: 101,
       body: { ret: 0, msg: 'delay'},
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });
@@ -111,12 +111,12 @@ describe('mock requests which are triggered by request library', () => {
     ]);
   });
 
-  it('header config itme should support to customize response headers', async () => {
+  it('should support to customize response headers', async () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
       body: 'headers',
-      header: {
+      headers: {
         custom: 'a-customized-header',
         another: 'another-header'
       }
@@ -133,12 +133,12 @@ describe('mock requests which are triggered by request library', () => {
 
   it('mock response should support to customize data types', async () => {
     mocker.any('http://www.api.com/string', 'string', {
-      header: {
+      headers: {
         'content-type': 'application/text' // response to text
       }
     });
     mocker.any('http://www.api.com/object', {obj: 'yes'}, {
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });

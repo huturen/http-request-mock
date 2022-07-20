@@ -1,6 +1,6 @@
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import { Logs, HttpVerb, MockConfigData, MockItemExt, RequestInfo } from '../types';
+import { HttpVerb, Logs, MockConfigData, MockItemExt, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
@@ -154,6 +154,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -161,10 +162,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'GET', body, delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'GET', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -176,6 +178,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -183,11 +186,12 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
+    const { delay, status, times, header, headers } = opts;
 
-    this.mock({ url, method: 'POST', body, delay, status, header, times });
+    this.mock({ url, method: 'POST', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -199,6 +203,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -206,10 +211,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'PUT', body, delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'PUT', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -221,6 +227,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -228,10 +235,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'PATCH', body, delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'PATCH', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -243,6 +251,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -250,10 +259,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'DELETE', body, delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'DELETE', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -270,6 +280,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -277,10 +288,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'HEAD', body: '', delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'HEAD', body: '', delay, status, header, headers, times });
     return this;
   }
 
@@ -292,6 +304,7 @@ export default class Mocker {
    *    @param {number} delay
    *    @param {number} status
    *    @param {object} header
+   *    @param {object} headers
    *    @param {number} times
    * }
    */
@@ -299,10 +312,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {}
+    header: {},
+    headers: {}
   }) {
-    const { delay, status, times, header } = opts;
-    this.mock({ url, method: 'ANY', body, delay, status, header, times });
+    const { delay, status, times, header, headers } = opts;
+    this.mock({ url, method: 'ANY', body, delay, status, header, headers, times });
     return this;
   }
 
@@ -395,7 +409,7 @@ export default class Mocker {
       ['Response: ', {
         body,
         spent,
-        headers: {...mockItem.header, 'x-powered-by': 'http-request-mock'},
+        headers: {...mockItem.headers, 'x-powered-by': 'http-request-mock'},
         status: mockItem.status,
         statusText: HTTPStatusCodes[mockItem.status] || ''
       }],

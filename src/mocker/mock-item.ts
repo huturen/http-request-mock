@@ -7,7 +7,8 @@ export default class MockItem {
   public url: RegExp | string;
   public regexp: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   public method: HttpVerb;
-  public header: Header; // response header
+  public header: Header; // response header, the same as headers, just for backward compatibility
+  public headers: Header; // response header
   public delay: number;
   public body: unknown; // response body
   public response: unknown; // response body, for backward compatibility
@@ -33,7 +34,10 @@ export default class MockItem {
       ? <HttpVerb> mockItem.method?.toUpperCase()
       : <HttpVerb> 'ANY';
 
-    this.header = typeof mockItem.header === 'object' ? mockItem.header : {};
+    const headers = mockItem.headers || mockItem.header || {};
+    this.header = headers && typeof headers === 'object' ? headers : {};
+    this.headers = headers && typeof headers === 'object' ? headers : {};
+
     this.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;
     this.times = mockItem.times !== undefined && /^-?\d{0,15}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;
     this.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
@@ -94,7 +98,8 @@ export default class MockItem {
     }
     const query = getQuery(requestUrl);
     for(const key in query) {
-      url = url.replace(new RegExp('\\$query\.'+key, 'g'), query[key]);
+      const queryString = Array.isArray(query[key]) ? (query[key] as string[]).join(',') : query[key];
+      url = url.replace(new RegExp('\\$query\.'+key, 'g'), queryString as string);
     }
     url = url.replace(/\$query/g, queryObject2String(query));
 

@@ -164,12 +164,12 @@ export default class WxRequestInterceptor extends Base {
    */
   getWxResponse(responseBody: unknown, mockItem: MockItem): WxResponse {
     // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
-    const setCookieHeader = [].concat((mockItem.header?.['set-cookie'] || []) as never[]);
+    const setCookieHeader = [].concat((mockItem.headers?.['set-cookie'] || []) as never[]);
     return {
       data: responseBody,
       statusCode: mockItem.status || 200,
       header: {
-        ...mockItem.header,
+        ...mockItem.headers,
         'x-powered-by': 'http-request-mock'
       },
       cookies: setCookieHeader,

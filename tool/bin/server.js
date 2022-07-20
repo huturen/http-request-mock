@@ -158,7 +158,7 @@ class Server {
       log('bypass mock for: ', request.url);
       return this.doProxy(req, res, request.url);
     }
-    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
+    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.headers });
     if (result && typeof result === 'object' && !res.headersSent) {
       res.setHeader('content-type', 'application/json');
     }
@@ -180,7 +180,7 @@ class Server {
     if (result instanceof mockItem.bypass().constructor) {
       throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
     }
-    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.header });
+    res.writeHead(mockItem.status, { ...defaultHeaders, ...mockItem.headers });
     if (result && typeof result === 'object' && !res.headersSent) {
       res.setHeader('content-type', 'application/json');
     }

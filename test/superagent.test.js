@@ -42,12 +42,12 @@ describe('mock superagent requests', () => {
 
   it('url config item should support RegExp matching', async () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'}, {
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });
 
-    const res = await request('http://www.api.com/regexp', 'get',);
+    const res = await request('http://www.api.com/regexp', 'get');
     expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
@@ -56,7 +56,7 @@ describe('mock superagent requests', () => {
       url: 'http://www.api.com/delay',
       delay: 101,
       body: { ret: 0, msg: 'delay'},
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });
@@ -115,7 +115,7 @@ describe('mock superagent requests', () => {
     ]);
   });
 
-  it('header config itme should support to customize response headers', async () => {
+  it('should support to customize response headers', async () => {
     mocker.mock({
       url: 'http://www.api.com/headers',
       method: 'any',
@@ -137,12 +137,12 @@ describe('mock superagent requests', () => {
 
   it('mock response should support to customize data types', async () => {
     mocker.any('http://www.api.com/string', 'string', {
-      header: {
+      headers: {
         'content-type': 'application/text' // response to text
       }
     });
     mocker.any('http://www.api.com/object', {obj: 'yes'}, {
-      header: {
+      headers: {
         'content-type': 'application/json' // response to json
       }
     });

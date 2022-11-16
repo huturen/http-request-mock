@@ -336,8 +336,6 @@ export default class Mocker {
     const items = Object.values(this.mockConfigData).filter(({disable, times, method}: MockItem) => {
       const verb = String(method).toUpperCase();
       return disable !== 'YES' && (times === undefined || times > 0) && (verb === 'ANY' || verb === requestMethod);
-    }).sort((mockItem1: MockItem, mockItem2: MockItem) => {
-      return String(mockItem2.url).length - String(mockItem1.url).length;
     });
 
     for(let i = 0; i < 2; i++) {

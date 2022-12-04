@@ -1,6 +1,6 @@
 import Bypass from '../common/bypass';
 import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
-import { Disable, DynamicImported, Header, HttpVerb, RequestInfo } from '../types';
+import { Disable, DynamicImported, Header, HttpVerb, MockItemInfo, RequestInfo } from '../types';
 import { RemoteResponse } from './../types';
 
 export default class MockItem {
@@ -25,7 +25,7 @@ export default class MockItem {
    * @param {MockItemInfo} mockItem
    * @returns false | MockItemInfo
    */
-  constructor(mockItem: Partial<MockItem>) {
+  constructor(mockItem: MockItemInfo) {
     if (!mockItem.url || (typeof mockItem.url !== 'string' && !(mockItem.url instanceof RegExp))) {
       return;
     }
@@ -51,7 +51,7 @@ export default class MockItem {
     this.key = `${this.url}-${this.method}`;
   }
 
-  private setBody(mockItem: Partial<MockItem>) {
+  private setBody(mockItem: MockItemInfo) {
     let body: unknown;
     if ('body' in mockItem) {
       body = mockItem.body;

@@ -45,6 +45,7 @@ export interface MockItemInfo {
   status?: number; // http status code
   disable?: 'YES' | 'NO';
   times?: number;
+  deProxy?: boolean;
 }
 
 export interface MockItemExt {

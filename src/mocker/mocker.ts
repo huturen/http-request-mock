@@ -1,6 +1,6 @@
 import { currentTime, isNodejs, isObject } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
-import { HttpVerb, Logs, MockConfigData, MockItemExt, RequestInfo } from '../types';
+import { HttpVerb, Logs, MockConfigData, MockItemExt, MockItemInfo, RequestInfo } from '../types';
 import MockItem from './mock-item';
 
 export default class Mocker {
@@ -135,7 +135,7 @@ export default class Mocker {
    * @param {MockItem} mockItem
    * @returns false | MockItem
    */
-  public mock(mockItemInfo: Partial<MockItem>) {
+  public mock(mockItemInfo: MockItemInfo) {
     if (!isObject(mockItemInfo)) {
       throw new Error('Invalid mock item, a valid mock item must be an object.');
     }

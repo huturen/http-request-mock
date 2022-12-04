@@ -33,6 +33,20 @@ export interface Header {
   [key: string]: string
 }
 
+export interface MockItemInfo {
+  url?: RegExp | string;
+  method?: HttpVerb;
+  header?: Header; // response header, the same as headers, just for backward compatibility
+  headers?: Header; // response header
+  delay?: number;
+  body?: unknown; // response body
+  response?: unknown; // response body, for backward compatibility
+  remote?: string; // url of remote mock data
+  status?: number; // http status code
+  disable?: 'YES' | 'NO';
+  times?: number;
+}
+
 export interface MockItemExt {
   header?: Header, // response header, the same as headers, just for backward compatibility
   headers?: Header, // response header

@@ -4,6 +4,7 @@ import InterceptorXhr from './interceptor/xml-http-request';
 import Mocker from './mocker/mocker';
 
 export type { HttpVerb, Method, MockItemExt, MockItemInfo, RequestInfo } from './types';
+export { Mocker };
 
 export default class BrowserPureIndex {
   protected static isEnabled = true;

@@ -5,6 +5,7 @@ import NodeHttpAndHttps from './interceptor/node/http-and-https';
 import Mocker from './mocker/mocker-for-node';
 
 export type { HttpVerb, Method, MockItemExt, MockItemInfo, RequestInfo } from './types';
+export { Mocker };
 
 export default class Index extends Browser{
   /**

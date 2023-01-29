@@ -212,6 +212,7 @@ function ClientRequest(
           const { body, json, response } = await simpleRequest({
             url: remoteInfo.url,
             method: remoteInfo.method || this.options.method || 'GET',
+            headers: requestInfo.headers as Record<string, string>,
             body: this.requestBody
           });
           remoteResponse = {

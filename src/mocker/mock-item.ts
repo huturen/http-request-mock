@@ -44,7 +44,9 @@ export default class MockItem {
     this.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'YES' : 'NO') as Disable;
     this.setBody(mockItem);
 
-    if (mockItem.remote && /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote)) {
+    const isUrlLiked = /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote as string);
+    const isDollarUrl = mockItem.remote === '$url';
+    if (mockItem.remote && (isUrlLiked || isDollarUrl)) {
       this.remote = mockItem.remote;
     }
     this.deProxy = !!mockItem.deProxy;
@@ -102,7 +104,7 @@ export default class MockItem {
       url = url.replace(new RegExp('\\$query\.'+key, 'g'), queryString as string);
     }
     url = url.replace(/\$query/g, queryObject2String(query));
-
+    url = url === '$url' ? requestUrl : url;
     return { method, url };
   }
 }

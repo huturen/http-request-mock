@@ -48,6 +48,8 @@ export default class MockItem {
     const isDollarUrl = mockItem.remote === '$url';
     if (mockItem.remote && (isUrlLiked || isDollarUrl)) {
       this.remote = mockItem.remote;
+    } else if (mockItem.remote){
+      throw new Error('Invalid @remote config. Valid @remote examples: http://x.com/, GET http://x.com, $url');
     }
     this.deProxy = !!mockItem.deProxy;
     this.key = `${this.url}-${this.method}`;

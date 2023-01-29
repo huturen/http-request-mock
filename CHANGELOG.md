@@ -1,7 +1,7 @@
 ### Changelog
 [2023-01-29]
 1. fix: simpleRequest should have carried request headers to the request of remote url
-2. feat: feat: new mechanism to specify the original URL which matched by mock for "remote" feature
+2. feat: new mechanism to specify the original URL which is matched by mock for "remote" feature
 
 [2022-05-22]
 1. feat: add webpack-dev-server middleware plugin

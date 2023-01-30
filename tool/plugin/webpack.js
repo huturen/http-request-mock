@@ -298,8 +298,8 @@ module.exports = class HttpRequestMockMockPlugin {
       file = /^\./.test(file) ? file : ('./'+file);
 
       const url = typeof tags.url === 'object' ? tags.url : `"${tags.url}"`;
-      const { method, delay, status, header, times, remote, deProxy } = tags;
-      const mockItem = { url: '', method, body: '', delay, status, times, headers: header, remote, deProxy };
+      const { method, delay, status, requestHeaders, headers, times, remote, deProxy } = tags;
+      const mockItem = { url: '', method, body: '', delay, status, times, requestHeaders, headers, remote, deProxy };
       const info = JSON.stringify(mockItem, null, 2)
         .replace(/"url": "",?/, `"url": ${url},`)
         .replace(/"body": "",?/, isCjs ? `"body": require('${file}'),` : `"body": import('${file}'),` );

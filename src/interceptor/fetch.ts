@@ -59,6 +59,7 @@ export default class FetchInterceptor extends Base{
         const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
         if (remoteInfo) {
           params.method = remoteInfo.method || method;
+          me.setRequestHeadersForRemoteRequest(mockItem, params as AnyObject);
           me.fetch(remoteInfo.url, params).then((fetchResponse: FetchResponse) => {
             me.sendRemoteResult(fetchResponse, mockItem, requestInfo, resolve);
           }).catch(reject);
@@ -73,6 +74,25 @@ export default class FetchInterceptor extends Base{
       });
     };
     return this;
+  }
+
+  /**
+   * Set request headers for requests marked by remote config.
+   * @param {AnyObject} fetchParams
+   */
+  private setRequestHeadersForRemoteRequest(mockItem: MockItem , fetchParams: AnyObject) {
+    if (Object.keys(mockItem.requestHeaders).length <= 0) return;
+
+    if (typeof Headers === 'function' && fetchParams.headers instanceof Headers) {
+      Object.entries(mockItem.requestHeaders).forEach(([key, val]: [string, string]) => {
+        (fetchParams.headers as Headers).set(key, val);
+      });
+    } else {
+      fetchParams.headers = {
+        ...((fetchParams.headers as object) || {}),
+        ...mockItem.requestHeaders
+      };
+    }
   }
 
   /**

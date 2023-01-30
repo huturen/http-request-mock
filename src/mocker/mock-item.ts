@@ -7,6 +7,7 @@ export default class MockItem {
   public url: RegExp | string;
   public regexp: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   public method: HttpVerb;
+  public requestHeaders: Header; // request headers, only available for @remote config
   public header: Header; // response header, the same as headers, just for backward compatibility
   public headers: Header; // response header
   public delay: number;
@@ -34,9 +35,11 @@ export default class MockItem {
       ? <HttpVerb> mockItem.method?.toUpperCase()
       : <HttpVerb> 'ANY';
 
-    const headers = mockItem.headers || mockItem.header || {};
+    const reqHeaders = mockItem.requestHeaders;
+    const headers = mockItem.headers || mockItem.header;
     this.header = headers && typeof headers === 'object' ? headers : {};
     this.headers = headers && typeof headers === 'object' ? headers : {};
+    this.requestHeaders = reqHeaders && typeof reqHeaders === 'object' ? reqHeaders : {};
 
     this.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;
     this.times = mockItem.times !== undefined && /^-?\d{0,15}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;

@@ -14,26 +14,34 @@ module.exports = {
  */
 function parseCommentTags(file) {
   const tags = getFileCommentTags(file);
-  const keys = ['url', 'method', 'disable', 'delay', 'status', 'header', 'times', 'remote', 'deProxy'];
+  const keys = [
+    'url', 'method', 'disable', 'delay', 'status', 'requestHeaders', 'headers', 'header', 'times', 'remote', 'deProxy'
+  ];
   const res = {};
-  const header = {};
+  const headers = {};
+  const requestHeaders = {};
 
   for(const {tag, info} of tags) {
     if (!keys.includes(tag)) continue;
 
-    if (tag === 'header') {
+    if (tag === 'header' || tag === 'headers' || tag === 'requestHeaders') {
       if (!/^[\w.-]+\s*:\s*.+$/.test(info)) continue;
 
       const key = info.slice(0, info.indexOf(':')).trim().toLowerCase();
       const val = info.slice(info.indexOf(':')+1).trim();
       if (!key || !val) continue;
-      header[key] = header[key] ? [].concat(header[key], val) : val;
+      if (tag !== 'requestHeaders') {
+        headers[key] = headers[key] ? [].concat(headers[key], val) : val;
+      } else {
+        requestHeaders[key] = requestHeaders[key] ? [].concat(requestHeaders[key], val) : val;
+      }
     }
     res[tag] = info;
   }
 
   // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-  res.header = Object.keys(header).length > 0 ? header : undefined;
+  res.headers = Object.keys(headers).length > 0 ? headers : undefined;
+  res.requestHeaders = Object.keys(requestHeaders).length > 0 ? requestHeaders : undefined;
   res.method = /^(get|post|put|patch|delete|head)$/i.test(res.method) ? res.method.toUpperCase() : undefined;
   res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
   res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;

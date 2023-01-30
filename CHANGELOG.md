@@ -1,4 +1,7 @@
 ### Changelog
+[2023-01-30]
+1. feat: add @requestHeaders for @remote config
+
 [2023-01-29]
 1. fix: simpleRequest should have carried request headers to the request of remote url
 2. feat: new mechanism to specify the original URL which is matched by mock for "remote" feature

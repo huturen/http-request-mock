@@ -646,7 +646,11 @@ it('should match object`', async () => {
  *
  * Response http headers to be mocked.
  * It can be set repeatedly.
- * @header content-type: application/json
+ * @headers content-type: application/json
+ *
+ * Request headers, request headers, only available for @remote tag
+ * It can be set repeatedly.
+ * @requestHeaders content-type: application/json
  *
  * Simulate network latency in milliseconds.
  * Default: 0

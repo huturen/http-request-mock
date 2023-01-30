@@ -36,6 +36,7 @@ export interface Header {
 export interface MockItemInfo {
   url?: RegExp | string;
   method?: HttpVerb;
+  requestHeaders?: Header, // request headers, only available for @remote config
   header?: Header; // response header, the same as headers, just for backward compatibility
   headers?: Header; // response header
   delay?: number;
@@ -49,8 +50,9 @@ export interface MockItemInfo {
 }
 
 export interface MockItemExt {
-  header?: Header, // response header, the same as headers, just for backward compatibility
-  headers?: Header, // response header
+  requestHeaders?: Header, // request headers, only available for @remote config
+  header?: Header, // response headers, the same as headers, just for backward compatibility
+  headers?: Header, // response headers
   disable?: Disable;
   delay?: number;
   times?: number;

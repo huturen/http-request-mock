@@ -103,7 +103,7 @@ export default class XMLHttpRequestInterceptor extends Base {
             // remoteInfo has a higher priority than BypassMock
             const remoteInfo = this.mockItem?.getRemoteInfo(this.requestInfo.url);
             if (remoteInfo) {
-              return me.sendRemoteResult(this, remoteInfo);
+              return me.sendRemoteResult(this, this.mockItem, remoteInfo);
             }
 
             return me.doMockRequest(this).then(isBypassed => {
@@ -127,7 +127,7 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {XMLHttpRequestInstance} xhr
    * @param {Record<string, string>} remoteInfo
    */
-  private sendRemoteResult(xhr: XMLHttpRequestInstance, remoteInfo: Record<string, string>) {
+  private sendRemoteResult(xhr: XMLHttpRequestInstance, mockItem: MockItem, remoteInfo: Record<string, string>) {
     const [ method, , async, user, password ] = xhr.requestArgs;
 
     const newXhr = new XMLHttpRequest();
@@ -157,6 +157,9 @@ export default class XMLHttpRequestInterceptor extends Base {
       user as string,
       password as string
     );
+    Object.entries(mockItem.requestHeaders).forEach(([key, val]: [string, string]) => {
+      newXhr.setRequestHeader(key, val);
+    });
     newXhr.send(xhr.requestInfo.rawBody as Document); // raw body
     return xhr;
   }

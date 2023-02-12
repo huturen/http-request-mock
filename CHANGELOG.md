@@ -1,4 +1,7 @@
 ### Changelog
+[2023-02-12]
+1. feat: add vite-plugin-http-request-mock
+
 [2023-01-30]
 1. feat: add @requestHeaders for @remote config
 

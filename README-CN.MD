@@ -11,34 +11,7 @@
 简短演示： [https://huturen.github.io/http-request-mock-docs/plain-html/](https://huturen.github.io/http-request-mock-docs/plain-html/)
 
 
-项目整合示例:
-- 通过webpack插件整合vue项目:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
 
-- 通过CLI工具整合vue项目:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-cli/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
-
-- 整合react项目:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-react-by-cli/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
-
-- 整合nodejs项目:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
-
-- 增、删、改、查案例 (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
-  [网站](https://huturen.github.io/http-request-mock-curd/#/dashboard),
-  [Github](https://github.com/huturen/http-request-mock-curd)
-
-- 单元测试:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-unit-test)
-
-- 与webpack-dev-server整合:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
 
 
 本库通过拦截 XMLHttpRequest, fetch, wx.request 及 Nodejs 原生HTTP/HTTPS模块请求，来实现网络请求mock处理。
@@ -56,6 +29,11 @@
 ![layers-design](https://huturen.github.io/http-request-mock-docs/imgs/layers-design.png)
 
 区别于其他mock库，为把mock数据从你的业务代码中分离出去，本库提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
+
+**与vue3的集成案例**
+
+![demonstration](https://huturen.github.io/http-request-mock-docs/imgs/demonstration.gif)
+获取上面案例的[源码](https://github.com/huturen/http-request-mock-simple-case-vue3)。 [更多集成案例](#项目整合示例).
 
 ## 目录
 
@@ -659,7 +637,7 @@ module.exports = (requestInfo) => {
 
 ## 常见问题
 
-1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
+*1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval*
 ```
 解法方法1: 在babel配置中设置 sourceType: unambiguous
   { // babel.config.js or .babelrc.js
@@ -680,12 +658,43 @@ module.exports = (requestInfo) => {
 
 ```
 
-2. TypeError: __webpack_require__.r is not a function
+*2. TypeError: __webpack_require__.r is not a function*
 ```
 解决方案:
   把 `require('http-request-mock')` 改成 `require('http-request-mock/http-request-mock.js')`,
   如果你使用es6， 则把`import('http-request-mock')` 改成 `import('http-request-mock/http-request-mock.js')`。
 ```
+
+
+## 项目整合示例:
+- 通过webpack插件整合vue项目:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
+
+- 通过CLI工具整合vue项目:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-cli/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
+
+- 整合react项目:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-react-by-cli/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+
+- 整合nodejs项目:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+
+- 增、删、改、查案例 (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
+  [网站](https://huturen.github.io/http-request-mock-curd/#/dashboard),
+  [Github](https://github.com/huturen/http-request-mock-curd)
+
+- 单元测试:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-unit-test)
+
+- 与webpack-dev-server整合:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
+
 
 ## License
 

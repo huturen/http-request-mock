@@ -11,37 +11,6 @@ Full documentation: [https://huturen.github.io/http-request-mock-docs/](https://
 
 A quick demo: [https://huturen.github.io/http-request-mock-docs/plain-html/](https://huturen.github.io/http-request-mock-docs/plain-html/)
 
-
-Integration Cases:
-- Integration with vue by webpack plugin:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
-
-- Integration with vue by webpack CLI:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-cli/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
-
-- Integration with react:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-react-by-cli/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
-
-- Integration with nodejs:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
-
-- Integration with webpack-dev-server:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
-
-- A CURD demo (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
-  [Website](https://huturen.github.io/http-request-mock-curd/#/dashboard),
-  [Github](https://github.com/huturen/http-request-mock-curd)
-
-- Unit test:
-  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),
-  [Github](https://github.com/huturen/http-request-mock-unit-test)
-
-
 It mocks http requests issued by axios, jquery, superagent, node-fetch, got, (… you name it) by intercepting
 XMLHttpRequest, fetch, and nodejs native HTTP/HTTPS module requests at the low level.
 
@@ -61,6 +30,13 @@ based on the above requests can also be supported, such as:
 It differs from the other mocking libraries in that it provides a webpack plugin and command line tool
 to separate mock data from your business code. It's a truly non-hacking mocking library. You never
 have to hack into your business code to mock something ever again after a one-time configuration.
+
+
+**A simple integration case with vue3**
+
+![demonstration](https://huturen.github.io/http-request-mock-docs/imgs/demonstration.gif)
+Get the [source code](https://github.com/huturen/http-request-mock-simple-case-vue3) of the above case. [More integration cases](#integration-cases).
+
 
 ## Table of Contents
 
@@ -680,7 +656,8 @@ module.exports = (requestInfo) => {
 
 ## FAQ
 
-1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval
+
+*1. Cannot assign to read only property 'exports' of object '#<Object>' at Module.eval*
 ```
 Solution 1: You can avoid this issue by setting sourceType: unambiguous in your babel config file:
   { // babel.config.js or .babelrc.js
@@ -700,12 +677,43 @@ Solution 2: set [type] option to es6. Note: es6 can't work with proxy mode, don'
     }),
 ```
 
-2. TypeError: __webpack_require__.r is not a function
+
+*2. TypeError: __webpack_require__.r is not a function*
 ```
 Solution:
   Change `require('http-request-mock')` to `require('http-request-mock/http-request-mock.js')`,
   or change `import('http-request-mock')` to `import('http-request-mock/http-request-mock.js')` if you are using es6.
 ```
+
+## Integration Cases:
+- Integration with vue by webpack plugin:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-webpack-plugin/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-webpack-plugin)
+
+- Integration with vue by webpack CLI:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-vue-by-cli/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-vue-by-cli)
+
+- Integration with react:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-react-by-cli/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-react-by-cli)
+
+- Integration with nodejs:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-nodejs/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-nodejs)
+
+- Integration with webpack-dev-server:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-integration-with-webpack-dev-server/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-integration-with-webpack-dev-server)
+
+- A CURD demo (http-request-mock + vite + vue3 + ES2015+ + TypeScript):
+  [Website](https://huturen.github.io/http-request-mock-curd/#/dashboard),
+  [Github](https://github.com/huturen/http-request-mock-curd)
+
+- Unit test:
+  [Codesandbox](https://codesandbox.io/s/github/huturen/http-request-mock-unit-test/tree/main),
+  [Github](https://github.com/huturen/http-request-mock-unit-test)
+
 
 ## License
 

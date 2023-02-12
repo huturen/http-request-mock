@@ -67,13 +67,7 @@ export default class MockItem {
     } else {
       body = '';
     }
-    if (isPromise(body)) {
-      (body as Promise<unknown>).then((data) => {
-        this.body = isImported(data) ? (data as DynamicImported).default : data;
-      });
-    } {
-      this.body = body;
-    }
+    this.body = body;
   }
 
   public bypass() {
@@ -81,6 +75,11 @@ export default class MockItem {
   }
 
   public async sendBody(requestInfo: RequestInfo, remoteResponse: RemoteResponse | null = null) {
+    if (isPromise(this.body)) {
+      const data = await (this.body as Promise<unknown>);
+      this.body = isImported(data) ? (data as DynamicImported).default : data;
+    }
+
     let body;
     if (typeof this.body === 'function') {
       body = remoteResponse

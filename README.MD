@@ -32,7 +32,7 @@ to separate mock data from your business code. It's a truly non-hacking mocking 
 have to hack into your business code to mock something ever again after a one-time configuration.
 
 
-**A simple integration case with vue3**
+**A simple integration case with vue3:**
 
 ![demonstration](https://huturen.github.io/http-request-mock-docs/imgs/demonstration.gif)
 Get the [source code](https://github.com/huturen/http-request-mock-simple-case-vue3) of the above case. [More integration cases](#integration-cases).

@@ -30,7 +30,7 @@
 
 区别于其他mock库，为把mock数据从你的业务代码中分离出去，本库提供webpack及cli命令行整合工具，可真正做到无侵入mock，只配置一次，后续无需修改任何业务代码。
 
-**与vue3的集成案例**
+**与vue3的集成案例:**
 
 ![demonstration](https://huturen.github.io/http-request-mock-docs/imgs/demonstration.gif)
 获取上面案例的[源码](https://github.com/huturen/http-request-mock-simple-case-vue3)。 [更多集成案例](#项目整合示例).

@@ -1,14 +1,15 @@
+import { IncomingMessage } from 'http';
 /* eslint-disable @typescript-eslint/ban-types */
 import http from 'http';
 import { Socket } from 'net';
 import { inherits } from 'util';
 import Bypass from '../../common/bypass';
-import simpleRequest from '../../common/request';
+import simpleRequest, { parseResponseBody } from '../../common/request';
 import { getQuery } from '../../common/utils';
 import { HTTPStatusCodes } from '../../config';
 import MockItem from '../../mocker/mock-item';
 import Mocker from '../../mocker/mocker';
-import { ClientRequestOptions, ClientRequestType, RequestInfo } from '../../types';
+import { ClientRequestOptions, ClientRequestType, OriginalResponse, RequestInfo } from '../../types';
 import { RemoteResponse } from './../../types';
 
 /**
@@ -93,7 +94,12 @@ function ClientRequest(
     return this;
   };
 
-  this.setOriginalRequestInfo = (nativeReqestMethod: Function, nativeRequestArgs: unknown[]) => {
+  this.setOriginalRequestInfo = (
+    getOrRequest: 'get' | 'request',
+    nativeReqestMethod: Function,
+    nativeRequestArgs: unknown[]
+  ) => {
+    this.nativeReqestName = getOrRequest; // get or request
     this.nativeReqestMethod = nativeReqestMethod;
     this.nativeRequestArgs = nativeRequestArgs;
   };
@@ -205,6 +211,12 @@ function ClientRequest(
         body: method === 'GET' ? undefined : this.bufferToString(this.requestBody)
       };
 
+      requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
+        const res = await this.getOriginalResponse();
+        requestInfo.doOriginalCall = undefined;
+        return res;
+      };
+
       let remoteResponse: RemoteResponse | null = null;
       const remoteInfo = mockItem?.getRemoteInfo(url);
       if (remoteInfo) {
@@ -308,6 +320,46 @@ function ClientRequest(
       this.nativeInstance.end(...endArgs);
     }
     return this.nativeInstance;
+  };
+
+  this.getOriginalResponse = (): Promise<OriginalResponse> => {
+    const callback = this.nativeRequestArgs[this.nativeRequestArgs.length - 1];
+
+    const defaultResponse = {
+      status: null,
+      headers: {},
+      responseText: null,
+      responseJson: null,
+      responseBuffer: null,
+      responseBlob: null,
+      error: null,
+    };
+    return new Promise((resolve) => {
+      const newCallback = (res: IncomingMessage) => {
+        parseResponseBody(res).then(data => {
+          resolve(data);
+        }).catch(err => {
+          resolve({ ...defaultResponse, error: err });
+        });
+        if (typeof callback === 'function') {
+          callback(res);
+        }
+      };
+      const callbackIndex = typeof callback === 'function'
+        ? this.nativeRequestArgs.length - 1
+        : this.nativeRequestArgs.length;
+
+      this.nativeRequestArgs[callbackIndex] = newCallback;
+
+      // do original call
+      const req = this.nativeReqestMethod(...this.nativeRequestArgs);
+      req.on('error', (err: Error) => {
+        resolve({ ...defaultResponse, error: err });
+      });
+      if (this.nativeReqestName = 'get') {
+        req.end();
+      }
+    });
   };
 
   /**

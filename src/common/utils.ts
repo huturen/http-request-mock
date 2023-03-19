@@ -116,12 +116,16 @@ export function str2arrayBuffer(str: string) {
     return new TextEncoder().encode(str);
   }
 
-  const buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  const bufView = new Uint16Array(buf);
-  for (let i=0, strLen=str.length; i<strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
+  if (typeof ArrayBuffer === 'function') {
+    const buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+    const bufView = new Uint16Array(buf);
+    for (let i=0, strLen=str.length; i<strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
   }
-  return buf;
+
+  return null;
 }
 
 /**

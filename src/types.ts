@@ -139,6 +139,7 @@ export interface WxResponse {
 
 export interface ClientRequestType extends http.ClientRequest{
   nativeInstance: null | http.ClientRequest;
+  nativeReqestName: 'get' | 'request';
   nativeReqestMethod: Function;
   nativeRequestArgs: unknown[];
 
@@ -163,6 +164,7 @@ export interface ClientRequestType extends http.ClientRequest{
   getRequestHeaders: Function;
   bufferToString: Function;
   fallbackToNativeRequest: Function;
+  getOriginalResponse: Function;
 }
 
 export interface NodeRequestOpts {

@@ -1,10 +1,10 @@
+import { http, https } from 'follow-redirects';
 import { IncomingMessage } from 'http';
+import Stream from 'stream';
 import { URL } from 'url';
 import * as zlib from 'zlib';
-import { AnyObject } from './../types';
-import { tryToParseJson } from './utils';
-import Stream from 'stream';
-import { http, https } from 'follow-redirects';
+import { AnyObject, OriginalResponse } from './../types';
+import { str2arrayBuffer, tryToParseJson } from './utils';
 
 /**
  * In nodejs environment, by default for XMLHttpRequest, fetch and wx.request, http-request-mock
@@ -74,7 +74,20 @@ function isHttpsUrl(url: string | URL) {
   return false;
 }
 
-function getResponseBody(response: IncomingMessage): Promise<{ body: string, json: AnyObject }> {
+async function getResponseBody(response: IncomingMessage): Promise<{ body: string, json: AnyObject }> {
+  try {
+    const data = await parseResponseBody(response);
+    if (data.error) {
+      throw data.error;
+    }
+
+    return { body: data.responseText as string, json: data.responseJson as AnyObject };
+  } catch(err) {
+    throw new Error(`getResponseBody error: ${(err as Error).message}`);
+  }
+}
+
+export function parseResponseBody(response: IncomingMessage): Promise<OriginalResponse> {
   let stream: Stream;
   if (['gzip', 'compress', 'deflate'].includes(response.headers['content-encoding'] || '')) {
     stream = response.pipe(zlib.createGunzip());
@@ -84,18 +97,38 @@ function getResponseBody(response: IncomingMessage): Promise<{ body: string, jso
     stream = response;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     stream.once('error', (error) => {
       stream.removeAllListeners();
-      reject(error);
+      resolve({
+        status: null,
+        headers: {},
+        responseText: null,
+        responseJson: null,
+        responseBuffer: null,
+        responseBlob: null,
+        error,
+      });
     });
 
     const buf: Buffer[] = [];
     stream.on('data', chunk => buf.push(chunk));
 
     stream.once('end', () => {
-      const body = Buffer.concat(buf).toString();
-      resolve({ body, json: tryToParseJson(body, null) });
+      const type = (response.headers['content-type'] || '').replace(/^application\//, '').replace(/;.*/, '');
+      const responseText = Buffer.concat(buf).toString();
+      const responseJson = tryToParseJson(responseText, null);
+      const responseBuffer = str2arrayBuffer(responseText);
+      const responseBlob = typeof Blob === 'function' ? new Blob([responseText], { type }) : null;
+      resolve({
+        status: response.statusCode || null,
+        headers: response.headers,
+        responseText,
+        responseJson,
+        responseBuffer,
+        responseBlob,
+        error: null,
+      } as OriginalResponse);
       stream.removeAllListeners();
     });
   });

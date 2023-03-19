@@ -107,7 +107,7 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     }
 
     const client = result as ClientRequestType;
-    client.setOriginalRequestInfo(getOrRequestFunc, args);
+    client.setOriginalRequestInfo(getOrRequest, getOrRequestFunc, args);
     getOrRequest === 'get' && client.end();
     return result;
   }
@@ -129,6 +129,10 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const method = (options.method || 'GET') as HttpVerb;
     const mockItem:MockItem | null  = this.matchMockRequest(url, method);
     if (!mockItem) return false;
+
+    //
+    //
+    //s
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore

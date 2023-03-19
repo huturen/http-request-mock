@@ -134,6 +134,11 @@ export default class FetchInterceptor extends Base{
     });
   }
 
+  /**
+   * Get original response
+   * @param {string} requestUrl
+   * @param {FetchRequest | AnyObject} params
+   */
   private async getOriginalResponse(requestUrl: string, params: FetchRequest | AnyObject): Promise<OriginalResponse> {
     let status = null;
     const headers: Record<string, string | string[]> = {};

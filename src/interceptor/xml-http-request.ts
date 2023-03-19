@@ -174,6 +174,10 @@ export default class XMLHttpRequestInterceptor extends Base {
     return xhr;
   }
 
+  /**
+   * Get original response
+   * @param {XMLHttpRequestInstance} xhr
+   */
   private getOriginalResponse(xhr: XMLHttpRequestInstance): Promise<OriginalResponse> {
     const [ method, requestUrl, async, user, password ] = xhr.requestArgs;
     const { requestInfo } = xhr;

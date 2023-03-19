@@ -3,7 +3,7 @@ import Bypass from '../common/bypass';
 import { isObject, sleep, tryToParseJson } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { HttpVerb, RemoteResponse, RequestInfo, WxRequestOpts, WxRequestTask, WxResponse } from '../types';
+import { HttpVerb, OriginalResponse, RemoteResponse, RequestInfo, WxRequestOpts, WxRequestTask, WxResponse } from '../types';
 import Base from './base';
 
 export default class WxRequestInterceptor extends Base {
@@ -61,6 +61,12 @@ export default class WxRequestInterceptor extends Base {
           requestInfo.body = wxRequestOpts.data;
         }
 
+        requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
+          const res = this.getOriginalResponse(wxRequestOpts);
+          requestInfo.doOriginalCall = undefined;
+          return res;
+        };
+
         if (mockItem) {
           this.doMockRequest(mockItem, requestInfo, wxRequestOpts).then(isBypassed => {
             if (isBypassed) {
@@ -110,6 +116,45 @@ export default class WxRequestInterceptor extends Base {
       }
     });
     return this.getRequstTask();
+  }
+
+  /**
+   * Get original response
+   * @param {WxRequestOpts} wxRequestOpts
+   */
+  private getOriginalResponse(wxRequestOpts: WxRequestOpts): Promise<OriginalResponse> {
+    return new Promise((resolve) => {
+      this.wxRequest({
+        ...wxRequestOpts,
+        success(wxResponse: WxResponse) {
+          const { data } = wxResponse;
+          resolve({
+            status: wxResponse.statusCode,
+            headers: wxResponse.header,
+            responseText: typeof data === 'string' ? data : JSON.stringify(data),
+            responseJson: typeof data === 'string' ? tryToParseJson(data) : data,
+            responseBuffer: typeof ArrayBuffer === 'function' && (data instanceof ArrayBuffer)
+              ? (data as ArrayBuffer)
+              : null,
+            // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+            // wx.request does not support Blob response data
+            responseBlob: null,
+            error: null,
+          });
+        },
+        fail(err: { errMsg: string }) {
+          resolve({
+            status: 0,
+            headers: {},
+            responseText: null,
+            responseJson: null,
+            responseBuffer: null,
+            responseBlob: null,
+            error: new Error(`request error: ${err.errMsg}`),
+          });
+        }
+      });
+    });
   }
 
   /**

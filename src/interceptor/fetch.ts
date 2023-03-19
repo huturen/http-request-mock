@@ -4,7 +4,7 @@ import { sleep, tryToParseJson } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { FetchRequest, FetchResponse, HttpVerb, RemoteResponse, RequestInfo } from '../types';
+import { FetchRequest, FetchResponse, HttpVerb, OriginalResponse, RemoteResponse, RequestInfo } from '../types';
 import { AnyObject } from './../types';
 import Base from './base';
 
@@ -49,13 +49,20 @@ export default class FetchInterceptor extends Base{
       const requestUrl = me.getFullRequestUrl(url, method);
 
       return new Promise((resolve, reject) => {
-        const mockItem:MockItem | null  = me.matchMockRequest(requestUrl, method);
+        const mockItem:MockItem | null = me.matchMockRequest(requestUrl, method);
+
         if (!mockItem) {
           me.fetch(requestUrl, params).then(resolve).catch(reject);
           return;
         }
 
         const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as HttpVerb });
+        requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
+          const res = await me.getOriginalResponse(requestUrl, params);
+          requestInfo.doOriginalCall = undefined;
+          return res;
+        };
+
         const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
         if (remoteInfo) {
           params.method = remoteInfo.method || method;
@@ -125,6 +132,29 @@ export default class FetchInterceptor extends Base{
       };
       this.doMockRequest(mockItem, requestInfo, resolve, remoteResponse);
     });
+  }
+
+  private async getOriginalResponse(requestUrl: string, params: FetchRequest | AnyObject): Promise<OriginalResponse> {
+    let status = null;
+    const headers: Record<string, string | string[]> = {};
+    let responseText = null;
+    let responseJson = null;
+    let responseBuffer = null;
+    let responseBlob = null;
+    try {
+      const res = await this.fetch(requestUrl, params);
+      status = res.status;
+      if (typeof Headers === 'function' && res.headers instanceof Headers) {
+        res.headers.forEach((val: string, key: string) => (headers[key.toLocaleLowerCase()] = val));
+      }
+      responseBlob = await res.blob();
+      responseText = await responseBlob.text();
+      responseBuffer = await responseBlob.arrayBuffer();
+      responseJson = tryToParseJson(responseText);
+      return { status, headers, responseText, responseJson, responseBuffer, responseBlob, error: null };
+    } catch(err) {
+      return { status, headers, responseText, responseJson, responseBuffer, responseBlob, error: err as Error };
+    }
   }
 
   /**

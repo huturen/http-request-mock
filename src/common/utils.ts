@@ -75,13 +75,14 @@ export function isObject(obj: unknown) {
 export function tryToParseObject(body: unknown) {
   const isObjLiked = typeof body === 'string' && body[0] === '{' && body[body.length-1] === '}';
   const isArrLiked = typeof body === 'string' && body[0] === '[' && body[body.length-1] === ']';
-  if (isObjLiked || isArrLiked) {
-    try {
-      return JSON.parse(body);
-    } catch(e) {
-      return body;
-    }
-  } else {
+
+  if (!isObjLiked && !isArrLiked) {
+    return body;
+  }
+
+  try {
+    return JSON.parse(body);
+  } catch(e) {
     return body;
   }
 }

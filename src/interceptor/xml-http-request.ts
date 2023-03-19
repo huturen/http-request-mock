@@ -4,6 +4,7 @@ import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { HttpVerb, RemoteResponse, XMLHttpRequestInstance } from '../types';
+import { OriginalResponse } from './../types';
 import Base from './base';
 
 export default class XMLHttpRequestInterceptor extends Base {
@@ -74,6 +75,12 @@ export default class XMLHttpRequestInterceptor extends Base {
               this.mockResponse = new NotResolved();
               this.requestInfo = me.getRequestInfo({ url: requestUrl, method, });
               this.requestArgs = [method, requestUrl, async, user, password];
+
+              this.requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
+                const res = await me.getOriginalResponse(this);
+                this.requestInfo.doOriginalCall = undefined;
+                return res;
+              };
               return;
             }
           }
@@ -128,9 +135,12 @@ export default class XMLHttpRequestInterceptor extends Base {
    * @param {Record<string, string>} remoteInfo
    */
   private sendRemoteResult(xhr: XMLHttpRequestInstance, mockItem: MockItem, remoteInfo: Record<string, string>) {
-    const [ method, , async, user, password ] = xhr.requestArgs;
+    const [ method, async, user, password ] = xhr.requestArgs;
 
     const newXhr = new XMLHttpRequest();
+    newXhr.responseType = xhr.responseType;
+    newXhr.timeout = xhr.timeout;
+
     Object.assign(newXhr, { isMockRequest: false, bypassMock: true });
     newXhr.onreadystatechange = () => {
       if (newXhr.readyState === 4) {
@@ -138,7 +148,7 @@ export default class XMLHttpRequestInterceptor extends Base {
           status: newXhr.status,
           headers: newXhr.getAllResponseHeaders().split('\r\n').reduce((res: Record<string, string>, item: string) => {
             const [key, val] = item.split(':');
-            if (key) {
+            if (key && val) {
               res[key.toLowerCase()] = val.trim();
             }
             return res;
@@ -164,11 +174,83 @@ export default class XMLHttpRequestInterceptor extends Base {
     return xhr;
   }
 
+  private getOriginalResponse(xhr: XMLHttpRequestInstance): Promise<OriginalResponse> {
+    const [ method, requestUrl, async, user, password ] = xhr.requestArgs;
+    const { requestInfo } = xhr;
+
+    return new Promise(resolve => {
+      const newXhr = new XMLHttpRequest();
+      newXhr.responseType = xhr.responseType;
+      newXhr.timeout = xhr.timeout;
+
+      Object.assign(newXhr, { isMockRequest: false, bypassMock: true });
+      let status: OriginalResponse['status'] = null;
+      let headers: OriginalResponse['headers'] = {};
+      let responseText: OriginalResponse['responseText'] = null;
+      let responseJson: OriginalResponse['responseJson'] = null;
+      let responseBuffer: OriginalResponse['responseBuffer'] = null;
+      let responseBlob: OriginalResponse['responseBlob'] = null;
+
+      newXhr.onreadystatechange = function handleLoad() {
+        if (newXhr.readyState === 4) {
+          const responseType = newXhr.responseType;
+          status = newXhr.status;
+          headers = newXhr.getAllResponseHeaders()
+            .split('\r\n')
+            .reduce((res: Record<string, string>, item: string) => {
+              const [key, val] = item.split(':');
+              if (key && val) {
+                res[key.toLowerCase()] = val.trim();
+              }
+              return res;
+            }, {} as Record<string, string>);
+
+          responseText = !responseType || responseType === 'text' || responseType === 'json'
+            ? newXhr.responseText
+            : (typeof newXhr.response === 'string' ? typeof newXhr.response : null);
+
+          responseJson = tryToParseJson(responseText as string);
+          responseBuffer = (typeof ArrayBuffer === 'function') && (newXhr.response instanceof ArrayBuffer)
+            ? newXhr.response
+            : null;
+          responseBlob = (typeof Blob === 'function') && (newXhr.response instanceof Blob)
+            ? newXhr.response
+            : null;
+
+          resolve({ status, headers, responseText, responseJson, responseBuffer, responseBlob, error: null});
+        }
+      };
+      newXhr.open(method as string, requestUrl as string, async as boolean, user as string, password as string);
+      newXhr.ontimeout = function handleTimeout() {
+        const error = new Error('timeout exceeded');
+        resolve({ status, headers, responseText, responseJson, responseBuffer, responseBlob, error });
+      };
+
+      // Real errors are hidden from us by the browser
+      // onerror should only fire if it's a network error
+      newXhr.onerror = function handleError() {
+        const error = new Error('network error');
+        resolve({ status, headers, responseText, responseJson, responseBuffer, responseBlob, error });
+      };
+
+      // Handle browser request cancellation (as opposed to a manual cancellation)
+      newXhr.onabort = function handleAbort() {
+        const error = new Error('request aborted');
+        resolve({ status, headers, responseText, responseJson, responseBuffer, responseBlob, error });
+      };
+
+
+      Object.entries(requestInfo.headers || {}).forEach(([key, val]: [string, string]) => {
+        newXhr.setRequestHeader(key, val);
+      });
+      newXhr.send(requestInfo.rawBody as Document); // raw body
+    });
+  }
+
   /**
    * Make mock request.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockItemInfo} mockItem
-   * @param {RequestInfo} requestInfo
+   * @param {RemoteResponse | null} remoteResponse
    */
   private async doMockRequest(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     let isBypassed = false;
@@ -185,8 +267,7 @@ export default class XMLHttpRequestInterceptor extends Base {
   /**
    * Make mock response.
    * @param {XMLHttpRequestInstance} xhr
-   * @param {MockItemInfo} mockItem
-   * @param {RequestInfo} requestInfo
+   * @param {RemoteResponse | null} remoteResponse
    */
   private async doMockResponse(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     const { mockItem, requestInfo } = xhr;
@@ -326,7 +407,9 @@ export default class XMLHttpRequestInterceptor extends Base {
         return (header: string, value: string) => {
           if (this.isMockRequest) {
             this.requestInfo.headers = this.requestInfo.headers || {};
+            this.requestInfo.header = this.requestInfo.header || {};
             this.requestInfo.headers[header] = value;
+            this.requestInfo.header[header] = value;
             return;
           }
           return original.call(this, header, value);

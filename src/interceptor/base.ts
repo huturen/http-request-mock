@@ -1,7 +1,7 @@
 import { getQuery, tryToParseObject } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
-import { HttpVerb, MixedRequestInfo, RequestInfo } from '../types';
+import { HttpVerb, RequestInfo } from '../types';
 import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
@@ -67,17 +67,17 @@ export default class BaseInterceptor {
     return mockItem;
   }
 
-  public getRequestInfo(mixedRequestInfo: MixedRequestInfo) : RequestInfo {
+  public getRequestInfo(requestInfo: RequestInfo) : RequestInfo {
     const info: RequestInfo = {
-      url: mixedRequestInfo.url,
-      method: mixedRequestInfo.method || 'GET',
-      query: getQuery(mixedRequestInfo.url),
+      url: requestInfo.url,
+      method: requestInfo.method || 'GET',
+      query: getQuery(requestInfo.url),
     };
-    if (mixedRequestInfo.headers || mixedRequestInfo.header) {
-      info.headers = mixedRequestInfo.headers || mixedRequestInfo.header;
+    if (requestInfo.headers || requestInfo.header) {
+      info.headers = requestInfo.headers || requestInfo.header;
     }
-    if (mixedRequestInfo.body !== undefined) {
-      info.body = tryToParseObject(mixedRequestInfo.body);
+    if (requestInfo.body !== undefined) {
+      info.body = tryToParseObject(requestInfo.body);
     }
     return info;
   }

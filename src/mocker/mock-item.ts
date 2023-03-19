@@ -20,6 +20,8 @@ export default class MockItem {
   public times: number;
   public key: string;
   public deProxy = false; // Use this option to make the mock use case run in the browser instead of nodejs.
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public doOriginalRequest: Function;
 
   /**
    * Format specified mock item.

@@ -65,10 +65,25 @@ export interface MockConfigData {
 export interface RequestInfo {
   url: string;
   method: HttpVerb;
-  query: object; // url search query
+  query?: object; // url search query
   headers?: object; // request header
+  header?: object; // request header
   body?: unknown; // post body
   rawBody?: unknown; // post body
+  doOriginalCall?: () => Promise<OriginalResponse>; // can only be called once
+}
+
+export interface OriginalResponse {
+  // if the original call is returned successfully, the following fields will be populated
+  status: number | null; // http response status
+  headers: Record<string, string | string[]>; // response headers
+  responseText: string | null;
+  responseJson: unknown | null;
+  responseBuffer: ArrayBuffer | null;
+  responseBlob: Blob | null;
+
+  // if the original call throws an exception, the error field will be populated
+  error: Error | null;
 }
 
 export interface RemoteResponse {
@@ -77,15 +92,6 @@ export interface RemoteResponse {
   response: unknown;
   responseText: string;
   responseJson: AnyObject;
-}
-
-export interface MixedRequestInfo {
-  url: string;
-  method: HttpVerb;
-  query?: object; // url search query
-  headers?: object; // request header
-  header?: object; // request header
-  body?: unknown; // post body
 }
 
 export interface XMLHttpRequestInstance extends XMLHttpRequest {

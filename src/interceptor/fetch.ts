@@ -152,10 +152,16 @@ export default class FetchInterceptor extends Base{
       if (typeof Headers === 'function' && res.headers instanceof Headers) {
         res.headers.forEach((val: string, key: string) => (headers[key.toLocaleLowerCase()] = val));
       }
-      responseBlob = await res.blob();
-      responseText = await responseBlob.text();
-      responseBuffer = await responseBlob.arrayBuffer();
-      responseJson = tryToParseJson(responseText);
+      const isBlobAvailable = typeof Blob === 'function'
+        && typeof Blob.prototype.text === 'function'
+        && typeof Blob.prototype.arrayBuffer === 'function'
+        && typeof Blob.prototype.slice === 'function'
+        && typeof Blob.prototype.stream === 'function';
+
+      responseBlob = isBlobAvailable ? await res.blob() : null;
+      responseText = isBlobAvailable ? await responseBlob.text() : await res.text();
+      responseBuffer = isBlobAvailable ? await responseBlob.arrayBuffer() : null;
+      responseJson = responseText === null ? null : tryToParseJson(responseText);
       return { status, headers, responseText, responseJson, responseBuffer, responseBlob, error: null };
     } catch(err) {
       return { status, headers, responseText, responseJson, responseBuffer, responseBlob, error: err as Error };

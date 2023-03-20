@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'http';
 import simpleRequest from '../common/request';
-import { isArrayBuffer, str2arrayBuffer } from '../common/utils';
+import { isArrayBuffer, str2arrayBuffer, tryToParseJson } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import { AnyObject, FetchRequest } from '../types';
 
@@ -37,7 +37,13 @@ function getResponse(url: string, responseBody: string, responseObject: Incoming
     ? new Headers({ ...responseObjectHeaders, 'x-powered-by': 'http-request-mock' })
     : { ...responseObjectHeaders, 'x-powered-by': 'http-request-mock' };
 
-  const body = typeof Blob === 'function'
+  const isBlobAvailable = typeof Blob === 'function'
+    && typeof Blob.prototype.text === 'function'
+    && typeof Blob.prototype.arrayBuffer === 'function'
+    && typeof Blob.prototype.slice === 'function'
+    && typeof Blob.prototype.stream === 'function';
+
+  const body = isBlobAvailable
     ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
     : data;
 
@@ -46,6 +52,7 @@ function getResponse(url: string, responseBody: string, responseObject: Incoming
     Object.defineProperty(response, 'url', { value: url });
     return response;
   }
+
 
   const response = {
     body,
@@ -58,7 +65,7 @@ function getResponse(url: string, responseBody: string, responseObject: Incoming
     url,
     type: 'basic', // cors
     // response data depends on prepared data
-    json: () => Promise.resolve(data),
+    json: () => Promise.resolve(tryToParseJson(data)),
     arrayBuffer: () => {
       if (isArrayBuffer(data)) {
         return Promise.resolve(data);

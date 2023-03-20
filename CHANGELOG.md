@@ -1,4 +1,7 @@
 ### Changelog
+[2023-03-20]
+1. feat: add doOriginalCall method to `RequestInfo` to make the call continue it's normal life cycle.
+
 [2023-02-12]
 1. feat: add vite-plugin-http-request-mock
 

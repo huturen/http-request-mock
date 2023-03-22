@@ -325,6 +325,34 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 
 
+#### 拦截器
+
+您可以拦截一个请求，执行某些操作，然后让原始请求继续执行并捕获响应，再执行另外一些操作。
+关于拦截器的更详细讨论，可以参考这个[issue](https://github.com/huturen/http-request-mock/issues/14)。
+
+
+```javascript
+// mock用例
+mocker.mock({
+  url: '//jsonplaceholder.typicode.com/',
+  response: async function(requestInfo) {
+    // 1. 拦截一个请求，并执行一些事情，这里打印一些请求信息
+    console.log('original request info: ', requestInfo);
+
+    // 2. 然后执行原始请求调用，捕获返回的请求
+    const res = await requestInfo.doOriginalCall();
+
+    // 3. 最后再做一些其它的事情
+    console.log('original response:', res);
+    return { code: 0, msg: 'ok', data: res.responseJson };
+  }
+});
+
+// 执行一个请求
+axios.get('https://jsonplaceholder.typicode.com/photos/1').then(res => console.log(res.data));
+```
+
+
 ## 项目整合
 对于简单项目来说，只要在项目入口引入`http-request-mock`并配置mok数据就可以用mock了, 以vue项目为例：
 ```javascript

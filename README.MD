@@ -331,6 +331,33 @@ axios.post('https://www.api.com/reqinfo?abc=123', {xyz: 456}, {responseType: 'js
 ```
 
 
+
+#### Interceptor
+You can intercept a request, do something, then make the original call and capture the response and do something again.
+For more detailed discussions about the interceptor, please refer to this [issue](https://github.com/huturen/http-request-mock/issues/14).
+```javascript
+// mock case
+mocker.mock({
+  url: '//jsonplaceholder.typicode.com/',
+  response: async function(requestInfo) {
+    // 1. intercept a request, do something (here, output the original request information)
+    console.log('original request info: ', requestInfo);
+
+    // 2. then make the original call and capture the response
+    const res = await requestInfo.doOriginalCall();
+
+    // 3. and do something again.
+    console.log('original response:', res);
+    return { code: 0, msg: 'ok', data: res.responseJson };
+  }
+});
+
+// issue a request
+axios.get('https://jsonplaceholder.typicode.com/photos/1').then(res => console.log(res.data));
+```
+
+
+
 ## Integration
 In a bare-bones example, you just import `http-request-mock` into your application
 entry file(such as: src/main.js) and configure your mock datas there.

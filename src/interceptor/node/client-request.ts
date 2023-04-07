@@ -72,16 +72,14 @@ function ClientRequest(
       this.socket.setTimeout(options.timeout);
     }
 
-    process.nextTick(() => {
-      this.emit('socket', this.socket);
-      this.socket?.emit('connect');
-    });
-
     if (options.headers?.expect === '100-continue') {
       this.emit('continue');
     }
 
     this.response = new http.IncomingMessage(this.socket);
+
+    this.emit('socket', this.socket);
+    this.socket?.emit('connect');
   };
   this.init();
 

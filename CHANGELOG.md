@@ -1,4 +1,7 @@
 ### Changelog
+[2023-07-21]
+1. chore: remove the feature that allows generating mock files using the proto file, as it is less commonly used
+
 [2023-03-20]
 1. feat: add doOriginalCall method to `RequestInfo` to make the call continue it's normal life cycle.
 

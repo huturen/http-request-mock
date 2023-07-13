@@ -93,7 +93,6 @@ There are some problems you may encounter when using the other mocking libraries
 * **Delaying mocking**: Support for simulating network latency.
 * **Fake data**: Easy to generate massive amounts of fake data.
 * **Complete unit tests**: It has complete unit tests including the 3th-party request libraries.
-* **Protobuf**: Support for generating mock data by proto files.
 * **Remote**: Support for using remote mock data, where you can dynamically modify the data returned from the remote.
 
 
@@ -494,7 +493,6 @@ Options:
                                      This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
                                      [matched] All requests matched by @url will be proxied to a proxy server. (default: "none")
-  --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```
 

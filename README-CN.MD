@@ -90,7 +90,6 @@
 * **网络延迟模拟**: 支持模拟网络请求的时延，精确到毫秒级别。
 * **假数据生成**: 支持海量的假数据生成, 假数据生成具备可编程性。
 * **完备的单元测试**: 本库具有完整的单元测试，甚至对第3方请求库也做了完整的单元测试。
-* **Protobuf**: 支持通过proto文件自动生成mock数据.。
 * **支持远程mock数据**: 支持远程mock数据，你可以动态改变来自远程返回的数据。
 
 ## 安装
@@ -489,7 +488,6 @@ Options:
                                      This feature is designed for browser, so do not use it in a nodjs project.
                                      Note: proxy mode is still under experimental stage, only for experts.
                                      [matched] All requests matched by @url will be proxied to a proxy server. (default: "none")
-  --proto                            Generate mock files by proto files.
   -h, --help                         output usage information
 ```
 

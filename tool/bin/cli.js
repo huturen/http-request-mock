@@ -8,7 +8,6 @@ const path = require('path');
 const readline = require('readline');
 const pkg = require('../../package.json');
 const { entryPoints, log, getAppRoot, watchDir } = require('../lib/misc.js');
-const protoParser = require('../lib/proto-parser.js');
 const WebpackPlugin = require('../plugin/webpack.js');
 const server = require('./server.js');
 
@@ -36,9 +35,6 @@ module.exports = new class CommandToolLine {
     }
     if (program.watch) {
       return this.watch();
-    }
-    if (program.proto) {
-      return this.proto();
     }
     if (program.proxy === 'matched') {
       return this.proxy();
@@ -175,51 +171,6 @@ module.exports = new class CommandToolLine {
   }
 
   /**
-   * --proto: Generate mock files by proto files.
-   */
-  proto() {
-    const configFile = path.resolve(this.appRoot, program.directory, '.protorc.js');
-    this.generateProtorcFile(configFile);
-
-    const protorcConfig = require(configFile);
-    if (!protorcConfig.protoEntry) {
-      console.log('Please set [protoEntry] option in the file below and run this command again.');
-      return console.log('.protorc config file: ' + configFile);
-    }
-    if (!fs.existsSync(protorcConfig.protoEntry)) {
-      return console.log(`file: ${protorcConfig.protoEntry} does not exist.`);
-    }
-
-    const outputDir = path.resolve(this.appRoot, program.directory, 'proto');
-    fs.mkdirSync(outputDir, { recursive: true});
-    protoParser.generateMockFiles(protorcConfig, outputDir);
-  }
-
-  /**
-   * Generate a .protorc.js config file
-   * @param {string} filePath
-   */
-  generateProtorcFile(filePath) {
-    if (fs.existsSync(filePath)) {
-      return;
-    }
-
-    fs.mkdirSync(path.dirname(filePath), { recursive: true});
-    try {
-      const tpl = path.resolve(__dirname, '../tpl/protorc.tpl.js');
-      const content = fs.readFileSync(tpl).toString().split('\n');
-      // replace the first line
-      content.splice(0, 1, 'const faker = require(\'http-request-mock/plugin/faker.js\').shadow;');
-
-      // It may throw an error when writing a file, which user cares.
-      // So, no try-catch here, let it be.
-      fs.writeFileSync(filePath, content.join('\n'));
-    } catch(err) {
-      console.log('Failed to generate proto config file: ' + err.message);
-    }
-  }
-
-  /**
    * Ask for input
    * @param {string} question
    */
@@ -305,10 +256,6 @@ module.exports = new class CommandToolLine {
         ' Note: proxy mode is still under experimental stage, only for experts.\n'+spaces+
         ' [matched] All requests matched by @url will be proxied to a proxy server.',
         'none'
-      )
-      .option(
-        '--proto',
-        'Generate mock files by proto files.'
       )
       .parse(process.argv);
   }

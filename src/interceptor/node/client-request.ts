@@ -59,8 +59,11 @@ function ClientRequest(
     }
 
     // make an empty socket
-    this.socket = new Socket();
-    this.connection = this.socket; // for compatibility
+    const emptySocket = new Socket();
+    Object.assign(this, {
+      socket: emptySocket, // for compatibility
+      connection: emptySocket,
+    });
     if (/^https/i.test(this.url)) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -69,14 +72,14 @@ function ClientRequest(
 
     if (options.timeout) {
       this.setTimeout(options.timeout);
-      this.socket.setTimeout(options.timeout);
+      this.socket?.setTimeout(options.timeout);
     }
 
     if (options.headers?.expect === '100-continue') {
       this.emit('continue');
     }
 
-    this.response = new http.IncomingMessage(this.socket);
+    this.response = new http.IncomingMessage(this.socket as Socket);
 
     this.emit('socket', this.socket);
     this.socket?.emit('connect');

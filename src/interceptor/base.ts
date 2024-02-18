@@ -90,8 +90,14 @@ export default class BaseInterceptor {
     if (/^https?:\/\//i.test(url)) {
       return this.checkProxyUrl(url, method);
     }
+
     if (typeof URL === 'function' && typeof window === 'object' && window) {
-      return this.checkProxyUrl(new URL(url, window.location.href).href, method);
+      // https://github.com/huturen/http-request-mock/issues/21
+      // "window.location.href" might point to an embedded file (e.g., data:text/html;charset=utf-8,...),
+      // potentially leading to an "Invalid URL" error.
+      if (/^https?:\/\//i.test(window.location.href)) {
+        return this.checkProxyUrl(new URL(url, window.location.href).href, method);
+      }
     }
 
     if (typeof document === 'object' && document && typeof document.createElement === 'function') {

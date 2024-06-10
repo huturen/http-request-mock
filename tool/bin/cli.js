@@ -2,7 +2,8 @@
 /* eslint-env node */
 
 const { spawn } = require('child_process');
-const program = require('commander');
+const { Command } = require('commander');
+
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -10,6 +11,8 @@ const pkg = require('../../package.json');
 const { entryPoints, log, getAppRoot, watchDir } = require('../lib/misc.js');
 const WebpackPlugin = require('../plugin/webpack.js');
 const server = require('./server.js');
+
+const program = new Command();
 
 module.exports = new class CommandToolLine {
   constructor() {

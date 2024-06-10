@@ -15,12 +15,15 @@ const testPath = (regexp, assetFile) => {
 };
 
 /**
- * @param {regexp} appEntry Required, app entry file which mock dependencies will be injected into.
- * @param {string} mockDir Required, mock directory which contains all mock files & the runtime mock config entry file.
- * @param {boolean} enable Optional, whether or not to enable this plugin. Default: true
- * @param {boolean} debug Optional, output some debug logs. Default: false
+ * @param {{appEntry: RegExp; mockDir: string; enable: boolean; debug: boolean}} opts
+ * appEntry Required, app entry file which mock dependencies will be injected into.
+ * mockDir Required, mock directory which contains all mock files & the runtime mock config entry file.
+ * enable Optional, whether or not to enable this plugin. Default: true
+ * debug Optional, output some debug logs. Default: false
  */
-const vitePluginHttpRequestMock = ({ appEntry, mockDir, enable = true, debug = false}) => {
+const vitePluginHttpRequestMock = (opts) => {
+  const { appEntry, mockDir, enable = true, debug = false} = opts;
+
   if (!(appEntry instanceof RegExp)) {
     throw new Error(`${pluginName} expects [appEntry] to be a valid RegExp Object.`);
   }

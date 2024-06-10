@@ -1,6 +1,6 @@
 {
   "name": "http-request-mock",
-  "version": "1.8.20",
+  "version": "1.8.22",
   "description": "Intercept & mock http requests issued by XMLHttpRequest, fetch, nodejs https/http module, axios, jquery, superagent, ky, node-fetch, request, got or any other request libraries by intercepting XMLHttpRequest, fetch and nodejs native requests in low level.",
   "main": "src/index.js",
   "module": "http-request-mock.esm.mjs",
@@ -129,7 +129,7 @@
     "@ngneat/falso": "^4.0.0",
     "@types/follow-redirects": "^1.14.1",
     "chokidar": "^3.5.2",
-    "commander": "^2.20.3",
+    "commander": "^12.1.0",
     "follow-redirects": "^1.15.0",
     "http-proxy": "^1.18.1"
   },

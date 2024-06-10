@@ -74,6 +74,8 @@ module.exports = env => {
             convertJsType('esm', {
               [resolve('./tool/plugin/faker.js')]: resolve('./dist/tool/plugin/faker.esm.mjs'),
               [resolve('./tool/plugin/cache.js')]: resolve('./dist/tool/plugin/cache.esm.mjs'),
+              [resolve('./tool/plugin/vite.js')]: resolve('./dist/tool/plugin/vite.esm.mjs'),
+              [resolve('./tool/plugin/webpack.js')]: resolve('./dist/tool/plugin/webpack.esm.mjs'),
             });
 
             // Copy a redundant plugin directory for backward compatibility.

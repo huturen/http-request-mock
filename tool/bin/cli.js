@@ -17,12 +17,12 @@ const program = new Command();
 module.exports = new class CommandToolLine {
   constructor() {
     this.appRoot = getAppRoot();
-    this.setOptions();
+    this.opts = this.setOptions();
 
-    program.environment = program.environment && /^\w+=\w+$/.test(program.environment)
-      ? program.environment
+    this.opts.environment = this.opts.environment && /^\w+=\w+$/.test(this.opts.environment)
+      ? this.opts.environment
       : '';
-    program.index = entryPoints.includes(program.index) ? program.index : '';
+    this.opts.index = entryPoints.includes(this.opts.index) ? this.opts.index : '';
     this.main();
   }
 
@@ -30,16 +30,16 @@ module.exports = new class CommandToolLine {
    * Main control flow
    */
   main() {
-    if (program.init) {
+    if (this.opts.init) {
       return this.init();
     }
-    if (program.inject) {
+    if (this.opts.inject) {
       return this.inject();
     }
-    if (program.watch) {
+    if (this.opts.watch) {
       return this.watch();
     }
-    if (program.proxy === 'matched') {
+    if (this.opts.proxy === 'matched') {
       return this.proxy();
     }
   }
@@ -48,7 +48,7 @@ module.exports = new class CommandToolLine {
    * -i, --init: Initialize some samples & a .runtime.js in the mock directory
    */
   async init() {
-    const dir = path.resolve(this.appRoot, program.directory);
+    const dir = path.resolve(this.appRoot, this.opts.directory);
     if (fs.existsSync(dir) && fs.statSync(dir).isFile()) {
       return log(`${dir} already exists and is not directory.`);
     }
@@ -65,10 +65,10 @@ module.exports = new class CommandToolLine {
     const webpack = new WebpackPlugin({
       dir,
       entry: /1/,
-      type: program.type,
-      index: program.index,
+      type: this.opts.type,
+      index: this.opts.index,
     });
-    webpack.environment = program.environment ? program.environment.split('=') : null;
+    webpack.environment = this.opts.environment ? this.opts.environment.split('=') : null;
 
     this.copySampleFiles(dir);
 
@@ -81,14 +81,14 @@ module.exports = new class CommandToolLine {
    * -j, --inject <app-entry-file>: Inject .runtime.js into the specified entry relative to the working directory.
    */
   async inject() {
-    const appEntryFile = path.resolve(this.appRoot, program.inject);
+    const appEntryFile = path.resolve(this.appRoot, this.opts.inject);
     if (!fs.existsSync(appEntryFile)) {
       log(`The specified app entry file [\x1b[31m${appEntryFile}\x1b[0m] does not exist.`);
       return;
     }
 
     await this.init();
-    const dir = path.resolve(this.appRoot, program.directory);
+    const dir = path.resolve(this.appRoot, this.opts.directory);
 
     let runtime = path.resolve(dir, '.runtime.js');
     runtime = path.relative(path.resolve(appEntryFile, '../'), runtime);
@@ -122,39 +122,39 @@ module.exports = new class CommandToolLine {
    * ths specified command will be executed together with watching.'
    */
   async watch() {
-    const dir = path.resolve(this.appRoot, program.directory);
+    const dir = path.resolve(this.appRoot, this.opts.directory);
     if (!fs.existsSync(path.resolve(dir, '.runtime.js'))) {
       log(`There is no a .runtime.js file in the mock directory: ${dir}.`);
       log('Please use command(npx http-request-mock-cli -i) to initialize it.');
       return;
     }
 
-    const proxyServer = program.proxy === 'matched'
+    const proxyServer = this.opts.proxy === 'matched'
       ? await server.init({
-        type: program.type,
+        type: this.opts.type,
         mockDir: dir,
-        environment: program.environment,
-        proxyMode: program.proxy
+        environment: this.opts.environment,
+        proxyMode: this.opts.proxy
       })
       : '';
     log(`Watching: ${dir}`);
     const webpack = new WebpackPlugin({
       dir,
       entry: /1/,
-      type: program.type,
-      index: program.index,
-      proxyMode: program.proxy
+      type: this.opts.type,
+      index: this.opts.index,
+      proxyMode: this.opts.proxy
     });
 
-    webpack.environment = program.environment ? program.environment.split('=') : null;
+    webpack.environment = this.opts.environment ? this.opts.environment.split('=') : null;
     if (proxyServer) {
-      webpack.proxyServer = program.proxy + '@' + proxyServer;
+      webpack.proxyServer = this.opts.proxy + '@' + proxyServer;
     }
 
     watchDir(webpack, dir, (files) => proxyServer && server.reload(files));
 
-    if (typeof program.watch === 'string') {
-      spawn(program.watch, { cwd: this.appRoot, env: process.env, stdio: 'inherit', detached: false, shell: true });
+    if (typeof this.opts.watch === 'string') {
+      spawn(this.opts.watch, { cwd: this.appRoot, env: process.env, stdio: 'inherit', detached: false, shell: true });
     }
   }
 
@@ -167,9 +167,9 @@ module.exports = new class CommandToolLine {
    * [matched] All requests matched by @url will be proxied to a proxy server.
    */
   proxy() {
-    if (/^(matched)$/.test(program.proxy)) {
-      const dir = path.resolve(this.appRoot, program.directory);
-      server.init({ type: program.type, mockDir: dir, environment: program.environment, proxyMode: program.proxy });
+    if (/^(matched)$/.test(this.opts.proxy)) {
+      const dir = path.resolve(this.appRoot, this.opts.directory);
+      server.init({ type: this.opts.type, mockDir: dir, environment: this.opts.environment, proxyMode: this.opts.proxy });
     }
   }
 
@@ -261,5 +261,6 @@ module.exports = new class CommandToolLine {
         'none'
       )
       .parse(process.argv);
+    return program.opts();
   }
 };

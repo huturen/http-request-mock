@@ -10,7 +10,7 @@ module.exports = {
   transformIgnorePatterns: [
     // https://stackoverflow.com/questions/55794280/jest-fails-with-unexpected-token-on-import-statement
     // avoid "Cannot use import statement outside a module" error for ky
-    'node_modules/(?!(ky)/)',
+    'node_modules/(?!(axios|ky)/)',
   ],
   snapshotSerializers: [
   ],

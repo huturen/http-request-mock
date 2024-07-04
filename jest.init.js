@@ -1,2 +1,2 @@
-// import 'babel-polyfill'; // use es6
+import 'babel-polyfill'; // use es6
 

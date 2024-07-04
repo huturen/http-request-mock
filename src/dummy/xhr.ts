@@ -87,18 +87,18 @@ export default class dummyXMLHttpRequest {
     }
 
     if (typeof xhr.onload === 'function') {
-      xhr.onload(this.event('load'));
+      xhr.onload(this.event('load') as ProgressEvent<EventTarget>);
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('load'));
     }
     if (typeof xhr.onloadend === 'function') {
-      xhr.onloadend(this.event('loadend'));
+      xhr.onloadend(this.event('loadend') as ProgressEvent<EventTarget>);
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('loadend'));
     }
   }
 
-  private event(type: string) {
+  private event(type: string): Event {
     return {
       type,
       target: this,
@@ -126,7 +126,7 @@ export default class dummyXMLHttpRequest {
       lengthComputable: false,
       loaded: 1,
       total: 1
-    };
+    } as unknown as Event;
   }
 
   getAllResponseHeaders() {

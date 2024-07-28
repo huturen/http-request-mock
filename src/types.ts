@@ -100,7 +100,9 @@ export interface XMLHttpRequestInstance extends XMLHttpRequest {
   mockItem: MockItem;
   mockResponse: unknown;
   requestInfo: RequestInfo;
-  requestArgs: (HttpVerb | string | boolean | null)[],
+  requestArgs: (HttpVerb | string | boolean | null)[];
+  timeoutTimer: ReturnType<typeof setTimeout>;
+  isTimeout: boolean;
 }
 
 // https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
@@ -191,6 +193,7 @@ export interface FetchRequest {
   method: string;
   headers: Record<string, string>;
   body: unknown;
+  signal?: AbortSignal
 }
 
 export interface FetchResponse {

@@ -137,12 +137,17 @@ export default class XMLHttpRequestInterceptor extends Base {
   private sendRemoteResult(xhr: XMLHttpRequestInstance, mockItem: MockItem, remoteInfo: Record<string, string>) {
     const [ method, async, user, password ] = xhr.requestArgs;
 
-    const newXhr = new XMLHttpRequest();
+    const newXhr = new XMLHttpRequest() as unknown as XMLHttpRequestInstance;
     newXhr.responseType = xhr.responseType;
     newXhr.timeout = xhr.timeout;
 
+    this.setTimeoutTimer(newXhr);
+
     Object.assign(newXhr, { isMockRequest: false, bypassMock: true });
     newXhr.onreadystatechange = () => {
+      if (newXhr.isTimeout) {
+        return;
+      }
       if (newXhr.readyState === 4) {
         const remoteResponse: RemoteResponse = {
           status: newXhr.status,
@@ -259,6 +264,9 @@ export default class XMLHttpRequestInterceptor extends Base {
   private async doMockRequest(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     let isBypassed = false;
     const { mockItem } = xhr;
+
+    this.setTimeoutTimer(xhr);
+
     if (mockItem.delay && mockItem.delay > 0) {
       await sleep(+mockItem.delay);
       isBypassed = await this.doMockResponse(xhr, remoteResponse);
@@ -266,6 +274,28 @@ export default class XMLHttpRequestInterceptor extends Base {
       isBypassed = await this.doMockResponse(xhr, remoteResponse);
     }
     return isBypassed;
+  }
+
+  private setTimeoutTimer(xhr: XMLHttpRequestInstance) {
+    const isEventReady = typeof Event !== 'undefined' && typeof xhr.dispatchEvent === 'function';
+
+    // If already set, ignore it
+    if (xhr.timeoutTimer) {
+      return true;
+    }
+
+    if (xhr.timeout) {
+      xhr.timeoutTimer = setTimeout(() => {
+        xhr.isTimeout = true;
+        if (typeof xhr.ontimeout === 'function') {
+          xhr.ontimeout(this.progressEvent('timeout'));
+        } else if (isEventReady) {
+          xhr.dispatchEvent(new Event('timeout'));
+        }
+      }, xhr.timeout);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -276,6 +306,11 @@ export default class XMLHttpRequestInterceptor extends Base {
   private async doMockResponse(xhr: XMLHttpRequestInstance, remoteResponse: RemoteResponse | null = null) {
     const { mockItem, requestInfo } = xhr;
 
+    if (xhr.isTimeout) {
+      return false;
+    }
+
+    clearTimeout(xhr.timeoutTimer);
     const now = Date.now();
     const body = remoteResponse
       ? await mockItem.sendBody(requestInfo, remoteResponse)
@@ -314,19 +349,19 @@ export default class XMLHttpRequestInterceptor extends Base {
     }
 
     if (typeof xhr.onload === 'function') {
-      xhr.onload(this.event('load'));
+      xhr.onload(this.progressEvent('load'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('load'));
     }
 
     if (typeof xhr.onloadend === 'function') {
-      xhr.onloadend(this.event('loadend'));
+      xhr.onloadend(this.progressEvent('loadend'));
     } else if (isEventReady) {
       xhr.dispatchEvent(new Event('loadend'));
     }
   }
 
-  private event(type: string) {
+  private event(type: string): Event {
     return {
       type,
       target: this.xhr,
@@ -336,25 +371,34 @@ export default class XMLHttpRequestInterceptor extends Base {
       cancelable: false,
       defaultPrevented: false,
       composed: false,
-      timeStamp: 294973.8000000119,
+      timeStamp: typeof performance?.now === 'function' ? performance.now() : 294973.8000000119,
       srcElement: null,
       returnValue: true,
       cancelBubble: false,
-      path: [],
+      // NONE, CAPTURING_PHASE, AT_TARGET, BUBBLING_PHASE
+      // path: [],
       NONE: 0,
-      CAPTURING_PHASE: 0,
-      AT_TARGET: 0,
-      BUBBLING_PHASE: 0,
+      CAPTURING_PHASE: 1,
+      AT_TARGET: 2,
+      BUBBLING_PHASE: 3,
       composedPath: () => [],
       initEvent: () => void(0),
       preventDefault: () => void(0),
       stopImmediatePropagation: () => void(0),
       stopPropagation: () => void(0),
       isTrusted: false,
-      lengthComputable: false,
-      loaded: 1,
-      total: 1
     };
+  }
+
+  private progressEvent(type: string) {
+    const baseEvent = this.event(type);
+    return {
+      ...baseEvent,
+      lengthComputable: false,
+      loaded: type === 'loadend' ? 1 : 0,
+      // a fake total size, not reliable
+      total: type === 'loadend' ? 1 : 0,
+    }
   }
 
   /**

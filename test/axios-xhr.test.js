@@ -194,4 +194,22 @@ describe('mock axios requests which are based on XMLHttpRequest adaptor for brow
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');
   });
+
+  it('when setting a timeout, axios should throw an exception if the request times out', async () => {
+    mocker.mock({
+      url: 'http://example.com/some/api',
+      method: 'post',
+      delay: 3000, // 3 seconds
+      body: () => 'some mock response'
+    });
+
+    const res = await axios.post('http://example.com/some/api', undefined, { timeout: 1000 })
+      .then(res => res.data)
+      .catch(err => {
+        console.log('Expected error due to timeout: ', err.message);
+        return 'an error should be caught';
+      });
+    console.log('res:', res);
+    expect(res).toBe('an error should be caught');
+  });
 });

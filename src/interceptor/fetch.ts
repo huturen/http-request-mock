@@ -56,6 +56,8 @@ export default class FetchInterceptor extends Base{
           return;
         }
 
+        me.setTimeoutForSingal(params as FetchRequest, reject);
+
         const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as HttpVerb });
         requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
           const res = await me.getOriginalResponse(requestUrl, params);
@@ -81,6 +83,26 @@ export default class FetchInterceptor extends Base{
       });
     };
     return this;
+  }
+
+  private setTimeoutForSingal(params: FetchRequest, reject: (reason?: any) => void) {
+    if (!params.signal) {
+      return;
+    }
+    const defaultTimeoutMsg = 'request timed out';
+    // If the signal is already aborted, immediately throw in order to reject the promise.
+    if (params.signal.aborted) {
+      reject(params.signal.reason || new Error(defaultTimeoutMsg));
+    }
+
+    // Perform the main purpose of the API
+    // Call resolve(result) when done.
+
+    // Watch for 'abort' signals
+    params.signal?.addEventListener("abort", () => {
+      // Stop the main operation, reject the promise with the abort reason.
+      reject(params.signal?.reason || new Error(defaultTimeoutMsg));
+    });
   }
 
   /**

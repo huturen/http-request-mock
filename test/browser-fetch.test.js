@@ -223,4 +223,26 @@ describe('mock fetch requests for browser envrioment', () => {
     expect(res1.data).toBe('data1');
     expect(res2.data).toBe('data2');
   });
+
+  it('when setting a timeout, fetch should throw an exception if the request times out', async () => {
+    mocker.mock({
+      url: 'http://example.com/some/api',
+      method: 'post',
+      delay: 3000, // 3 seconds
+      body: () => 'some mock response'
+    });
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    setTimeout(() => controller.abort(), 1000);
+
+    const res = await fetch('http://example.com/some/api', { method: 'post', signal })
+      .then(res => res.text())
+      .catch(err => {
+        console.log('Expected error due to timeout: ', err.message);
+        return 'an error should be caught';
+      });
+    console.log('res:', res);
+    expect(res).toBe('an error should be caught');
+  });
 });

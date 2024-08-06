@@ -364,8 +364,8 @@ export default class XMLHttpRequestInterceptor extends Base {
   private event(type: string): Event {
     return {
       type,
-      target: this.xhr,
-      currentTarget: this.xhr,
+      target: this,
+      currentTarget: this,
       eventPhase: 0,
       bubbles: false,
       cancelable: false,

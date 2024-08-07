@@ -85,6 +85,7 @@ export default class FetchInterceptor extends Base{
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private setTimeoutForSingal(params: FetchRequest, reject: (reason?: any) => void) {
     if (!params.signal) {
       return;
@@ -99,7 +100,7 @@ export default class FetchInterceptor extends Base{
     // Call resolve(result) when done.
 
     // Watch for 'abort' signals
-    params.signal?.addEventListener("abort", () => {
+    params.signal?.addEventListener('abort', () => {
       // Stop the main operation, reject the promise with the abort reason.
       reject(params.signal?.reason || new Error(defaultTimeoutMsg));
     });

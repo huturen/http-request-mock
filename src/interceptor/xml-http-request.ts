@@ -364,8 +364,8 @@ export default class XMLHttpRequestInterceptor extends Base {
   private event(type: string): Event {
     return {
       type,
-      target: this.xhr,
-      currentTarget: this.xhr,
+      target: null,
+      currentTarget: null,
       eventPhase: 0,
       bubbles: false,
       cancelable: false,
@@ -398,7 +398,7 @@ export default class XMLHttpRequestInterceptor extends Base {
       loaded: type === 'loadend' ? 1 : 0,
       // a fake total size, not reliable
       total: type === 'loadend' ? 1 : 0,
-    }
+    };
   }
 
   /**
@@ -650,4 +650,4 @@ export default class XMLHttpRequestInterceptor extends Base {
   }
 }
 
-class NotResolved{}
+class NotResolved {}

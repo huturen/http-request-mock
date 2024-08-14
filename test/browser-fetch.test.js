@@ -245,4 +245,16 @@ describe('mock fetch requests for browser envrioment', () => {
     console.log('res:', res);
     expect(res).toBe('an error should be caught');
   });
+
+  it('should support URL objects being passed into fetch', async () => {
+    mocker.mock({
+      url: 'http://example.com/some/api',
+      method: 'post',
+      body: () => 'some mock response',
+    });
+    const res = await fetch(new URL('http://example.com/some/other/api'), {
+      method: 'post',
+    });
+    expect(res.status).toBe(404);
+  });
 });

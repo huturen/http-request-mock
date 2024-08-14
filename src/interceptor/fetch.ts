@@ -52,7 +52,7 @@ export default class FetchInterceptor extends Base{
         const mockItem:MockItem | null = me.matchMockRequest(requestUrl, method);
 
         if (!mockItem) {
-          me.fetch(requestUrl, params).then(resolve).catch(reject);
+          me.fetch(input, init).then(resolve).catch(reject);
           return;
         }
 

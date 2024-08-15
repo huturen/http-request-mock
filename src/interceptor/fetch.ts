@@ -33,32 +33,47 @@ export default class FetchInterceptor extends Base{
   private intercept() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const me = this;
-    this.global.fetch = function(input: string | FetchRequest, init: AnyObject) {
+    this.global.fetch = function (
+      input: string | FetchRequest | URL,
+      init: AnyObject
+    ) {
       let url: string;
       let params: FetchRequest | AnyObject;
-      // https://developer.mozilla.org/en-US/docs/Web/API/Request
-      // Note: the first argument of fetch maybe a Request object.
-      if (typeof input === 'object') {
+      // https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch
+      // Note: the first argument of fetch maybe a Request or URL object.
+      if (input instanceof URL) {
+        url = input.toString();
+        params = init || {};
+      } else if (typeof input === 'object') {
         url = input.url;
         params = input;
       } else {
         url = input;
         params = init || {};
       }
-      const method = (params && params.method ? params.method : 'GET') as unknown as HttpVerb;
+      const method = (params && params.method
+        ? params.method
+        : 'GET') as unknown as HttpVerb;
       const requestUrl = me.getFullRequestUrl(url, method);
 
       return new Promise((resolve, reject) => {
-        const mockItem:MockItem | null = me.matchMockRequest(requestUrl, method);
+        const mockItem: MockItem | null = me.matchMockRequest(
+          requestUrl,
+          method
+        );
 
         if (!mockItem) {
-          me.fetch(requestUrl, params).then(resolve).catch(reject);
+          me.fetch(input, init).then(resolve).catch(reject);
           return;
         }
 
         me.setTimeoutForSingal(params as FetchRequest, reject);
 
-        const requestInfo = me.getRequestInfo({ ...params, url: requestUrl, method: method as HttpVerb });
+        const requestInfo = me.getRequestInfo({
+          ...params,
+          url: requestUrl,
+          method: method as HttpVerb,
+        });
         requestInfo.doOriginalCall = async (): Promise<OriginalResponse> => {
           const res = await me.getOriginalResponse(requestUrl, params);
           requestInfo.doOriginalCall = undefined;
@@ -69,13 +84,20 @@ export default class FetchInterceptor extends Base{
         if (remoteInfo) {
           params.method = remoteInfo.method || method;
           me.setRequestHeadersForRemoteRequest(mockItem, params as AnyObject);
-          me.fetch(remoteInfo.url, params).then((fetchResponse: FetchResponse) => {
-            me.sendRemoteResult(fetchResponse, mockItem, requestInfo, resolve);
-          }).catch(reject);
+          me.fetch(remoteInfo.url, params)
+            .then((fetchResponse: FetchResponse) => {
+              me.sendRemoteResult(
+                fetchResponse,
+                mockItem,
+                requestInfo,
+                resolve
+              );
+            })
+            .catch(reject);
           return;
         }
 
-        me.doMockRequest(mockItem, requestInfo, resolve).then(isBypassed => {
+        me.doMockRequest(mockItem, requestInfo, resolve).then((isBypassed) => {
           if (isBypassed) {
             me.fetch(requestUrl, params).then(resolve).catch(reject);
           }

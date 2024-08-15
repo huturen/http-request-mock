@@ -4,12 +4,18 @@ import { isArrayBuffer, str2arrayBuffer, tryToParseJson } from '../common/utils'
 import { HTTPStatusCodes } from '../config';
 import { AnyObject, FetchRequest } from '../types';
 
-export default function dummyFetch(input: string | FetchRequest, init: AnyObject) {
+export default function dummyFetch(
+  input: string | FetchRequest | URL,
+  init: AnyObject
+) {
   let url: string | FetchRequest;
   let params: FetchRequest | AnyObject;
-  // https://developer.mozilla.org/en-US/docs/Web/API/Request
-  // Note: the first argument of fetch maybe a Request object.
-  if (typeof input === 'object') {
+  // https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch
+  // Note: the first argument of fetch maybe a Request or URL object.
+  if (input instanceof URL) {
+    url = input.toString();
+    params = init || {};
+  } else if (typeof input === 'object') {
     url = input.url;
     params = input as FetchRequest;
   } else {
@@ -18,11 +24,11 @@ export default function dummyFetch(input: string | FetchRequest, init: AnyObject
   }
 
   return simpleRequest({
-    url, method:
-    params.method as string,
+    url,
+    method: params.method as string,
     headers: params.headers as Record<string, string>,
-    body: params.body
-  }).then((res: {body: string, response: IncomingMessage}) => {
+    body: params.body,
+  }).then((res: { body: string; response: IncomingMessage }) => {
     return getResponse(url as string, res.body, res.response);
   });
 }

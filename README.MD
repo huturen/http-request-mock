@@ -11,6 +11,9 @@ Full documentation: [https://huturen.github.io/http-request-mock-docs/](https://
 
 A quick demo: [https://huturen.github.io/http-request-mock-docs/plain-html/](https://huturen.github.io/http-request-mock-docs/plain-html/)
 
+A CURD demo: [https://huturen.github.io/http-request-mock-curd/](https://huturen.github.io/http-request-mock-curd/)
+
+
 It mocks http requests issued by axios, jquery, superagent, node-fetch, got, (… you name it) by intercepting
 XMLHttpRequest, fetch, and nodejs native HTTP/HTTPS module requests at the low level.
 

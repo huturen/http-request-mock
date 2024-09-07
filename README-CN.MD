@@ -10,7 +10,7 @@
 
 简短演示： [https://huturen.github.io/http-request-mock-docs/plain-html/](https://huturen.github.io/http-request-mock-docs/plain-html/)
 
-
+增删改查演示: [https://huturen.github.io/http-request-mock-curd/](https://huturen.github.io/http-request-mock-curd/)
 
 
 

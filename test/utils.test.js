@@ -5,6 +5,7 @@ import {
   currentDate,
   currentDatetime,
   currentTime,
+  get,
   isArrayBuffer,
   isNodejs,
   str2arrayBuffer
@@ -50,5 +51,29 @@ describe('test utils', () => {
 
   it('isNodejs method should return true', () => {
     expect(isNodejs()).toBe(true);
+  });
+
+  it('[get] method should behave the same as lodash.get', () => {
+    const data = {
+      user: {
+        name: 'Alice',
+        address: {
+          city: 'Wonderland',
+          zipcode: '12345'
+        },
+        friends: [
+          { name: 'Bob' },
+          { name: 'Charlie' }
+        ]
+      }
+    };
+    expect(get(data, 'user.name')).toBe('Alice');
+    expect(get(data, 'user.address.city')).toBe('Wonderland');
+    expect(get(data, 'user.address.zipcode')).toBe('12345');
+    expect(get(data, 'user.age', 30)).toBe(30);
+    expect(get(data, 'user.address.country', 'Unknown')).toBe('Unknown');
+    expect(get(data, 'user.friends[0].name')).toBe('Bob');
+    expect(get(data, 'user.friends[1].name')).toBe('Charlie');
+    expect(get(data, 'user.friends[2].name', 'Unknown')).toBe('Unknown');
   });
 });

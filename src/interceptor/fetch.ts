@@ -5,7 +5,7 @@ import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { FetchRequest, FetchResponse, HttpVerb, OriginalResponse, RemoteResponse, RequestInfo } from '../types';
-import { AnyObject } from './../types';
+import type { AnyObject } from './../types';
 import Base from './base';
 
 export default class FetchInterceptor extends Base{
@@ -51,16 +51,11 @@ export default class FetchInterceptor extends Base{
         url = input;
         params = init || {};
       }
-      const method = (params && params.method
-        ? params.method
-        : 'GET') as unknown as HttpVerb;
+      const method = (params && params.method ? params.method : 'GET') as unknown as HttpVerb;
       const requestUrl = me.getFullRequestUrl(url, method);
 
       return new Promise((resolve, reject) => {
-        const mockItem: MockItem | null = me.matchMockRequest(
-          requestUrl,
-          method
-        );
+        const mockItem: MockItem | null = me.matchMockRequest(requestUrl, method);
 
         if (!mockItem) {
           me.fetch(input, init).then(resolve).catch(reject);
@@ -83,7 +78,7 @@ export default class FetchInterceptor extends Base{
         const remoteInfo = mockItem?.getRemoteInfo(requestUrl);
         if (remoteInfo) {
           params.method = remoteInfo.method || method;
-          me.setRequestHeadersForRemoteRequest(mockItem, params as AnyObject);
+          me.setRemoteRequestHeaders(mockItem, params as AnyObject);
           me.fetch(remoteInfo.url, params)
             .then((fetchResponse: FetchResponse) => {
               me.sendRemoteResult(
@@ -132,17 +127,18 @@ export default class FetchInterceptor extends Base{
    * Set request headers for requests marked by remote config.
    * @param {AnyObject} fetchParams
    */
-  private setRequestHeadersForRemoteRequest(mockItem: MockItem , fetchParams: AnyObject) {
-    if (Object.keys(mockItem.requestHeaders).length <= 0) return;
+  private setRemoteRequestHeaders(mockItem: MockItem , fetchParams: AnyObject) {
+    if (Object.keys(mockItem.remoteRequestHeaders).length <= 0) return;
 
-    if (typeof Headers === 'function' && fetchParams.headers instanceof Headers) {
-      Object.entries(mockItem.requestHeaders).forEach(([key, val]: [string, string]) => {
-        (fetchParams.headers as Headers).set(key, val);
+    // https://developer.mozilla.org/en-US/docs/Web/API/Headers
+    if (typeof (fetchParams.headers as {set: Function}).set === 'function') {
+      Object.entries(mockItem.remoteRequestHeaders).forEach(([key, val]) => {
+        (fetchParams.headers as {set: Function})?.set(key, val);
       });
     } else {
       fetchParams.headers = {
         ...((fetchParams.headers as object) || {}),
-        ...mockItem.requestHeaders
+        ...mockItem.remoteRequestHeaders
       };
     }
   }
@@ -186,7 +182,7 @@ export default class FetchInterceptor extends Base{
    */
   private async getOriginalResponse(requestUrl: string, params: FetchRequest | AnyObject): Promise<OriginalResponse> {
     let status = null;
-    const headers: Record<string, string | string[]> = {};
+    const headers: Record<string, string> = {};
     let responseText = null;
     let responseJson = null;
     let responseBuffer = null;

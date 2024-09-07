@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http';
 import Stream from 'stream';
 import { URL } from 'url';
 import * as zlib from 'zlib';
-import { AnyObject, OriginalResponse } from './../types';
+import type { AnyObject, Headers, OriginalResponse } from '../types';
 import { str2arrayBuffer, tryToParseJson } from './utils';
 
 /**
@@ -22,7 +22,7 @@ import { str2arrayBuffer, tryToParseJson } from './utils';
 export default function request(requestConfig: {
   url: string | URL,
   method: string,
-  headers?: Record<string, string>,
+  headers?: Headers,
   body?: unknown,
   opts?: Record<string, string>
 }): Promise<{body: string, json: AnyObject, response: IncomingMessage}> {

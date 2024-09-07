@@ -1,5 +1,5 @@
 import Bypass from '../common/bypass';
-import { sleep, tryToParseJson, tryToParseObject } from '../common/utils';
+import { sleep, tryToParseJson, tryToParsePostBody } from '../common/utils';
 import { HTTPStatusCodes } from '../config';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
@@ -104,7 +104,7 @@ export default class XMLHttpRequestInterceptor extends Base {
           if (this.isMockRequest) {
             if (body !== null && body !== undefined) {
               this.requestInfo.rawBody = body;
-              this.requestInfo.body = tryToParseObject(body);
+              this.requestInfo.body = tryToParsePostBody(body);
             }
 
             // remoteInfo has a higher priority than BypassMock
@@ -172,8 +172,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       user as string,
       password as string
     );
-    Object.entries(mockItem.requestHeaders).forEach(([key, val]: [string, string]) => {
-      newXhr.setRequestHeader(key, val);
+    Object.entries(mockItem.remoteRequestHeaders).forEach(([key, val]) => {
+      newXhr.setRequestHeader(key, val as string);
     });
     newXhr.send(xhr.requestInfo.rawBody as Document); // raw body
     return xhr;
@@ -249,8 +249,8 @@ export default class XMLHttpRequestInterceptor extends Base {
       };
 
 
-      Object.entries(requestInfo.headers || {}).forEach(([key, val]: [string, string]) => {
-        newXhr.setRequestHeader(key, val);
+      Object.entries(requestInfo.headers || {}).forEach(([key, val]) => {
+        newXhr.setRequestHeader(key, val as string);
       });
       newXhr.send(requestInfo.rawBody as Document); // raw body
     });

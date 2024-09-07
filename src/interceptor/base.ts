@@ -1,4 +1,4 @@
-import { getQuery, tryToParseObject } from '../common/utils';
+import { get, getQuery, tryToParsePostBody } from '../common/utils';
 import MockItem from '../mocker/mock-item';
 import Mocker from '../mocker/mocker';
 import { HttpVerb, RequestInfo } from '../types';
@@ -73,11 +73,12 @@ export default class BaseInterceptor {
       method: requestInfo.method || 'GET',
       query: getQuery(requestInfo.url),
     };
-    if (requestInfo.headers || requestInfo.header) {
-      info.headers = requestInfo.headers || requestInfo.header;
+    if (get(requestInfo, 'headers') || get(requestInfo, 'header')) {
+      info.headers = get(requestInfo, 'headers') || get(requestInfo, 'header');
     }
     if (requestInfo.body !== undefined) {
-      info.body = tryToParseObject(requestInfo.body);
+      info.rawBody = requestInfo.body;
+      info.body = tryToParsePostBody(requestInfo.body);
     }
     return info;
   }

@@ -639,7 +639,10 @@ it('should match object`', async () => {
  * @status 200
  *
  * http响应头信息，支持重复配置
- * @header content-type: application/json
+ * @headers content-type: application/json
+ *
+ * 远程mock请求头信息，只有在设置了 @remote 时才有效，允许重复设置
+ * @remoteRequestHeaders content-type: application/json
  *
  * http响应延迟，模拟网络延时，单位毫秒，默认0
  * @delay 100

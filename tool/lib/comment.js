@@ -15,25 +15,26 @@ module.exports = {
 function parseCommentTags(file) {
   const tags = getFileCommentTags(file);
   const keys = [
-    'url', 'method', 'disable', 'delay', 'status', 'requestHeaders', 'headers', 'header', 'times', 'remote', 'deProxy'
+    'url', 'method', 'disable', 'delay', 'status', 'remoteRequestHeaders',
+    'headers', 'header', 'times', 'remote', 'deProxy'
   ];
   const res = {};
   const headers = {};
-  const requestHeaders = {};
+  const remoteRequestHeaders = {};
 
   for(const {tag, info} of tags) {
     if (!keys.includes(tag)) continue;
 
-    if (tag === 'header' || tag === 'headers' || tag === 'requestHeaders') {
+    if (tag === 'header' || tag === 'headers' || tag === 'remoteRequestHeaders') {
       if (!/^[\w.-]+\s*:\s*.+$/.test(info)) continue;
 
       const key = info.slice(0, info.indexOf(':')).trim().toLowerCase();
       const val = info.slice(info.indexOf(':')+1).trim();
       if (!key || !val) continue;
-      if (tag !== 'requestHeaders') {
+      if (tag !== 'remoteRequestHeaders') {
         headers[key] = headers[key] ? [].concat(headers[key], val) : val;
       } else {
-        requestHeaders[key] = requestHeaders[key] ? [].concat(requestHeaders[key], val) : val;
+        remoteRequestHeaders[key] = remoteRequestHeaders[key] ? [].concat(remoteRequestHeaders[key], val) : val;
       }
     }
     res[tag] = info;
@@ -41,7 +42,7 @@ function parseCommentTags(file) {
 
   // status: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
   res.headers = Object.keys(headers).length > 0 ? headers : undefined;
-  res.requestHeaders = Object.keys(requestHeaders).length > 0 ? requestHeaders : undefined;
+  res.remoteRequestHeaders = Object.keys(remoteRequestHeaders).length > 0 ? remoteRequestHeaders : undefined;
   res.method = /^(get|post|put|patch|delete|head)$/i.test(res.method) ? res.method.toUpperCase() : undefined;
   res.delay = /^\d{0,15}$/.test(res.delay) ? +res.delay : undefined;
   res.times = /^-?\d{0,15}$/.test(res.times) ? +res.times : undefined;

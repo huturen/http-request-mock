@@ -1,5 +1,5 @@
 
-import { Query } from '../types';
+import type { Query } from '../types';
 
 /**
  * Get query parameters from the specified request url.
@@ -85,6 +85,25 @@ export function tryToParseObject(body: unknown) {
   } catch(e) {
     return body;
   }
+}
+
+export function tryToParsePostBody(body: unknown): unknown {
+  if (!body) {
+    return body;
+  }
+
+  if (typeof body === 'string') {
+    const info = tryToParseObject(body);
+    if (info && typeof info === 'object') {
+      return info;
+    }
+  }
+
+  if (typeof body === 'string' && body.includes('&') && body.includes('=')) {
+    return getQuery(body);
+  }
+
+  return body;
 }
 
 /**
@@ -224,9 +243,11 @@ export function isImported(obj: unknown) {
  * Get caller file from error stack
  */
 export function getCallerFile() {
+  type SimplifiedStackInfo = { getFileName: () => string };
+
   const oldPrepareStackTrace = Error.prepareStackTrace;
   Error.prepareStackTrace = (_, stack)  => stack;
-  const stack = new Error().stack as unknown as Record<string, { getFileName: () => string }>;
+  const stack = new Error().stack as unknown as Record<string, SimplifiedStackInfo>;
   Error.prepareStackTrace = oldPrepareStackTrace;
 
 
@@ -239,4 +260,23 @@ export function getCallerFile() {
       }
     }
   }
+}
+
+export function get<T>(obj: object, path: string | Array<string | number>, defaultValue?: unknown): T {
+  if (typeof path === 'string') {
+    path = path.replace(/\[(\w+)\]/g, '.$1');
+    path = path.split('.').filter(Boolean);
+  }
+
+  let result: unknown = obj;
+  for (const key of path as Array<string | number>) {
+    if (result && result[key as keyof typeof result] !== undefined) {
+      result = result[key as keyof typeof result];
+    } else {
+      result = undefined;
+      break;
+    }
+  }
+
+  return (result === undefined ? defaultValue : result) as T;
 }

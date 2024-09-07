@@ -3,7 +3,7 @@ import faker from '../tool/plugin/faker.js';
 import BrowserPureIndex from './browser.pure';
 import Mocker from './mocker/mocker';
 
-export type { HttpVerb, Method, MockItemExt, MockItemInfo, RequestInfo } from './types';
+export type { HttpVerb, MockItemExt, MockItemInfo, RequestInfo } from './types';
 export { Mocker };
 
 /**

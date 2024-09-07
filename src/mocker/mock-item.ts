@@ -1,22 +1,22 @@
 import Bypass from '../common/bypass';
-import { getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
-import { Disable, DynamicImported, Header, HttpVerb, MockItemInfo, RequestInfo } from '../types';
+import { get, getQuery, isImported, isPromise, queryObject2String } from '../common/utils';
+import { DynamicImported, Headers, HttpVerb, MockItemInfo, RequestInfo } from '../types';
 import { RemoteResponse } from './../types';
 
 export default class MockItem {
   public url: RegExp | string;
   public regexp: Array<string>; // ['abc.*xyz$', 'i'] => /abc.*xyz$/i
   public method: HttpVerb;
-  public requestHeaders: Header; // request headers, only available for @remote config
-  public header: Header; // response header, the same as headers, just for backward compatibility
-  public headers: Header; // response header
+  public remoteRequestHeaders: Headers; // request headers, only available for @remote config
+  public header: Headers; // response header, the same as headers, just for backward compatibility
+  public headers: Headers; // response header
   public delay: number;
   public body: unknown; // response body
   public response: unknown; // response body, for backward compatibility
   public remote: string; // url of remote mock data
   public status: number; // http status code
 
-  public disable: Disable;
+  public disable: 'YES' | 'NO';
   public times: number;
   public key: string;
   public deProxy = false; // Use this option to make the mock use case run in the browser instead of nodejs.
@@ -37,16 +37,16 @@ export default class MockItem {
       ? <HttpVerb> mockItem.method?.toUpperCase()
       : <HttpVerb> 'ANY';
 
-    const reqHeaders = mockItem.requestHeaders;
-    const headers = mockItem.headers || mockItem.header;
-    this.header = headers && typeof headers === 'object' ? headers : {};
-    this.headers = headers && typeof headers === 'object' ? headers : {};
-    this.requestHeaders = reqHeaders && typeof reqHeaders === 'object' ? reqHeaders : {};
+    const reqHeaders = mockItem.remoteRequestHeaders;
+    const headers = get(mockItem, 'headers') || get(mockItem, 'header');
+    this.header = (headers && typeof headers === 'object' ? headers : {}) as Headers;
+    this.headers = (headers && typeof headers === 'object' ? headers : {}) as Headers;
+    this.remoteRequestHeaders = reqHeaders && typeof reqHeaders === 'object' ? reqHeaders : {};
 
     this.delay = mockItem.delay !== undefined && /^\d{0,15}$/.test(mockItem.delay+'') ? (+mockItem.delay) : 0;
     this.times = mockItem.times !== undefined && /^-?\d{0,15}$/.test(mockItem.times+'') ? +mockItem.times : Infinity;
     this.status = mockItem.status && /^[1-5][0-9][0-9]$/.test(mockItem.status+'') ? +mockItem.status : 200;
-    this.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'YES' : 'NO') as Disable;
+    this.disable = (mockItem.disable && /^(yes|true|1)$/.test(mockItem.disable) ? 'YES' : 'NO');
     this.setBody(mockItem);
 
     const isUrlLiked = /^((get|post|put|patch|delete|head)\s+)?https?:\/\//i.test(mockItem.remote as string);

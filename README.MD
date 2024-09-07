@@ -651,7 +651,7 @@ it('should match object`', async () => {
  *
  * Request headers, request headers, only available for @remote tag
  * It can be set repeatedly.
- * @requestHeaders content-type: application/json
+ * @remoteRequestHeaders content-type: application/json
  *
  * Simulate network latency in milliseconds.
  * Default: 0

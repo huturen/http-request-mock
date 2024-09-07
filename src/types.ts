@@ -1,25 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import http from 'http';
+import { ClientRequest, IncomingMessage } from 'http';
 import MockItem from './mocker/mock-item';
-
-// enums
-export enum Method {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  HEAD = 'HEAD',
-  ANY = 'ANY'
-}
-
-export enum Disable {
-  YES = 'YES',
-  NO = 'NO',
-}
-
-// interfaces:
-
 
 export interface AnyObject {
   [key: string]: unknown;
@@ -29,66 +10,195 @@ export interface Query {
   [key: string]: string | string[]
 }
 
-export interface Header {
-  [key: string]: string
+export interface Headers {
+  [key: string]: string | string[] | undefined
 }
 
+export type MockRequestCallback = ((req: RequestInfo) => unknown) | ((req: RequestInfo) => Promise<unknown>);
+export type MockResponseBody = MockRequestCallback | unknown;
+
+/**
+ * Represents the configuration for a mock request.
+ */
 export interface MockItemInfo {
+  /**
+   * The URL or pattern to match for the mock request.
+   */
   url?: RegExp | string;
+
+  /**
+   * The HTTP method (e.g., GET, POST) for the mock request.
+   */
   method?: HttpVerb;
-  requestHeaders?: Header, // request headers, only available for @remote config
-  header?: Header; // response header, the same as headers, just for backward compatibility
-  headers?: Header; // response header
+
+  /**
+   * The URL for the remote mock request, which enables the use of remote mock data.
+   */
+  remote?: string;
+
+  /**
+   * The headers for the remote mock request.
+   */
+  remoteRequestHeaders?: Headers;
+
+  /**
+   * The HTTP status code for the mock response.
+   */
+  status?: number;
+
+  /**
+   * The delay before responding, in milliseconds.
+   */
   delay?: number;
-  body?: unknown; // response body
-  response?: unknown; // response body, for backward compatibility
-  remote?: string; // url of remote mock data
-  status?: number; // http status code
+
+  /**
+   * The headers for the mock response.
+   */
+  headers?: Headers;
+
+  /**
+   * The body content of the mock response.
+   */
+  body?: MockResponseBody;
+
+  /**
+   * Flag to disable the mock item.
+   */
   disable?: 'YES' | 'NO';
+
+  /**
+   * The number of times the mock request should be made.
+   */
   times?: number;
+
+  /**
+   * Flag to determine if proxying should be disabled.
+   */
   deProxy?: boolean;
 }
 
 export interface MockItemExt {
-  requestHeaders?: Header, // request headers, only available for @remote config
-  header?: Header, // response headers, the same as headers, just for backward compatibility
-  headers?: Header, // response headers
-  disable?: Disable;
+  /**
+   * Headers for the remote mock request.
+   */
+  remoteRequestHeaders?: Headers;
+
+  /**
+   * Mock response headers.
+   */
+  headers?: Headers;
+
+  disable?: 'YES' | 'NO';
   delay?: number;
   times?: number;
-  status?: number; // http status code
+
+  /**
+   * Mock HTTP status.
+   */
+  status?: number;
 }
 
 export interface MockConfigData {
   [key: string]: MockItem
 }
+
+/**
+ * Represents the request information for the mock response callback.
+ */
 export interface RequestInfo {
+  /**
+   * The URL of the request.
+   */
   url: string;
+
+  /**
+   * The HTTP method used for the request.
+   */
   method: HttpVerb;
-  query?: object; // url search query
-  headers?: object; // request header
-  header?: object; // request header
-  body?: unknown; // post body
-  rawBody?: unknown; // post body
-  doOriginalCall?: () => Promise<OriginalResponse>; // can only be called once
+
+  /**
+   * The URL search query parameters.
+   */
+  query?: Query;
+
+  /**
+   * The request headers.
+   */
+  headers?: Headers;
+
+  /**
+   * If the request is a POST, [body] or [rawBody] will be populated.
+   * If the body is a JSON string or query string, it will be parsed into an object.
+   * Otherwise, the raw post body content will be returned.
+   */
+  body?: unknown;
+
+  /**
+   * The raw body of the request. Depending on the context, the body can be:
+   * - For Fetch API requests (see: https://developer.mozilla.org/en-US/docs/Web/API/RequestInit#body):
+   *   string, ArrayBuffer, Blob, DataView, File, FormData, TypedArray, or URLSearchParams.
+   * - For XMLHttpRequest (XHR) requests (see: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send):
+   *   string, Document, Blob, ArrayBuffer, TypedArray, DataView, FormData, URLSearchParams, or null.
+   */
+  rawBody?: unknown;
+
+  /**
+   * Function to perform the original call. Can only be called once.
+   */
+  doOriginalCall?: () => Promise<OriginalResponse>;
 }
 
 export interface OriginalResponse {
-  // if the original call is returned successfully, the following fields will be populated
-  status: number | null; // http response status
-  headers: Record<string, string | string[]>; // response headers
+  /**
+   * If the original call succeeds, the following fields will be populated:
+   */
+  /**
+   * The HTTP response status code.
+   */
+  status: number | null;
+
+  /**
+   * The response headers.
+   */
+  headers: Headers;
+
+  /**
+   * The plain text response, if available.
+   */
   responseText: string | null;
+
+  /**
+   * The JSON parsed response, if applicable.
+   */
   responseJson: unknown | null;
+
+  /**
+   * The binary data response as an ArrayBuffer, if applicable.
+   */
   responseBuffer: ArrayBuffer | null;
+
+  /**
+   * The binary data response as a Blob, if applicable.
+   */
   responseBlob: Blob | null;
 
-  // if the original call throws an exception, the error field will be populated
+  /**
+   * If the original call throws an exception, the error field will be populated:
+   */
+  /**
+   * The error object representing the exception.
+   */
   error: Error | null;
 }
 
 export interface RemoteResponse {
   status: number;
-  headers: Record<string, string | string[] | undefined>; // remote response headers
+
+  /**
+   * Remote response headers.
+   */
+  headers: Headers;
+
   response: unknown;
   responseText: string;
   responseJson: AnyObject;
@@ -110,12 +220,17 @@ export interface WxObject {
   request: Function;
 }
 
-
 export interface WxRequestOpts {
   url: string;
   method: HttpVerb;
   data: Record<string, string>;
-  header: Record<string, string>; // request header
+
+  /**
+   * Request header, according to the docs above, must be 'header' here.
+   * @see https://developers.weixin.qq.com/miniprogram/dev/api/network/request/wx.request.html
+   */
+  header: Headers;
+
   dataType: string;
   responseType: string;
   success: Function;
@@ -134,18 +249,19 @@ export interface WxRequestTask {
 export interface WxResponse {
   data: unknown;
   statusCode: number;
-  header: Record<string, string>,
-  cookies: string[],
-  profile: Record<string, unknown>,
+  header: Record<string, string>;
+  cookies: string[];
+  profile: Record<string, unknown>;
 }
 
-export interface ClientRequestType extends http.ClientRequest{
-  nativeInstance: null | http.ClientRequest;
+
+export interface ClientRequestType extends ClientRequest{
+  nativeInstance: null | ClientRequest;
   nativeReqestName: 'get' | 'request';
   nativeReqestMethod: Function;
   nativeRequestArgs: unknown[];
 
-  response: http.IncomingMessage;
+  response: IncomingMessage;
   requestBody: Buffer;
   mockItemResolver: Function;
 
@@ -163,7 +279,7 @@ export interface ClientRequestType extends http.ClientRequest{
   sendEndingEvent: Function;
   sendError: Function;
   getEndArguments: Function;
-  getRequestHeaders: Function;
+  getRemoteRequestHeaders: Function;
   bufferToString: Function;
   fallbackToNativeRequest: Function;
   getOriginalResponse: Function;
@@ -191,7 +307,7 @@ export interface DynamicImported {
 export interface FetchRequest {
   url: string;
   method: string;
-  headers: Record<string, string>;
+  headers: Headers;
   body: unknown;
   signal?: AbortSignal
 }

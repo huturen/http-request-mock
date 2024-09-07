@@ -162,11 +162,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'GET', body, delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'GET', body, delay, status, headers, times });
     return this;
   }
 
@@ -186,12 +185,11 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
+    const { delay, status, times, headers } = opts;
 
-    this.mock({ url, method: 'POST', body, delay, status, header, headers, times });
+    this.mock({ url, method: 'POST', body, delay, status, headers, times });
     return this;
   }
 
@@ -211,11 +209,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'PUT', body, delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'PUT', body, delay, status, headers, times });
     return this;
   }
 
@@ -235,11 +232,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'PATCH', body, delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'PATCH', body, delay, status, headers, times });
     return this;
   }
 
@@ -259,11 +255,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'DELETE', body, delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'DELETE', body, delay, status, headers, times });
     return this;
   }
 
@@ -288,11 +283,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'HEAD', body: '', delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'HEAD', body: '', delay, status, headers, times });
     return this;
   }
 
@@ -312,11 +306,10 @@ export default class Mocker {
     delay: 0,
     status: 200,
     times: Infinity,
-    header: {},
     headers: {}
   }) {
-    const { delay, status, times, header, headers } = opts;
-    this.mock({ url, method: 'ANY', body, delay, status, header, headers, times });
+    const { delay, status, times, headers } = opts;
+    this.mock({ url, method: 'ANY', body, delay, status, headers, times });
     return this;
   }
 

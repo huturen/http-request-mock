@@ -208,7 +208,7 @@ function ClientRequest(
         url: this.url,
         method,
         query: getQuery(this.url),
-        headers: this.getRequestHeaders(),
+        headers: this.getRemoteRequestHeaders(),
         body: method === 'GET' ? undefined : this.bufferToString(this.requestBody)
       };
 
@@ -227,7 +227,7 @@ function ClientRequest(
             method: remoteInfo.method || this.options.method || 'GET',
             headers: {
               ...requestInfo.headers as Record<string, string>,
-              ...mockItem.requestHeaders,
+              ...mockItem.remoteRequestHeaders,
             },
             body: this.requestBody
           });
@@ -397,7 +397,7 @@ function ClientRequest(
   /**
    * Get request headers.
    */
-  this.getRequestHeaders = () => {
+  this.getRemoteRequestHeaders = () => {
     return Object.entries({
       ...this.getHeaders(),
       ...this.options.headers

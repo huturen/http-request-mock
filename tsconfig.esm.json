@@ -9,6 +9,7 @@
       "scripthost",
       "es2015.promise"
     ],
+    "removeComments": false,
     "moduleResolution": "node",
     "sourceMap": true,
     "allowJs": true,

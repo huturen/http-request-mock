@@ -46,10 +46,10 @@ export default class WxRequestInterceptor extends Base {
         if (mockItem && remoteInfo) {
           wxRequestOpts.url = remoteInfo.url;
           wxRequestOpts.method = <HttpVerb>remoteInfo.method || wxRequestOpts.method;
-          if (Object.keys(mockItem.requestHeaders).length > 0) {
+          if (Object.keys(mockItem.remoteRequestHeaders).length > 0) {
             wxRequestOpts.header = {
               ...(wxRequestOpts.header || {}),
-              ...mockItem.requestHeaders
+              ...mockItem.remoteRequestHeaders
             };
           }
           return this.sendRemoteResult(wxRequestOpts, mockItem, requestInfo);

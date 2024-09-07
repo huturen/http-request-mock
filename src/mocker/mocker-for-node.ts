@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { parseCommentTags } from '../../tool/lib/comment.js';
 import { isImported } from '../common/utils';
-import Mocker from './mocker';
 import MockItem from './mock-item';
+import Mocker from './mocker';
 
 // Note: do not move the function below to another file, as
 // different files may affect the depth of error stacks.

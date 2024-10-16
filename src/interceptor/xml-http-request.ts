@@ -312,18 +312,24 @@ export default class XMLHttpRequestInterceptor extends Base {
 
     clearTimeout(xhr.timeoutTimer);
     const now = Date.now();
-    const body = remoteResponse
-      ? await mockItem.sendBody(requestInfo, remoteResponse)
-      : await mockItem.sendBody(requestInfo);
-    if (body instanceof Bypass) {
-      if (remoteResponse) {
-        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+    let body;
+    try {
+      body = remoteResponse
+        ? await mockItem.sendBody(requestInfo, remoteResponse)
+        : await mockItem.sendBody(requestInfo);
+      if (body instanceof Bypass) {
+        if (remoteResponse) {
+          throw new Error('A request which is marked by @remote tag cannot be bypassed.');
+        }
+        return true;
       }
-      return true;
+    } catch(err) {
+      console.warn('[http-request-mock] mock response error, ' + (err as Error).message);
+      body = '';
     }
-    const spent = (Date.now() - now) + (mockItem.delay || 0);
-    xhr.mockResponse = body;
 
+    xhr.mockResponse = body;
+    const spent = (Date.now() - now) + (mockItem.delay || 0);
     this.mocker.sendResponseLog(spent, body, xhr.requestInfo, mockItem);
     this.sendResult(xhr);
     return false;

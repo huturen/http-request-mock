@@ -243,14 +243,21 @@ export default class FetchInterceptor extends Base{
     resolve: Function,
     remoteResponse: RemoteResponse | null = null
   ) {
-    const body = await mockItem.sendBody(requestInfo, remoteResponse);
     const now = Date.now();
-    if (body instanceof Bypass) {
-      if (remoteResponse) {
-        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
+    let body;
+    try {
+      body = await mockItem.sendBody(requestInfo, remoteResponse);
+      if (body instanceof Bypass) {
+        if (remoteResponse) {
+          throw new Error('A request which is marked by @remote tag cannot be bypassed.');
+        }
+        return true;
       }
-      return true;
+    } catch(err) {
+      console.warn('[http-request-mock] mock response error, ' + (err as Error).message);
+      body = '';
     }
+
     const spent = (Date.now() - now) + (mockItem.delay || 0);
 
     this.mocker.sendResponseLog(spent, body, requestInfo, mockItem);
@@ -294,11 +301,57 @@ export default class FetchInterceptor extends Base{
       url: requestInfo.url,
       type: 'basic', // cors
       // response data depends on prepared data
-      json: () => Promise.resolve(data),
-      arrayBuffer: () => Promise.resolve(data),
-      blob: () => Promise.resolve(body),
-      formData: () => Promise.resolve(data),
-      text: () => Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
+      json: () => {
+        if (typeof data === 'object') {
+          return Promise.resolve(data);
+        }
+        if (typeof data === 'string') {
+          try {
+            return Promise.resolve(JSON.parse(data));
+          } catch(err) { // eslint-disable-line
+            return Promise.resolve(null);
+          }
+        }
+        return Promise.resolve(null);
+      },
+      arrayBuffer: () => {
+        if (typeof ArrayBuffer === 'function' && (data instanceof ArrayBuffer)) {
+          return Promise.resolve(data);
+        }
+        if (typeof data === 'string' && typeof TextEncoder === 'function') {
+          const encoder = new TextEncoder();
+          return Promise.resolve(encoder.encode(data).buffer);
+        }
+        return Promise.resolve(null);
+      },
+      blob: () => {
+        if (typeof Blob === 'function' && (data instanceof Blob)) {
+          return Promise.resolve(data);
+        }
+        if (typeof data === 'string' && typeof Blob === 'function') {
+          return Promise.resolve(new Blob([data], { type: 'text/plain' }));
+        }
+        return Promise.resolve(null);
+      },
+      bytes: () => {
+        if (typeof Uint8Array === 'function' && (data instanceof Uint8Array)) {
+          return Promise.resolve(data);
+        }
+        if (typeof data === 'string' && typeof TextEncoder === 'function') {
+          const encoder = new TextEncoder();
+          return Promise.resolve(encoder.encode(data));
+        }
+        return Promise.resolve(null);
+      },
+      formData: () => {
+        if (typeof FormData === 'function') {
+          return Promise.resolve((data instanceof FormData) ? data : null);
+        }
+        return Promise.resolve(null);
+      },
+      text: () => {
+        return Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data));
+      },
       // other methods that may be used
       clone: () => response,
       error: () => response,

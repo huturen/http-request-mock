@@ -276,6 +276,19 @@ function ClientRequest(
           this.response.push(JSON.stringify(responseBody));
         }
         this.sendEndingEvent(endCallback);
+      }).catch(err => {
+        console.warn('[http-request-mock] mock response error, ' + (err as Error).message);
+        this.response.statusCode = mockItem.status;
+        this.response.statusMessage = HTTPStatusCodes[this.response.statusCode] || '',
+        this.response.headers = { ...mockItem.headers, 'x-powered-by': 'http-request-mock' };
+        this.response.rawHeaders = Object.entries(this.response.headers).reduce((res, item) => {
+          return res.concat(item as never);
+        }, []);
+
+        const responseBody = '';
+        this.response.push(Buffer.from(responseBody));
+        mocker.sendResponseLog(Date.now() - now, responseBody, requestInfo, mockItem);
+        this.sendEndingEvent(endCallback);
       });
     });
   };

@@ -130,10 +130,6 @@ export default class NodeHttpAndHttpsRequestInterceptor extends Base{
     const mockItem:MockItem | null  = this.matchMockRequest(url, method);
     if (!mockItem) return false;
 
-    //
-    //
-    //s
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const clientRequest: ClientRequestType = new ClientRequest(url, options, callback);

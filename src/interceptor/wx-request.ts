@@ -192,15 +192,22 @@ export default class WxRequestInterceptor extends Base {
     remoteResponse: RemoteResponse | null = null
   ) {
     const now = Date.now();
-    const body = await mockItem.sendBody(requestInfo, remoteResponse);
-    if (body instanceof Bypass) {
-      if (remoteResponse) {
-        throw new Error('[http-request-mock] A request which is marked by @remote tag cannot be bypassed.');
-      }
-      return true;
-    }
-    const spent = (Date.now() - now) + (mockItem.delay || 0);
 
+    let body;
+    try {
+      body = await mockItem.sendBody(requestInfo, remoteResponse);
+      if (body instanceof Bypass) {
+        if (remoteResponse) {
+          throw new Error('A request which is marked by @remote tag cannot be bypassed.');
+        }
+        return true;
+      }
+    } catch(err) {
+      console.warn('[http-request-mock] mock response error, ' + (err as Error).message);
+      body = '';
+    }
+
+    const spent = (Date.now() - now) + (mockItem.delay || 0);
     const wxResponse = this.getWxResponse(body, mockItem);
 
     this.mocker.sendResponseLog(spent, body, requestInfo, mockItem);

@@ -4,17 +4,23 @@ const mocker = HttpRequestMock.setupForUnitTest('fetch');
 
 const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve, reject) => {
-    fetch(url, { url, method, ...opts }).then(res => {
-      res.json().then(data => {
-        resolve({
-          data,
-          status: res.status,
-          headers: [...res.headers].reduce((res, item) => {
-            const [key, val] = item;
-            res[key] = val;
-            return res;
-          }, {})
-        });
+    fetch(url, { url, method, ...opts }).then(async res => {
+      const text = await res.text();
+      const json = await res.json();
+      const blob = await res.blob();
+      const arrayBuffer = await res.arrayBuffer();
+      resolve({
+        data: text,
+        status: res.status,
+        text: () => text,
+        json: () => json,
+        blob: () => blob,
+        arrayBuffer: () => arrayBuffer,
+        headers: [...res.headers].reduce((res, item) => {
+          const [key, val] = item;
+          res[key] = val;
+          return res;
+        }, {})
       });
     }).catch(reject);
   });
@@ -26,10 +32,10 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.post('www.api.com/partial', 'post content');
 
     const res = await Promise.all([
-      request('http://www.api.com/partial', 'get').then(res => res.data),
-      request('https://www.api.com/partial', 'post').then(res => res.data),
-      request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.data),
-      request('https://www.api.com/partial-other', 'post').then(res => res.data),
+      request('http://www.api.com/partial', 'get').then(res => res.text()),
+      request('https://www.api.com/partial', 'post').then(res => res.text()),
+      request('https://www.api.com/partial?abc=xyz', 'get').then(res => res.text()),
+      request('https://www.api.com/partial-other', 'post').then(res => res.text()),
     ]);
     expect(res).toMatchObject([
       'get content', 'post content', 'get content', 'post content'
@@ -66,7 +72,7 @@ describe('mock fetch requests for browser envrioment', () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
     const res = await request('http://www.api.com/regexp');
-    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
+    expect(res.json()).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
   it('delay config item should support a delayed response', (done) => {
@@ -92,7 +98,7 @@ describe('mock fetch requests for browser envrioment', () => {
 
     request('http://www.api.com/status404').then(res => {
       expect(res.status).toBe(404);
-      expect(res.data).toBe('not found');
+      expect(res.text()).toBe('not found');
       done();
     });
   });
@@ -158,10 +164,12 @@ describe('mock fetch requests for browser envrioment', () => {
 
 
     const res = await Promise.all([
-      request('http://www.api.com/string', 'get').then(res => res.data),
-      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
-      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
-      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
+      request('http://www.api.com/string', 'get').then(res => res.text()),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.json()),
+      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.blob()),
+      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(
+        res => res.arrayBuffer()
+      ),
     ]);
     expect(res[0]).toBe('string');
     expect(res[1]).toMatchObject({obj: 'yes'});

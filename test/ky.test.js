@@ -7,17 +7,23 @@ global.Request = Request; // ky will trigger an invocation of Request
 
 const request = (url, method = 'get', opts = {}) => {
   return new Promise((resolve, reject) => {
-    ky(url, { method, ...opts }).then(res => {
-      res.json().then(data => {
-        resolve({
-          data,
-          status: res.status,
-          headers: [...res.headers].reduce((res, item) => {
-            const [key, val] = item;
-            res[key] = val;
-            return res;
-          }, {})
-        });
+    ky(url, { method, ...opts }).then(async res => {
+      const text = await res.text();
+      const json = await res.json();
+      const blob = await res.blob();
+      const arrayBuffer = await res.arrayBuffer();
+      resolve({
+        data: text,
+        status: res.status,
+        text: () => text,
+        json: () => json,
+        blob: () => blob,
+        arrayBuffer: () => arrayBuffer,
+        headers: [...res.headers].reduce((res, item) => {
+          const [key, val] = item;
+          res[key] = val;
+          return res;
+        }, {})
       });
     }).catch(reject);
   });
@@ -46,7 +52,7 @@ describe('mock ky requests for browser environment', () => {
     mocker.any(/^.*\/regexp$/, { ret: 0, msg: 'regexp'});
 
     const res = await request('http://www.api.com/regexp');
-    expect(res.data).toMatchObject({ ret: 0, msg: 'regexp'});
+    expect(res.json()).toMatchObject({ ret: 0, msg: 'regexp'});
   });
 
   it('delay config item should support a delayed response', (done) => {
@@ -138,10 +144,10 @@ describe('mock ky requests for browser environment', () => {
 
 
     const res = await Promise.all([
-      request('http://www.api.com/string', 'get').then(res => res.data),
-      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.data),
-      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.data),
-      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.data),
+      request('http://www.api.com/string', 'get').then(res => res.text()),
+      request('http://www.api.com/object', 'post', {responseType: 'json' }).then(res => res.json()),
+      request('http://www.api.com/blob', 'get', {responseType: 'blob' }).then(res => res.blob()),
+      request('http://www.api.com/arraybuffer', 'get', {responseType: 'arraybuffer' }).then(res => res.arrayBuffer()),
     ]);
     expect(res[0]).toBe('string');
     expect(res[1]).toMatchObject({obj: 'yes'});

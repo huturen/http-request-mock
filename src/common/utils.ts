@@ -12,6 +12,10 @@ export function getQuery(reqUrl: string) : Query {
   const query = (reqUrl || '').replace(/^.*?\?/g, '').replace(/#.*$/g, '');
 
   const obj: Record<string, string | string[]> = {};
+  if (query === reqUrl) {
+    return obj;
+  }
+
   if (query) {
     const parts = query.split('&');
 

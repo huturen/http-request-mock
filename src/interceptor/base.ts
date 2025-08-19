@@ -6,7 +6,7 @@ import InterceptorFetch from './fetch';
 import InterceptorNode from './node/http-and-https';
 import InterceptorWxRequest from './wx-request';
 import InterceptorXhr from './xml-http-request';
-export default class BaseInterceptor {
+export default class BaseInterceptor extends EventTarget {
   protected mocker: Mocker;
   protected proxyServer = '';
   protected proxyMode = '';
@@ -14,6 +14,8 @@ export default class BaseInterceptor {
   protected global: Record<string, any>;
 
   constructor(mocker: Mocker, proxyServer = '') {
+    super();
+
     this.mocker = mocker;
 
     if (/^(matched@localhost:\d+)|(middleware@\/)$/.test(proxyServer)) {

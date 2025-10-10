@@ -277,13 +277,45 @@ export default class FetchInterceptor extends Base{
     const status = mockItem.status;
     const statusText = HTTPStatusCodes[status] || '';
 
-    const headers = typeof Headers === 'function'
-      ? new Headers({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' })
-      : Object.entries({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' });
+    const [headers, contentType] = (() => {
+      const defaultContentType = 'application/json';
+      if (typeof Headers === 'function') {
+        const headers = new Headers({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' })
+        return [headers, headers.get('content-type') || defaultContentType] as const;
+      }
+      const headers = Object.entries({ ...mockItem.headers, 'x-powered-by': 'http-request-mock' });
+      return [headers, headers.find(item => item[0] === 'content-type')?.[1] || defaultContentType] as const;
+    })()
 
-    const body = typeof Blob === 'function'
-      ? new Blob([typeof data === 'string' ? data : JSON.stringify(data)])
-      : data;
+    // 根据 content-type 判断 data 类型
+    const body = (() => {
+      if (contentType.includes('application/json')) {
+      const jsonStr = typeof data === 'string' ? data : JSON.stringify(data);
+      return typeof Blob === 'function'
+        ? new Blob([jsonStr], { type: 'application/json' })
+        : jsonStr;
+    } else if (contentType.includes('application/octet-stream') || contentType.includes('image/') || contentType.includes('application/pdf')) {
+      // 处理为 Blob 类型，确保 data 为可用类型
+      let blobPart: BlobPart;
+      if (typeof data === 'string' || data instanceof ArrayBuffer) {
+        blobPart = data;
+      } else if (data instanceof Uint8Array) {
+        // 确保为标准 ArrayBuffer
+        blobPart = data.buffer instanceof ArrayBuffer ? data.buffer : new Uint8Array(data).buffer;
+      } else {
+        blobPart = typeof data === 'object' ? JSON.stringify(data) : String(data);
+      }
+      return typeof Blob === 'function'
+        ? new Blob([blobPart], { type: contentType })
+        : blobPart;
+    } else {
+      // 默认处理为字符串
+      const str = typeof data === 'string' ? data : JSON.stringify(data);
+      return typeof Blob === 'function'
+        ? new Blob([str], { type: 'text/plain' })
+        : str;
+    }
+    })()
 
     if (typeof Response === 'function') {
       const response = new Response(body as BodyInit,{ status, statusText, headers });
